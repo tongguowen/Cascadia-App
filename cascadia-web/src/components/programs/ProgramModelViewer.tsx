@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Design } from '@cascadia/commons/types/design'
 import type { VersionContext } from '@/hooks/useVersionContext'
 import { DesignModelViewer } from '@/components/designs/DesignModelViewer'
@@ -26,6 +27,7 @@ const MAIN_CONTEXT: VersionContext = { type: 'main' }
  * same row and the part picker stays with the structure it reads.
  */
 export function ProgramModelViewer({ designs }: { designs: Array<Design> }) {
+  const { t: tp } = useTranslation('pages')
   // Family designs are containers for other designs and hold no items of
   // their own, so there is never anything under one to draw.
   const candidates = useMemo(
@@ -52,7 +54,7 @@ export function ProgramModelViewer({ designs }: { designs: Array<Design> }) {
           <Select value={selectedDesign.id} onValueChange={setPickedDesignId}>
             <SelectTrigger
               className="w-[220px] h-8 text-xs"
-              aria-label="Design"
+              aria-label={tp('designs.modelViewer.designAria')}
             >
               <SelectValue />
             </SelectTrigger>

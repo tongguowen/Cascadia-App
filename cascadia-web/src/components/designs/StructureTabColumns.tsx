@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link2 } from 'lucide-react'
 import { formatPartDesignation } from '@cascadia/commons/types/variants'
 import type { ColumnDefinition } from '@/components/bom/BomTreeView'
@@ -22,6 +23,7 @@ export function useStructureColumns(
   isHistoricalView: boolean,
   roots: Array<BOMTreeNode>,
 ): Array<ColumnDefinition> {
+  const { t: tp } = useTranslation('pages')
   const showOption = useMemo(() => {
     const has = (list: Array<BOMTreeNode>): boolean =>
       list.some(
@@ -138,7 +140,10 @@ export function useStructureColumns(
           align: 'center',
           renderCell: (node) =>
             node.isInWork ? (
-              <span className="text-amber-500" title="In work on ECO">
+              <span
+                className="text-amber-500"
+                title={tp('designs.structureTab.inWorkOnEco')}
+              >
                 &#8635;
               </span>
             ) : null,
@@ -180,6 +185,6 @@ export function useStructureColumns(
       return columns
     },
     // isHistoricalView was the original memo key; the columns read it lazily.
-    [isHistoricalView, roots, showOption],
+    [isHistoricalView, roots, showOption, tp],
   )
 }

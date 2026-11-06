@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/utils'
 
 interface ResizeHandleProps {
@@ -30,6 +31,7 @@ export function ResizeHandle({
   maxWidth = 600,
   currentWidth,
 }: ResizeHandleProps) {
+  const { t: tc } = useTranslation('common')
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
   const [startWidth, setStartWidth] = useState(currentWidth)
@@ -97,7 +99,7 @@ export function ResizeHandle({
       )}
       role="separator"
       aria-orientation="vertical"
-      aria-label="Resize panel"
+      aria-label={tc('ui.resizeHandle.ariaLabel')}
     />
   )
 }

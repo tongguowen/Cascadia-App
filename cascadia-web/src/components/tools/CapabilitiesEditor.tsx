@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   displayCapabilityValue,
   formatCapabilityText,
@@ -164,9 +165,10 @@ function Section({
 // ============================================================================
 
 function FdmPrinterEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="FDM Printer Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.fdmPrinter')}>
       <div className="grid grid-cols-3 gap-2">
         <FormField label="Build X (mm)">
           <Input
@@ -238,9 +240,10 @@ function FdmPrinterEditor(props: CapabilitiesEditorProps) {
 }
 
 function SlaPrinterEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="SLA Printer Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.slaPrinter')}>
       <div className="grid grid-cols-3 gap-2">
         <FormField label="Build X (mm)">
           <Input
@@ -305,9 +308,10 @@ function SlaPrinterEditor(props: CapabilitiesEditorProps) {
 }
 
 function CncMillEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="CNC Mill Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.cncMill')}>
       <div className="grid grid-cols-3 gap-2">
         <FormField label="Work X (mm)">
           <Input
@@ -385,9 +389,10 @@ function CncMillEditor(props: CapabilitiesEditorProps) {
 }
 
 function CncLatheEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="CNC Lathe Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.cncLathe')}>
       <div className="grid grid-cols-2 gap-2">
         {h.numField('maxSwingDiameter', 'Max Swing Diameter (mm)')}
         {h.numField('maxTurningLength', 'Max Turning Length (mm)')}
@@ -430,9 +435,10 @@ function CncLatheEditor(props: CapabilitiesEditorProps) {
 }
 
 function LaserCutterEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Laser Cutter Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.laserCutter')}>
       <div className="grid grid-cols-2 gap-2">
         <FormField label="Bed X (mm)">
           <Input
@@ -459,9 +465,13 @@ function LaserCutterEditor(props: CapabilitiesEditorProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="co2">CO2</SelectItem>
-              <SelectItem value="fiber">Fiber</SelectItem>
-              <SelectItem value="diode">Diode</SelectItem>
+              <SelectItem value="co2">{tc('enum.laserType.co2')}</SelectItem>
+              <SelectItem value="fiber">
+                {tc('enum.laserType.fiber')}
+              </SelectItem>
+              <SelectItem value="diode">
+                {tc('enum.laserType.diode')}
+              </SelectItem>
             </SelectContent>
           </Select>
         </FormField>
@@ -472,9 +482,10 @@ function LaserCutterEditor(props: CapabilitiesEditorProps) {
 }
 
 function ManualMillEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Manual Mill Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.manualMill')}>
       <div className="grid grid-cols-2 gap-2">
         <FormField label="Table X (mm)">
           <Input
@@ -539,9 +550,10 @@ function ManualMillEditor(props: CapabilitiesEditorProps) {
 }
 
 function ManualLatheEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Manual Lathe Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.manualLathe')}>
       <div className="grid grid-cols-2 gap-2">
         {h.numField('maxSwingDiameter', 'Max Swing Diameter (mm)')}
         {h.numField('distanceBetweenCenters', 'Distance Between Centers (mm)')}
@@ -581,9 +593,10 @@ function ManualLatheEditor(props: CapabilitiesEditorProps) {
 }
 
 function MiterSawEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Miter Saw Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.miterSaw')}>
       <div className="grid grid-cols-2 gap-2">
         {h.numField('bladeSize', 'Blade Size (mm)')}
         {h.numField('maxCrosscutWidth', 'Max Crosscut at 90° (mm)')}
@@ -601,9 +614,10 @@ function MiterSawEditor(props: CapabilitiesEditorProps) {
 }
 
 function DrillPressEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Drill Press Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.drillPress')}>
       <div className="grid grid-cols-2 gap-2">
         {h.numField('maxDrillDiameter', 'Max Drill Diameter (mm)')}
         {h.numField('throatDepth', 'Throat Depth (mm)')}
@@ -656,9 +670,10 @@ function DrillPressEditor(props: CapabilitiesEditorProps) {
 }
 
 function PressBrakeEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Press Brake Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.pressBrake')}>
       <div className="grid grid-cols-2 gap-2">
         {h.numField('maxForce', 'Max Force (tonnes)')}
         {h.numField('bendLength', 'Bend Length (mm)')}
@@ -697,9 +712,10 @@ function PressBrakeEditor(props: CapabilitiesEditorProps) {
 }
 
 function SurfaceGrinderEditor(props: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const h = useCapHelpers(props.capabilities, props.onChange)
   return (
-    <Section title="Surface Grinder Capabilities">
+    <Section title={tc('capabilitiesEditor.sections.surfaceGrinder')}>
       <div className="grid grid-cols-2 gap-2">
         <FormField label="Table X (mm)">
           <Input
@@ -767,6 +783,7 @@ function FreeformCapabilitiesEditor({
   capabilities,
   onChange,
 }: Omit<CapabilitiesEditorProps, 'subtype'>) {
+  const { t: tc } = useTranslation('common')
   const [text, setText] = useState(() => formatCapabilityText(capabilities))
 
   // What the current text parses to; also what we last handed to the parent.
@@ -792,7 +809,9 @@ function FreeformCapabilitiesEditor({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-zinc-400">Capabilities</p>
+      <p className="text-sm font-medium text-zinc-400">
+        {tc('capabilitiesEditor.freeformTitle')}
+      </p>
       <Textarea
         rows={5}
         value={text}
@@ -835,6 +854,7 @@ export function CapabilitiesEditor({
   capabilities,
   onChange,
 }: CapabilitiesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const Editor = EDITORS[subtype]
 
   if (Editor) {
@@ -850,7 +870,7 @@ export function CapabilitiesEditor({
   if (!subtype) {
     return (
       <p className="text-sm text-slate-500">
-        Select a tool subtype to configure capabilities.
+        {tc('capabilitiesEditor.selectSubtype')}
       </p>
     )
   }

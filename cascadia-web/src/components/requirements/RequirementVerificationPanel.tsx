@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -68,6 +69,7 @@ export function RequirementVerificationPanel({
   isEditable = false,
 }: RequirementVerificationPanelProps) {
   const { handleError } = useErrorHandler()
+  const { t: tp } = useTranslation('pages')
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [linking, setLinking] = useState<string | null>(null)
@@ -118,6 +120,7 @@ export function RequirementVerificationPanel({
       // this legitimately refuses. Silently dropping it left the user
       // clicking + with nothing happening and no reason given.
       handleError(error, { title: 'Could not link test case' })
+      handleError(error, { title: tp('requirements.linkTestCaseFailedTitle') })
     } finally {
       setLinking(null)
     }
@@ -132,8 +135,7 @@ export function RequirementVerificationPanel({
       )
       await invalidate('requirements')
     } catch (error) {
-      handleError(error, { title: 'Could not remove test case' })
-    } finally {
+      handleError(error, { title: tp('requirements.removeTestCaseFailedTitle') })
       setUnlinking(null)
     }
   }
@@ -188,9 +190,9 @@ export function RequirementVerificationPanel({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Verification</CardTitle>
-            <CardDescription>
+            <CardTitle>{tc('sections.verification')}</CardTitle>
               Test cases that verify this requirement
-            </CardDescription>
+              {tp('requirements.verification.linkedTestCasesDescription')}
           </div>
           <div className="flex items-center gap-2">
             <AffirmAllButton
@@ -198,7 +200,7 @@ export function RequirementVerificationPanel({
               pendingIds={pendingIds}
               onAffirm={affirm}
               title="Record that every suspect test still verifies the requirement as it now stands"
-            />
+              title={tp('requirements.verification.affirmAllSuspectTestsTitle')}
             {isEditable && !showSearch && (
               <Button
                 variant="outline"
@@ -256,7 +258,9 @@ export function RequirementVerificationPanel({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for test cases to link..."
-                className="pl-10"
+                placeholder={tp(
+                  'requirements.verification.searchTestCasesPlaceholder',
+                )}
               />
               {searching && (
                 <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
@@ -350,7 +354,7 @@ export function RequirementVerificationPanel({
                     pendingIds={pendingIds}
                     onAffirm={affirm}
                     title="Record that this test still verifies the requirement as it now stands"
-                  />
+                    title={tp('requirements.verification.affirmOneTestTitle')}
                 )}
                 {isEditable && (
                   <Button

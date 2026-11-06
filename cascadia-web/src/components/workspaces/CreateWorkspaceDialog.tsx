@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { GitBranch, Loader2 } from 'lucide-react'
 import {
   Button,
@@ -32,14 +33,15 @@ export function CreateWorkspaceDialog({
   designName,
   onSuccess,
 }: CreateWorkspaceDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const [workspaceName, setWorkspaceName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleCreate = async () => {
     if (!workspaceName.trim()) {
-      handleError(new Error('Workspace name is required'), {
-        title: 'Validation Error',
+      handleError(new Error(tc('dialogs.createWorkspace.workspaceNameRequired')), {
+        title: tc('dialogs.createWorkspace.validationTitle'),
       })
       return
     }
@@ -57,15 +59,17 @@ export function CreateWorkspaceDialog({
       })
 
       showSuccess(
-        'Workspace created',
-        `Workspace "${workspaceName}" has been created successfully`,
+        tc('dialogs.createWorkspace.successTitle'),
+        tc('dialogs.createWorkspace.successDescription', {
+          workspaceName,
+        }),
       )
 
       onOpenChange(false)
       setWorkspaceName('')
       onSuccess?.(response.data.workspaceId, response.data.branchName)
     } catch (error) {
-      handleError(error, { title: 'Failed to create workspace' })
+      handleError(error, { title: tc('dialogs.createWorkspace.failedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -84,21 +88,28 @@ export function CreateWorkspaceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5" />
-            Create Workspace
+            {tc('dialogs.createWorkspace.title')}
           </DialogTitle>
           <DialogDescription>
-            Create a new workspace for{' '}
-            <strong>{designName || 'this design'}</strong>. Workspaces are
-            private branches where you can draft changes before creating an ECO.
+            <Trans
+              i18nKey="dialogs.createWorkspace.description"
+              values={{
+                designName:
+                  designName ?? tc('dialogs.createWorkspace.thisDesign'),
+              }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="workspace-name">Workspace Name</Label>
+            <Label htmlFor="workspace-name">
+              {tc('dialogs.createWorkspace.workspaceNameLabel')}
+            </Label>
             <Input
               id="workspace-name"
-              placeholder="e.g., my-feature, bug-fix, draft-changes"
+              placeholder={tc('dialogs.createWorkspace.namePlaceholder')}
               value={workspaceName}
               onChange={(e) => setWorkspaceName(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -106,7 +117,7 @@ export function CreateWorkspaceDialog({
               autoFocus
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Use lowercase letters, numbers, and hyphens only
+              {tc('dialogs.createWorkspace.nameHint')}
             </p>
           </div>
         </div>
@@ -117,7 +128,7 @@ export function CreateWorkspaceDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleCreate}
@@ -126,12 +137,12 @@ export function CreateWorkspaceDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                {tc('actions.creating')}
               </>
             ) : (
               <>
                 <GitBranch className="h-4 w-4 mr-2" />
-                Create Workspace
+                {tc('dialogs.createWorkspace.createButton')}
               </>
             )}
           </Button>

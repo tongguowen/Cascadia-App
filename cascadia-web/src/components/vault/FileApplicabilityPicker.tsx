@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SlidersHorizontal, Trash2 } from 'lucide-react'
 import {
   conditionFromSelections,
@@ -104,14 +105,16 @@ export function FileApplicabilityPicker({
           className={cn(compact && 'h-8 px-2')}
           title="File applicability"
         >
+          title={tp('vault.applicabilityPicker.title')}
+        >
           <SlidersHorizontal className="h-4 w-4" />
           {!compact && (
             <span className="ml-2">
               {value
-                ? `${value.any.length} applicability rule${value.any.length === 1 ? '' : 's'}`
-                : 'All executions'}
-            </span>
-          )}
+                ? tp('vault.applicabilityPicker.rules', {
+                    count: value.any.length,
+                  })
+                : tp('vault.applicabilityPicker.allExecutions')}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -122,22 +125,23 @@ export function FileApplicabilityPicker({
           <div>
             <div className="text-sm font-medium">File applicability</div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Common files are used by every execution. Otherwise the file is
-              used when any rule below matches the selected options.
+            <div className="text-sm font-medium">
+              {tp('vault.applicabilityPicker.title')}
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {tp('vault.applicabilityPicker.description')}
             </p>
           </div>
 
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <Checkbox checked={!draft} onCheckedChange={() => setDraft(null)} />
-            Common to all executions
+            {tp('vault.applicabilityPicker.commonToAll')}
           </label>
 
           {activeMakes.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                Execution shortcuts
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+                {tp('vault.applicabilityPicker.executionShortcuts')}
                 {activeMakes.map((make) => {
                   const condition = exactCondition(make)
                   return (
@@ -169,7 +173,7 @@ export function FileApplicabilityPicker({
               <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
                 Current rules
               </div>
-              {draft.any.map((condition, index) => (
+                {tp('vault.applicabilityPicker.currentRules')}
                 <div
                   key={`${optionConditionKey(condition)}-${index}`}
                   className="flex items-start justify-between gap-2 rounded-md bg-slate-50 dark:bg-slate-900 p-2"
@@ -183,7 +187,7 @@ export function FileApplicabilityPicker({
                     onClick={() => removeAt(index)}
                     title="Remove rule"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    title={tp('vault.applicabilityPicker.removeRule')}
                   </Button>
                 </div>
               ))}
@@ -194,7 +198,7 @@ export function FileApplicabilityPicker({
             <div className="text-xs font-medium text-slate-700 dark:text-slate-300">
               Add an option rule
             </div>
-            <ConditionPicker
+              {tp('vault.applicabilityPicker.addOptionRule')}
               model={model}
               value={custom}
               onChange={setCustom}
@@ -213,6 +217,8 @@ export function FileApplicabilityPicker({
               >
                 Add rule
               </Button>
+                {tp('vault.applicabilityPicker.addRule')}
+              </Button>
             </div>
           </div>
 
@@ -223,12 +229,10 @@ export function FileApplicabilityPicker({
               size="sm"
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button type="button" size="sm" onClick={save}>
-              Save
-            </Button>
-          </div>
+              {tc('actions.save')}
         </div>
       </PopoverContent>
     </Popover>

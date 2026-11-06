@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle,
@@ -71,6 +72,8 @@ async function readErrorMessage(
 }
 
 export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [createdPrograms, setCreatedPrograms] = useState<Array<CreatedProgram>>(
     [],
   )
@@ -289,12 +292,16 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Create program</CardTitle>
-            <CardDescription>e.g. ROBOTARM-V1</CardDescription>
+            <CardTitle className="text-base">
+              {t('setupWizard.programs.createProgramTitle')}
+            </CardTitle>
+            <CardDescription>
+              {t('setupWizard.programs.createProgramDescription')}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="prog-name">Name</Label>
+              <Label htmlFor="prog-name">{tc('fields.name')}</Label>
               <Input
                 id="prog-name"
                 value={programForm.name}
@@ -305,7 +312,7 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="prog-code">Code</Label>
+              <Label htmlFor="prog-code">{tc('fields.code')}</Label>
               <Input
                 id="prog-code"
                 value={programForm.code}
@@ -333,11 +340,13 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               ) : (
                 <Plus className="w-4 h-4 mr-2" />
               )}
-              Create program
+              {t('setupWizard.programs.createProgramButton')}
             </Button>
             {programs.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {programs.length} program{programs.length > 1 ? 's' : ''} total
+                {t('setupWizard.programs.programsTotal', {
+                  count: programs.length,
+                })}
               </p>
             )}
           </CardContent>
@@ -345,14 +354,16 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Create design</CardTitle>
+            <CardTitle className="text-base">
+              {t('setupWizard.programs.createDesignTitle')}
+            </CardTitle>
             <CardDescription>
-              Container for a related set of items
+              {t('setupWizard.programs.createDesignDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="des-name">Name</Label>
+              <Label htmlFor="des-name">{tc('fields.name')}</Label>
               <Input
                 id="des-name"
                 value={designForm.name}
@@ -363,7 +374,7 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="des-code">Code</Label>
+              <Label htmlFor="des-code">{tc('fields.code')}</Label>
               <Input
                 id="des-code"
                 value={designForm.code}
@@ -375,7 +386,9 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="des-program">Program (optional)</Label>
+              <Label htmlFor="des-program">
+                {t('setupWizard.programs.programOptional')}
+              </Label>
               <Select
                 value={designForm.programId || 'none'}
                 onValueChange={(v) =>
@@ -386,10 +399,10 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
                 }
               >
                 <SelectTrigger id="des-program">
-                  <SelectValue placeholder="None" />
+                  <SelectValue placeholder={tc('labels.noProgram')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No program</SelectItem>
+                  <SelectItem value="none">{tc('labels.noProgram')}</SelectItem>
                   {programs.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
@@ -415,19 +428,23 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               ) : (
                 <Plus className="w-4 h-4 mr-2" />
               )}
-              Create design
+              {t('setupWizard.programs.createDesignButton')}
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Add a part</CardTitle>
-            <CardDescription>Quick smoke test of part creation</CardDescription>
+            <CardTitle className="text-base">
+              {t('setupWizard.programs.addPartTitle')}
+            </CardTitle>
+            <CardDescription>
+              {t('setupWizard.programs.addPartDescription')}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="part-name">Name</Label>
+              <Label htmlFor="part-name">{tc('fields.name')}</Label>
               <Input
                 id="part-name"
                 value={partForm.name}
@@ -438,7 +455,7 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="part-type">Type</Label>
+              <Label htmlFor="part-type">{tc('fields.type')}</Label>
               <Select
                 value={partForm.partType}
                 onValueChange={(v) =>
@@ -452,21 +469,29 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Manufacture">Manufacture</SelectItem>
-                  <SelectItem value="Purchase">Purchase</SelectItem>
-                  <SelectItem value="Phantom">Phantom</SelectItem>
-                  <SelectItem value="Software">Software</SelectItem>
+                  {(
+                    [
+                      'Manufacture',
+                      'Purchase',
+                      'Phantom',
+                      'Software',
+                    ] as const
+                  ).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {t(`parts.partType.${value}`)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="part-design">Design</Label>
+              <Label htmlFor="part-design">{tc('fields.design')}</Label>
               <Select
                 value={partForm.designId}
                 onValueChange={(v) => setPartForm({ ...partForm, designId: v })}
               >
                 <SelectTrigger id="part-design">
-                  <SelectValue placeholder="Pick a design" />
+                  <SelectValue placeholder={tc('labels.selectDesign')} />
                 </SelectTrigger>
                 <SelectContent>
                   {designs.map((d) => (
@@ -494,12 +519,13 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               ) : (
                 <Plus className="w-4 h-4 mr-2" />
               )}
-              Add part
+              {t('setupWizard.programs.addPartButton')}
             </Button>
             {createdParts.length > 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {createdParts.length} part
-                {createdParts.length > 1 ? 's' : ''} created
+                {t('setupWizard.programs.partsCreated', {
+                  count: createdParts.length,
+                })}
               </p>
             )}
           </CardContent>
@@ -510,11 +536,10 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>Sample data</CardTitle>
+            <CardTitle>{t('setupWizard.programs.sampleDataTitle')}</CardTitle>
           </div>
           <CardDescription>
-            Load the bundled fastener and raw stock catalog so the design engine
-            has a baseline to draw from. Safe to re-run.
+            {t('setupWizard.programs.sampleDataDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -529,13 +554,15 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
               ) : (
                 <Package className="w-4 h-4 mr-2" />
               )}
-              Load standard catalog
+              {t('setupWizard.programs.loadStandardCatalog')}
             </Button>
             {catalogResult && (
               <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
                 <CheckCircle className="w-4 h-4" />
-                {catalogResult.inserted} entries added, {catalogResult.skipped}{' '}
-                skipped
+                {t('setupWizard.programs.catalogResult', {
+                  inserted: catalogResult.inserted,
+                  skipped: catalogResult.skipped,
+                })}
               </span>
             )}
             {catalogError && (
@@ -548,21 +575,25 @@ export function ProgramsStep({ onCompleted }: ProgramsStepProps) {
           <div className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
             <FileText className="w-4 h-4" />
             <span>
-              For larger datasets, you can bulk-import parts from a CSV at{' '}
-              <a
-                href="/api/import/parts"
-                className="text-blue-600 dark:text-blue-400 underline"
-              >
-                /api/import/parts
-              </a>{' '}
-              once setup is finished.
+              <Trans
+                i18nKey="setupWizard.programs.bulkImportHint"
+                ns="pages"
+                components={{
+                  link: (
+                    <a
+                      href="/api/import/parts"
+                      className="text-blue-600 dark:text-blue-400 underline"
+                    />
+                  ),
+                }}
+              />
             </span>
           </div>
         </CardContent>
       </Card>
 
       <div>
-        <Button onClick={onCompleted}>Continue</Button>
+        <Button onClick={onCompleted}>{tc('actions.continue')}</Button>
       </div>
     </div>
   )

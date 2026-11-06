@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -88,6 +89,8 @@ export const Route = createFileRoute('/test-cases/')({
 })
 
 function TestCasesListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -122,22 +125,24 @@ function TestCasesListPage() {
     if (!testCase.id) return
 
     confirm({
-      title: 'Delete Test Case',
-      description: `Are you sure you want to delete ${testCase.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('testCases.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: testCase.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
           await apiFetch(`/api/v1/items/${testCase.id}`, { method: 'DELETE' })
 
           showSuccess(
-            'Test case deleted',
-            `${testCase.itemNumber} has been deleted`,
+            t('testCases.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: testCase.itemNumber }),
           )
           await invalidate('test-cases')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete test case' })
+          handleError(error, { title: t('testCases.deleteFailed') })
         }
       },
     })
@@ -164,7 +169,7 @@ function TestCasesListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Test Cases
+              {t('testCases.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -173,9 +178,11 @@ function TestCasesListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Verify requirements and validate parts
+            {t('testCases.subtitle')}
             {selectedDesign && (
-              <span className="text-slate-500"> in {selectedDesign.name}</span>
+              <span className="text-slate-500">
+                {tc('context.inDesign', { designName: selectedDesign.name })}
+              </span>
             )}
           </p>
         </div>
@@ -185,7 +192,7 @@ function TestCasesListPage() {
         >
           <Button disabled={!isEditable && context.type !== 'main'}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Test Case
+            {t('testCases.create')}
           </Button>
         </Link>
       </div>
@@ -195,7 +202,7 @@ function TestCasesListPage() {
         itemType="TestCase"
         filters={filters}
         total={total}
-        totalLabel="Total"
+        totalLabel={t('testCases.total')}
       />
 
       {/* Table */}

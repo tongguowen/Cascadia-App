@@ -5,6 +5,7 @@ import type { LifecycleState } from '@cascadia/commons/lifecycles/types'
 import { Badge } from '@/components/ui'
 import { getStateBadgeVariant } from '@/components/bom/helpers'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translatePhysicalPartState, translateStateName } from '@/i18n'
 
 interface StateBadgeProps {
   itemType?: string
@@ -77,11 +78,18 @@ export function useLifecycleState(
   state: string | null | undefined,
 ): { label: string; className: string } {
   const { data } = useLifecyclePhases(itemType)
+  if (itemType === 'PhysicalPart' && state) {
+    return {
+      label: translatePhysicalPartState(state),
+      className: NEUTRAL_STATE_CLASSES,
+    }
+  }
   const match = state
     ? data?.states.find((s) => s.id === state || s.name === state)
     : undefined
+  const rawLabel = match?.name ?? state ?? ''
   return {
-    label: match?.name ?? state ?? '',
+    label: translateStateName(rawLabel),
     className: match?.color
       ? (CLASSES_BY_LIFECYCLE_COLOR[match.color] ?? NEUTRAL_STATE_CLASSES)
       : NEUTRAL_STATE_CLASSES,
@@ -120,7 +128,7 @@ export function StateBadge({
 
   return (
     <Badge variant={variant} className={className}>
-      {match?.name ?? state}
+      {translateStateName(match?.name ?? state)}
     </Badge>
   )
 }

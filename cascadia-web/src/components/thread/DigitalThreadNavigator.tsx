@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Background,
@@ -65,6 +66,7 @@ export function DigitalThreadNavigator({
   designId = '',
   defaultExpanded = false,
 }: DigitalThreadNavigatorProps) {
+  const { t: tc } = useTranslation('common')
   const { theme } = useTheme()
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [upstreamDepth, setUpstreamDepth] = useState(3)
@@ -236,13 +238,13 @@ export function DigitalThreadNavigator({
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
-            <span>Digital Thread</span>
+            <span>{tc('thread.title')}</span>
           </button>
           {isExpanded && (
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Upstream:
+                  {tc('thread.upstream')}:
                 </label>
                 <select
                   value={upstreamDepth}
@@ -260,7 +262,7 @@ export function DigitalThreadNavigator({
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600 dark:text-slate-400">
-                  Downstream:
+                  {tc('thread.downstream')}:
                 </label>
                 <select
                   value={downstreamDepth}
@@ -278,7 +280,7 @@ export function DigitalThreadNavigator({
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-sm text-slate-600 dark:text-slate-400">
-                  BOM Depth:
+                  {tc('thread.bomDepth')}:
                 </label>
                 <select
                   value={bomDepth}
@@ -303,7 +305,7 @@ export function DigitalThreadNavigator({
                       ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
                       : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
-                  title="Vertical layout"
+                  title={tc('tooltips.verticalLayout')}
                 >
                   <ArrowDown className="h-4 w-4" />
                 </button>
@@ -317,7 +319,7 @@ export function DigitalThreadNavigator({
                       ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
                       : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
-                  title="Horizontal layout"
+                  title={tc('tooltips.horizontalLayout')}
                 >
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -342,7 +344,7 @@ export function DigitalThreadNavigator({
                   disabled={loading}
                 >
                   <GitCompare className="h-4 w-4 mr-2" />
-                  Compare
+                  {tc('thread.compare')}
                 </Button>
               )}
             </div>
@@ -359,7 +361,7 @@ export function DigitalThreadNavigator({
                 <div className="w-4 h-4 rounded bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700" />
                 <ListChecks className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  Requirements
+                  {tc('thread.legendRequirements')}
                 </span>
                 <span className="text-xs text-slate-500">
                   ({requirementsCount})
@@ -371,7 +373,7 @@ export function DigitalThreadNavigator({
                 <div className="w-4 h-4 rounded bg-teal-100 dark:bg-teal-900 border border-teal-300 dark:border-teal-700" />
                 <FlaskConical className="h-4 w-4 text-teal-600 dark:text-teal-400" />
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  Validation (Tests)
+                  {tc('thread.legendValidation')}
                 </span>
                 <span className="text-xs text-slate-500">
                   ({validationCount})
@@ -382,7 +384,7 @@ export function DigitalThreadNavigator({
               <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700" />
               <Wrench className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                Engineering (EBOM)
+                {tc('thread.legendEngineering')}
               </span>
               {engineeringCount > 0 && (
                 <span className="text-xs text-slate-500">
@@ -394,7 +396,7 @@ export function DigitalThreadNavigator({
               <div className="w-4 h-4 rounded bg-amber-100 dark:bg-amber-900 border border-amber-300 dark:border-amber-700" />
               <Factory className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                Manufacturing (MBOM)
+                {tc('thread.legendManufacturing')}
               </span>
               {manufacturingCount > 0 && (
                 <span className="text-xs text-slate-500">
@@ -406,7 +408,7 @@ export function DigitalThreadNavigator({
               <div className="w-4 h-4 rounded bg-emerald-100 dark:bg-emerald-900 border border-emerald-300 dark:border-emerald-700" />
               <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                Physical (As-Built)
+                {tc('thread.legendPhysical')}
               </span>
               {physicalCount > 0 && (
                 <span className="text-xs text-slate-500">
@@ -420,13 +422,25 @@ export function DigitalThreadNavigator({
                 stats.testCoverage > 0) && (
                 <div className="ml-auto flex items-center gap-4 text-sm text-slate-500">
                   {stats.mbomCoverage > 0 && (
-                    <span>MBOM Coverage: {stats.mbomCoverage}%</span>
+                    <span>
+                      {tc('thread.mbomCoverage', {
+                        value: stats.mbomCoverage,
+                      })}
+                    </span>
                   )}
                   {stats.requirementsCoverage > 0 && (
-                    <span>Req Coverage: {stats.requirementsCoverage}%</span>
+                    <span>
+                      {tc('thread.reqCoverage', {
+                        value: stats.requirementsCoverage,
+                      })}
+                    </span>
                   )}
                   {stats.testCoverage > 0 && (
-                    <span>Test Coverage: {stats.testCoverage}%</span>
+                    <span>
+                      {tc('thread.testCoverage', {
+                        value: stats.testCoverage,
+                      })}
+                    </span>
                   )}
                 </div>
               )}
@@ -435,28 +449,29 @@ export function DigitalThreadNavigator({
           {loading && nodes.length === 0 && (
             <div className="flex items-center justify-center py-12 text-slate-500">
               <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-              Loading digital thread...
+              {tc('thread.loading')}
             </div>
           )}
 
           {error && (
             <div className="text-center py-8 text-red-600 dark:text-red-400">
-              Error: {error.message}
+              {tc('thread.errorPrefix')} {error.message}
             </div>
           )}
 
           {!loading && !error && nodes.length === 0 && (
             <div className="text-center py-8 text-slate-500">
-              No thread relationships found. This item is not linked to any
-              requirements, Engineering or Manufacturing designs, tests, work
-              orders, or physical parts.
+              {tc('thread.empty')}
             </div>
           )}
 
           {nodes.length > 0 && (
             <FullscreenGraphWrapper
-              title="Digital Thread"
-              subtitle={`${stats?.totalNodes || nodes.length} items, ${stats?.totalRelationships || edges.length} relationships`}
+              title={tc('tooltips.digitalThread')}
+              subtitle={tc('thread.fullscreenSubtitle', {
+                nodeCount: stats?.totalNodes || nodes.length,
+                edgeCount: stats?.totalRelationships || edges.length,
+              })}
               inlineHeight="500px"
               headerControls={
                 <div className="flex items-center gap-2">
@@ -471,7 +486,7 @@ export function DigitalThreadNavigator({
                           ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
                           : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                       }`}
-                      title="Vertical layout"
+                      title={tc('tooltips.verticalLayout')}
                     >
                       <ArrowDown className="h-4 w-4" />
                     </button>
@@ -485,7 +500,7 @@ export function DigitalThreadNavigator({
                           ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
                           : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                       }`}
-                      title="Horizontal layout"
+                      title={tc('tooltips.horizontalLayout')}
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -506,16 +521,15 @@ export function DigitalThreadNavigator({
               footer={
                 <div className="text-sm text-slate-600 dark:text-slate-400">
                   <p>
-                    Showing {engineeringCount} engineering, {manufacturingCount}{' '}
-                    manufacturing, {physicalCount} physical, {requirementsCount}{' '}
-                    requirement, and {validationCount} test items. Dashed lines
-                    indicate cross-domain links.
+                    {tc('thread.summary', {
+                      engineering: engineeringCount,
+                      manufacturing: manufacturingCount,
+                      physical: physicalCount,
+                      requirements: requirementsCount,
+                      validation: validationCount,
+                    })}
                   </p>
-                  <p className="mt-1 text-xs">
-                    Use mouse wheel to zoom, drag to pan. Click item numbers to
-                    navigate. Use the +/− buttons on a node to expand or
-                    collapse its neighbors.
-                  </p>
+                  <p className="mt-1 text-xs">{tc('thread.interactionHint')}</p>
                 </div>
               }
             >

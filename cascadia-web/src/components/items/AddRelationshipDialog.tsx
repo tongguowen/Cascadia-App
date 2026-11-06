@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueries } from '@tanstack/react-query'
 import { Check, Link2, X } from 'lucide-react'
 import { catalogEntry } from '@cascadia/commons/items/relationships/catalog'
@@ -39,7 +40,7 @@ import { useErrorHandler } from '@/hooks/useErrorHandler'
 import { useListSelection } from '@/hooks/useListSelection'
 import { apiFetch } from '@/api/client'
 import { entityQuery, useInvalidateResources } from '@/query'
-import { ITEM_TYPE_OPTIONS } from '@/items/item-type-ui'
+import { getItemTypeOptions } from '@/items/item-type-ui'
 import { StateBadge } from '@/components/items/StateBadge'
 import { cn } from '@/utils'
 
@@ -91,6 +92,8 @@ export function AddRelationshipDialog({
   relationshipType,
   onSuccess,
 }: AddRelationshipDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { alert } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -102,10 +105,10 @@ export function AddRelationshipDialog({
     catalogedType?.targetTypes[0] ?? 'Part',
   )
   const targetTypeOptions = catalogedType
-    ? ITEM_TYPE_OPTIONS.filter((option) =>
+    ? getItemTypeOptions().filter((option) =>
         catalogedType.targetTypes.includes(option.value),
       )
-    : ITEM_TYPE_OPTIONS
+    : getItemTypeOptions()
   const [details, setDetails] = useState<Record<string, LineDetails>>({})
   const [loading, setLoading] = useState(false)
 
@@ -235,7 +238,9 @@ export function AddRelationshipDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto auto-hide-scroll">
         <DialogHeader>
-          <DialogTitle>Add {relationshipType}</DialogTitle>
+          <DialogTitle>
+            {tp('relationships.addTitle', { type: relationshipType })}
+          </DialogTitle>
           <DialogDescription>
             Search for items to add as {relationshipType.toLowerCase()}. Pick as
             many as you need — they are added together.
@@ -248,7 +253,7 @@ export function AddRelationshipDialog({
             <BomScopeNotice scope={bomScope} />
           ) : (
             <div>
-              <Label>Item Type</Label>
+              <Label>{tc('fields.itemType')}</Label>
               <Select value={itemType} onValueChange={setItemType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -273,10 +278,10 @@ export function AddRelationshipDialog({
 
           {/* Search Input */}
           <div>
-            <Label>Search</Label>
+            <Label>{tc('actions.search')}</Label>
             <Input
               type="text"
-              placeholder="Search by item number or name..."
+              placeholder={tc('placeholders.searchItemNumberOrName')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -467,7 +472,7 @@ export function AddRelationshipDialog({
                       <Input
                         type="text"
                         className="h-8"
-                        placeholder="R1, C1"
+                        placeholder={tc('placeholders.referenceDesignatorExample')}
                         aria-label={`Reference designator for ${item.itemNumber}`}
                         value={line.referenceDesignator}
                         onChange={(e) =>

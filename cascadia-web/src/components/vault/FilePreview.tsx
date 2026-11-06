@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Suspense, lazy, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Download, Loader2 } from 'lucide-react'
 import { previewKindFor } from '@cascadia/commons/vault/preview'
 import type { PreviewKind } from '@cascadia/commons/vault/preview'
@@ -68,6 +69,8 @@ function Centered({ children }: { children: React.ReactNode }) {
  * the thing that keeps the credential out of the URL.
  */
 export function FilePreview({ file, markup, className }: FilePreviewProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [content, setContent] = useState<LoadedContent | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -115,7 +118,12 @@ export function FilePreview({ file, markup, className }: FilePreviewProps) {
   }, [file.id, kind])
 
   const downloadButton = (
-    <Button variant="ghost" size="icon" asChild title="Download">
+    <Button
+      variant="ghost"
+      size="icon"
+      asChild
+      title={tc('actions.download')}
+    >
       <a href={`/api/v1/files/${file.id}/download`} download>
         <Download className="h-4 w-4" />
       </a>
@@ -126,8 +134,9 @@ export function FilePreview({ file, markup, className }: FilePreviewProps) {
     return (
       <Centered>
         <p className="text-slate-600 dark:text-slate-400">
-          {file.originalFileName} cannot be previewed. Download it to open it in
-          another application.
+          {tp('vault.preview.cannotPreview', {
+            fileName: file.originalFileName,
+          })}
         </p>
       </Centered>
     )
@@ -137,7 +146,9 @@ export function FilePreview({ file, markup, className }: FilePreviewProps) {
     return (
       <Centered>
         <div className="space-y-1">
-          <p className="text-red-600 dark:text-red-400">Preview unavailable</p>
+          <p className="text-red-600 dark:text-red-400">
+            {tp('vault.preview.unavailable')}
+          </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">{error}</p>
         </div>
       </Centered>
@@ -149,7 +160,7 @@ export function FilePreview({ file, markup, className }: FilePreviewProps) {
       <Centered>
         <span className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading {file.originalFileName}...
+          {tp('vault.preview.loading', { fileName: file.originalFileName })}
         </span>
       </Centered>
     )

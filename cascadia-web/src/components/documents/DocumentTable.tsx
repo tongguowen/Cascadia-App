@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import type { Document } from '@cascadia/commons/items/types/document'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface DocumentTableProps {
   documents: Array<Document>
@@ -57,20 +59,22 @@ export function DocumentTable({
 }: DocumentTableProps) {
   // State filter options and badges come from the Document lifecycle's
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { data: lifecycle } = useLifecyclePhases('Document')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<Document>> = [
     {
       id: 'itemNumber',
-      header: 'Item Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -86,41 +90,41 @@ export function DocumentTable({
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: t('columns.rev'),
       accessorKey: 'revision',
       enableSorting: true,
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'fileName',
-      header: 'File Name',
+      header: t('columns.fileName'),
       accessorKey: 'fileName',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search files...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'fileSize',
-      header: 'File Size',
+      header: t('columns.size'),
       accessorKey: 'fileSize',
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: t('actions.any'),
       cell: ({ getValue }) => formatFileSize(getValue() as number | undefined),
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -131,7 +135,7 @@ export function DocumentTable({
     },
     {
       id: 'phase',
-      header: 'Phase',
+      header: t('columns.phase'),
       enableSorting: false,
       enableFiltering: false,
       meta: { width: '120px' },
@@ -145,7 +149,7 @@ export function DocumentTable({
     },
     {
       id: 'usageCount',
-      header: 'Used In',
+      header: t('columns.usedIn'),
       accessorKey: 'usageCount',
       enableFiltering: false,
       enableSorting: true,
@@ -156,7 +160,7 @@ export function DocumentTable({
         if (count === 0) return <span className="text-slate-400">-</span>
         return (
           <Badge variant="outline" className="text-xs">
-            {count} {count === 1 ? 'design' : 'designs'}
+            {count} {t('units.design', { count })}
           </Badge>
         )
       },
@@ -173,7 +177,7 @@ export function DocumentTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -181,14 +185,14 @@ export function DocumentTable({
             <DropdownMenuItem asChild>
               <Link to="/documents/$id" params={{ id: document.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(document)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -199,7 +203,7 @@ export function DocumentTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -219,7 +223,7 @@ export function DocumentTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(document)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -230,7 +234,7 @@ export function DocumentTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}
@@ -254,8 +258,8 @@ export function DocumentTable({
       enableContextMenu
       getRowUrl={getRowUrl}
       renderContextMenuItems={renderContextMenuItems}
-      emptyMessage="No documents found"
-      emptyDescription="Create your first document to get started"
+      emptyMessage={tp('documents.emptyMessage')}
+      emptyDescription={tp('documents.emptyDescription')}
       exportFilename="documents"
       serverSidePagination={serverSidePagination}
       totalRows={totalRows}

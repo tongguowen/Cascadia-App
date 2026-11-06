@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, Key, MoreVertical, Shield, Trash2 } from 'lucide-react'
 import type { UserWithRoles } from '@cascadia/commons/auth/types'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -34,10 +35,12 @@ export function UserTable({
   onManageRoles,
   onResetPassword,
 }: UserTableProps) {
+  const { t } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const columns: Array<DataGridColumn<UserWithRoles>> = [
     {
       id: 'email',
-      header: 'Email',
+      header: t('columns.email'),
       accessorKey: 'email',
       enableFiltering: true,
       filterType: 'text',
@@ -57,16 +60,16 @@ export function UserTable({
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search names...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'provider',
-      header: 'Provider',
+      header: t('columns.provider'),
       accessorKey: 'provider',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -83,7 +86,7 @@ export function UserTable({
     },
     {
       id: 'roles',
-      header: 'Roles',
+      header: t('columns.roles'),
       accessorFn: (row) => {
         // Deduplicate roles by ID for filtering/display
         const uniqueRoles = Array.from(
@@ -108,7 +111,9 @@ export function UserTable({
                 </Badge>
               ))
             ) : (
-              <span className="text-slate-400 text-sm">No roles</span>
+              <span className="text-slate-400 text-sm">
+                {tp('users.noRolesAssigned')}
+              </span>
             )}
           </div>
         )
@@ -116,31 +121,33 @@ export function UserTable({
     },
     {
       id: 'active',
-      header: 'Status',
+      header: t('columns.status'),
       accessorKey: 'active',
       enableFiltering: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Active', value: 'true' },
-        { label: 'Inactive', value: 'false' },
+        { label: tp('users.active'), value: 'true' },
+        { label: tp('users.inactive'), value: 'false' },
       ],
       cell: ({ getValue }) => {
         const isActive = getValue() as boolean
         return (
           <Badge variant={isActive ? 'success' : 'destructive'}>
-            {isActive ? 'Active' : 'Inactive'}
+            {isActive ? tp('users.active') : tp('users.inactive')}
           </Badge>
         )
       },
     },
     {
       id: 'lastLogin',
-      header: 'Last Login',
+      header: t('columns.lastLogin'),
       accessorKey: 'lastLogin',
       enableSorting: true,
       cell: ({ getValue }) => {
         const lastLogin = getValue() as string | null
-        return lastLogin ? new Date(lastLogin).toLocaleDateString() : 'Never'
+        return lastLogin
+          ? new Date(lastLogin).toLocaleDateString()
+          : tp('users.neverLoggedIn')
       },
     },
   ]
@@ -156,7 +163,7 @@ export function UserTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -164,26 +171,26 @@ export function UserTable({
             <DropdownMenuItem asChild>
               <Link to="/users/$id" params={{ id: user.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(user)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onManageRoles && (
             <DropdownMenuItem onClick={() => onManageRoles(user)}>
               <Shield className="mr-2 h-4 w-4" />
-              Manage roles
+              {t('actions.manageRoles')}
             </DropdownMenuItem>
           )}
           {onResetPassword && user.provider === 'local' && (
             <DropdownMenuItem onClick={() => onResetPassword(user)}>
               <Key className="mr-2 h-4 w-4" />
-              Reset password
+              {t('actions.resetPassword')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -194,7 +201,7 @@ export function UserTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -214,13 +221,13 @@ export function UserTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(user)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onManageRoles && (
             <ContextMenuItem onClick={() => onManageRoles(user)}>
               <Shield className="mr-2 h-4 w-4" />
-              Manage roles
+              {t('actions.manageRoles')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -231,7 +238,7 @@ export function UserTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

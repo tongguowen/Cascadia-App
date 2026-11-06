@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { cn } from '@/utils'
 import {
@@ -59,6 +60,7 @@ export function AttributesEditor({
   disabled = false,
   className,
 }: AttributesEditorProps) {
+  const { t: tc } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
 
   const entries = Object.entries(value)
@@ -106,7 +108,7 @@ export function AttributesEditor({
         <CollapsibleTrigger className="flex w-full items-center justify-between p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
           <div className="flex items-center gap-3">
             <span className="text-2xl font-semibold leading-none tracking-tight">
-              Custom Attributes
+              {tc('sections.customAttributes')}
             </span>
             {attributeCount > 0 && (
               <Badge variant="secondary">{attributeCount}</Badge>
@@ -118,8 +120,7 @@ export function AttributesEditor({
           <div className="px-4 pb-4 space-y-3">
             {entries.length === 0 ? (
               <p className="text-sm text-muted-foreground py-2">
-                No custom attributes defined. Add attributes to store additional
-                metadata on this item.
+                {tc('messages.customAttributesEmpty')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -136,14 +137,14 @@ export function AttributesEditor({
                             handleRemove(key)
                           }
                         }}
-                        placeholder="Key"
+                        placeholder={tc('placeholders.attributeKey')}
                         className="flex-1"
                         disabled={disabled}
                       />
                       <Input
                         value={formatAttributeValue(val)}
                         onChange={(e) => handleValueChange(key, e.target.value)}
-                        placeholder="Value"
+                        placeholder={tc('placeholders.attributeValue')}
                         className={cn(
                           'flex-1',
                           !isText && 'text-muted-foreground',
@@ -153,7 +154,7 @@ export function AttributesEditor({
                         title={
                           isText
                             ? undefined
-                            : 'Structured value — edit it where it is written, or remove it here'
+                            : tc('thread.structuredAttributeReadonly')
                         }
                       />
                       <Button
@@ -181,7 +182,7 @@ export function AttributesEditor({
               className="mt-2"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Attribute
+              {tc('actions.addAttribute')}
             </Button>
           </div>
         </CollapsibleContent>

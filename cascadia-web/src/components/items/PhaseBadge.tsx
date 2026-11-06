@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 import { cn } from '@/utils'
 
 interface PhaseBadgeProps {
@@ -52,7 +53,7 @@ export function PhaseBadge({ itemType, state, className }: PhaseBadgeProps) {
         className,
       )}
     >
-      {phase.name}
+      {translateStateName(phase.name)}
     </span>
   )
 }

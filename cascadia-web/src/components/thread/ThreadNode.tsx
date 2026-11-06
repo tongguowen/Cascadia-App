@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Handle, Position } from '@xyflow/react'
 import { Link } from '@tanstack/react-router'
 import {
@@ -187,14 +188,6 @@ const domainColors: Record<string, DomainColors> = {
 const domainLabels: Record<string, string> = {
   requirements: 'REQ',
   engineering: 'EBOM',
-  manufacturing: 'MBOM',
-  validation: 'TEST',
-  physical: 'PHYSICAL',
-}
-
-const domainIcons: Record<string, LucideIcon> = {
-  requirements: ListChecks,
-  engineering: Wrench,
   manufacturing: Factory,
   validation: ListChecks,
   physical: Package,
@@ -209,15 +202,30 @@ function ThreadNodeComponent({
   const data = rawData as unknown as ThreadNodeData &
     ThreadNodeExpandData & { onClick?: () => void }
   const colors = domainColors[data.domain] ?? engineeringColors
-  const Icon = itemTypeIcons[data.itemType] || Box
-  const stateStyle = useLifecycleState(data.itemType, data.state)
-  const DomainIcon = domainIcons[data.domain] || Wrench
+  const { t: tc } = useTranslation('common')
+  const data = rawData as unknown as ThreadNodeData &
+    ThreadNodeExpandData & { onClick?: () => void }
+  const colors = domainColors[data.domain] ?? engineeringColors
+  const domainLabel =
+    tc(`thread.domainShort.${data.domain}`, {
+      defaultValue: data.domain,
+    }) || data.domain
   const route = getItemDetailRoutePattern(data.itemType)
   const { expandState, onToggleExpand } = data
   const isHorizontal = data.isHorizontal ?? false
 
   return (
     <div className="relative">
+  const expandTitle = (dir: 'up' | 'down', streamState: ThreadExpandState) => {
+    if (streamState === 'expanded') {
+      return dir === 'up'
+        ? tc('thread.collapseUpstream')
+        : tc('thread.collapseDownstream')
+    }
+    return dir === 'up'
+      ? tc('thread.expandUpstream')
+      : tc('thread.expandDownstream')
+  }
       {/* Primary handles sit on the lane-flow sides; the alt pair sits on
           the flipped sides for edges that travel against the lane stacking
           order (see swimLaneLayout). */}
@@ -242,6 +250,7 @@ function ThreadNodeComponent({
         />
       )}
       <div
+          title={expandTitle('up', expandState.up)}
         className={`
           w-[260px] rounded-lg border-2 shadow-sm overflow-hidden
           ${colors.bg} ${colors.border}
@@ -256,6 +265,9 @@ function ThreadNodeComponent({
             <DomainIcon className={`h-3.5 w-3.5 ${colors.text}`} />
             <span className={`text-xs font-medium ${colors.text}`}>
               {domainLabels[data.domain] || data.domain}
+            </span>
+          </div>
+              {domainLabel}
             </span>
           </div>
           <span className={`text-xs ${colors.text}`}>{data.designCode}</span>
@@ -281,7 +293,7 @@ function ThreadNodeComponent({
             {/* Physical items are not versioned — a revision is meaningless */}
             {data.domain !== 'physical' && (
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                Rev {data.revision}
+                {tc('thread.rev', { revision: data.revision })}
               </span>
             )}
           </div>
@@ -299,7 +311,7 @@ function ThreadNodeComponent({
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${colors.badge}`}
             >
               <Icon className="h-3 w-3" />
-              {data.itemType}
+              {getItemTypeLabel(data.itemType)}
             </span>
             <span
               className={`px-1.5 py-0.5 rounded text-xs ${stateStyle.className}`}
@@ -327,9 +339,7 @@ function ThreadNodeComponent({
           state={expandState.down}
           isHorizontal={isHorizontal}
           onClick={() => onToggleExpand(id, 'down')}
-        />
-      )}
-    </div>
+          title={expandTitle('down', expandState.down)}
   )
 }
 

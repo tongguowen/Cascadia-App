@@ -2,11 +2,13 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Upload } from 'lucide-react'
 import { getImportConfig } from '@cascadia/commons/import'
 import { ImportDialog } from './ImportDialog'
 import type { ImportItemType } from '@cascadia/commons/import'
 import { Button } from '@/components/ui'
+import { translateItemTypeLabel } from '@/i18n'
 
 interface ImportButtonProps {
   /** Item type to import */
@@ -42,7 +44,9 @@ export function ImportButton({
   onImportComplete,
 }: ImportButtonProps) {
   const [open, setOpen] = useState(false)
+  const { t } = useTranslation('common')
   const config = getImportConfig(itemType)
+  const typeLabel = translateItemTypeLabel(config.pluralLabel)
 
   const handleComplete = () => {
     setOpen(false)
@@ -59,7 +63,7 @@ export function ImportButton({
         data-testid="import-button"
       >
         <Upload className="h-4 w-4 mr-2" />
-        Import {config.pluralLabel}
+        {t('importButton.importLabel', { label: typeLabel })}
       </Button>
 
       <ImportDialog

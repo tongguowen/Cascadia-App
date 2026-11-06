@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, Building2, FolderKanban, GitBranch } from 'lucide-react'
 import { getImportConfig } from '@cascadia/commons/import'
@@ -59,8 +60,10 @@ export function ContextSelectStep({
   value: _value, // Used by parent to track context state
   onChange,
 }: ContextSelectStepProps) {
+  const { t: tp } = useTranslation('pages')
   const config = getImportConfig(itemType)
   const requiresDesign = config.requiresDesign
+  const itemsLabel = config.pluralLabel.toLowerCase()
 
   const [selectedProgramId, setSelectedProgramId] = useState<
     string | undefined
@@ -176,24 +179,30 @@ export function ContextSelectStep({
       <div className="text-center mb-4">
         <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
           {requiresDesign
-            ? `Where do you want to import ${config.pluralLabel.toLowerCase()}?`
-            : `Select a program for the ${config.pluralLabel.toLowerCase()} (optional)`}
+            ? tp('import.contextSelect.titleWithDesign', { items: itemsLabel })
+            : tp('import.contextSelect.titleProgramOnly', {
+                items: itemsLabel,
+              })}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
           {requiresDesign
-            ? `Select the program and design to import ${config.pluralLabel.toLowerCase()} into`
-            : `You can optionally associate imported ${config.pluralLabel.toLowerCase()} with a program`}
+            ? tp('import.contextSelect.subtitleWithDesign', {
+                items: itemsLabel,
+              })
+            : tp('import.contextSelect.subtitleProgramOnly', {
+                items: itemsLabel,
+              })}
         </p>
       </div>
 
       {/* Program Selection */}
       <FormField
-        label="Program"
+        label={tp('import.contextSelect.program')}
         required={requiresDesign}
         helpText={
           requiresDesign
-            ? 'Select the program containing the design'
-            : 'Optional: Associate imported items with a program'
+            ? tp('import.contextSelect.programHelpRequired')
+            : tp('import.contextSelect.programHelpOptional')
         }
       >
         <div className="flex items-center gap-2">
@@ -204,7 +213,7 @@ export function ContextSelectStep({
             disabled={loadingPrograms}
           >
             <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Select a program..." />
+              <SelectValue placeholder={tp('import.contextSelect.selectProgram')} />
             </SelectTrigger>
             <SelectContent>
               {programs.map((program) => (
@@ -225,9 +234,9 @@ export function ContextSelectStep({
       {/* Design Selection - only shown for items that require design */}
       {requiresDesign && (
         <FormField
-          label="Design"
+          label={tp('import.contextSelect.design')}
           required
-          helpText={`Select the design to import ${config.pluralLabel.toLowerCase()} into`}
+          helpText={tp('import.contextSelect.designHelp', { items: itemsLabel })}
         >
           <div className="flex items-center gap-2">
             <FolderKanban className="h-5 w-5 text-slate-400" />
@@ -240,10 +249,10 @@ export function ContextSelectStep({
                 <SelectValue
                   placeholder={
                     !selectedProgramId
-                      ? 'Select a program first'
+                      ? tp('import.contextSelect.selectProgramFirst')
                       : loadingDesigns
-                        ? 'Loading designs...'
-                        : 'Select a design...'
+                        ? tp('import.contextSelect.loadingDesigns')
+                        : tp('import.contextSelect.selectDesign')
                   }
                 />
               </SelectTrigger>
@@ -284,12 +293,10 @@ export function ContextSelectStep({
                 htmlFor="importAsReleased"
                 className="cursor-pointer text-sm font-medium text-blue-900 dark:text-blue-100"
               >
-                Import as existing formal releases
+                {tp('import.contextSelect.importAsReleased')}
               </label>
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Each row must provide a revision matching the lifecycle (for
-                example R4). Items are recorded as released directly on main; no
-                placeholder ECOs are created.
+                {tp('import.contextSelect.importAsReleasedHelp')}
               </p>
             </div>
           </div>
@@ -302,12 +309,16 @@ export function ContextSelectStep({
         designStatus &&
         !importAsReleased && (
           <FormField
-            label="Branch"
+            label={tp('import.contextSelect.branch')}
             required={isPostRelease}
             helpText={
               isPostRelease
-                ? `This design has released items. Select a branch to import new ${config.pluralLabel.toLowerCase()}.`
-                : `${config.pluralLabel} will be imported to the main branch.`
+                ? tp('import.contextSelect.branchHelpPostRelease', {
+                    items: config.pluralLabel,
+                  })
+                : tp('import.contextSelect.branchHelpPreRelease', {
+                    items: config.pluralLabel,
+                  })
             }
           >
             <div className="flex items-center gap-2">
@@ -321,10 +332,10 @@ export function ContextSelectStep({
                   <SelectValue
                     placeholder={
                       loadingBranches
-                        ? 'Loading branches...'
+                        ? tp('import.contextSelect.loadingBranches')
                         : isPostRelease
-                          ? 'Select a branch...'
-                          : 'main'
+                          ? tp('import.contextSelect.selectBranch')
+                          : tp('import.contextSelect.branchMain')
                     }
                   />
                 </SelectTrigger>
@@ -334,12 +345,12 @@ export function ContextSelectStep({
                       <div className="flex items-center gap-2">
                         {branch.branchType === BRANCH_TYPES.changeOrder && (
                           <Badge variant="default" className="text-xs">
-                            ECO
+                            {tp('import.contextSelect.ecoBadge')}
                           </Badge>
                         )}
                         {branch.branchType === 'workspace' && (
                           <Badge variant="secondary" className="text-xs">
-                            WS
+                            {tp('import.contextSelect.wsBadge')}
                           </Badge>
                         )}
                         <span>{branch.name}</span>
@@ -378,19 +389,19 @@ export function ContextSelectStep({
                 className={`font-medium ${importAsReleased ? 'text-blue-800 dark:text-blue-200' : isPostRelease ? 'text-amber-800 dark:text-amber-200' : 'text-green-800 dark:text-green-200'}`}
               >
                 {importAsReleased
-                  ? 'Existing release import'
+                  ? tp('import.contextSelect.statusExistingRelease')
                   : isPostRelease
-                    ? 'Post-Release Design'
-                    : 'Pre-Release Design'}
+                    ? tp('import.contextSelect.statusPostRelease')
+                    : tp('import.contextSelect.statusPreRelease')}
               </p>
               <p
                 className={`text-xs ${importAsReleased ? 'text-blue-700 dark:text-blue-300' : isPostRelease ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300'}`}
               >
                 {importAsReleased
-                  ? 'Rows will become the current formal releases on main.'
+                  ? tp('import.contextSelect.statusExistingReleaseDetail')
                   : isPostRelease
-                    ? 'New parts must be imported through a change-order or workspace branch.'
-                    : 'Parts can be imported directly to this design.'}
+                    ? tp('import.contextSelect.statusPostReleaseDetail')
+                    : tp('import.contextSelect.statusPreReleaseDetail')}
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -53,6 +54,8 @@ export const Route = createFileRoute('/programs/')({
 })
 
 function ProgramsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -78,10 +81,10 @@ function ProgramsListPage() {
 
   const handleDeleteProgram = (program: Program) => {
     confirm({
-      title: 'Delete Program',
-      description: `Are you sure you want to delete ${program.code}? This will also delete all associated products and data. This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('programs.deleteTitle'),
+      description: t('programs.deleteDescription', { code: program.code }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -89,10 +92,13 @@ function ProgramsListPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Program deleted', `${program.code} has been deleted`)
+          showSuccess(
+            t('programs.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: program.code }),
+          )
           await invalidate('programs')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete program' })
+          handleError(error, { title: t('programs.deleteFailed') })
         }
       },
     })
@@ -104,16 +110,16 @@ function ProgramsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Programs
+            {t('programs.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage your programs and their products
+            {t('programs.subtitle')}
           </p>
         </div>
         <Link to="/programs/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Program
+            {t('programs.create')}
           </Button>
         </Link>
       </div>
@@ -122,13 +128,13 @@ function ProgramsListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total Programs</CardDescription>
+            <CardDescription>{t('programs.total')}</CardDescription>
             <CardTitle className="text-3xl">{total}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Active</CardDescription>
+            <CardDescription>{t('programs.active')}</CardDescription>
             <CardTitle className="text-3xl text-green-600 dark:text-green-400">
               {counts?.active ?? 0}
             </CardTitle>
@@ -136,7 +142,7 @@ function ProgramsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>On Hold</CardDescription>
+            <CardDescription>{t('programs.onHold')}</CardDescription>
             <CardTitle className="text-3xl text-yellow-600 dark:text-yellow-400">
               {counts?.onHold ?? 0}
             </CardTitle>
@@ -144,7 +150,7 @@ function ProgramsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Completed</CardDescription>
+            <CardDescription>{t('programs.completed')}</CardDescription>
             <CardTitle className="text-3xl text-slate-600 dark:text-slate-400">
               {counts?.completed ?? 0}
             </CardTitle>
@@ -155,9 +161,9 @@ function ProgramsListPage() {
       {/* Programs Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Programs</CardTitle>
+          <CardTitle>{t('programs.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'program' : 'programs'} in the system
+            {t('programs.tableDescription', { count: total })}
           </CardDescription>
         </CardHeader>
         <CardContent>

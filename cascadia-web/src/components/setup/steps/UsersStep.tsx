@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle, Loader2, Plus, UserPlus, Users } from 'lucide-react'
 import { strings } from '../strings'
@@ -46,6 +47,8 @@ interface UsersStepProps {
 }
 
 export function UsersStep({ onCompleted }: UsersStepProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [draft, setDraft] = useState<UserDraft>(EMPTY_DRAFT)
   const [creating, setCreating] = useState(false)
   const [created, setCreated] = useState<Array<CreatedUser>>([])
@@ -150,7 +153,7 @@ export function UsersStep({ onCompleted }: UsersStepProps) {
         <CardContent className="pt-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="user-email">Email</Label>
+              <Label htmlFor="user-email">{tc('fields.email')}</Label>
               <Input
                 id="user-email"
                 type="email"
@@ -160,7 +163,7 @@ export function UsersStep({ onCompleted }: UsersStepProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="user-name">Name</Label>
+              <Label htmlFor="user-name">{tc('fields.name')}</Label>
               <Input
                 id="user-name"
                 value={draft.name}
@@ -169,7 +172,9 @@ export function UsersStep({ onCompleted }: UsersStepProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="user-password">Initial password</Label>
+              <Label htmlFor="user-password">
+                {tp('setupWizard.users.initialPassword')}
+              </Label>
               <Input
                 id="user-password"
                 type="password"
@@ -181,7 +186,7 @@ export function UsersStep({ onCompleted }: UsersStepProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="user-role">Role</Label>
+              <Label htmlFor="user-role">{tc('fields.role')}</Label>
               <Select
                 value={draft.roleId}
                 onValueChange={(v) => setDraft({ ...draft, roleId: v })}

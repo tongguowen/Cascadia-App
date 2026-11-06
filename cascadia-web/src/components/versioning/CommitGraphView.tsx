@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { CommitNode } from './CommitNode'
 import { MainHeadNode } from './MainHeadNode'
 import { SharedForkEdge } from './SharedForkEdge'
@@ -56,15 +57,16 @@ function CommitGraphViewInner({
   onViewHistoricalState,
 }: CommitGraphViewProps) {
   const { theme } = useTheme()
+  const { t: tc } = useTranslation('common')
+  const graphT = (key: string, options?: Record<string, unknown>) =>
+    tc(`graphs.${key}`, options)
 
   const {
     data: graphData = null,
     isPending: loading,
     error: loadError,
   } = useQuery(designHistoryGraphQuery<CommitGraphData>(designId, branchId))
-  const error = loadError
-    ? 'Failed to load commit graph. Please try again.'
-    : null
+  const error = loadError ? graphT('failedCommitGraph') : null
 
   // Handle commit click
   const handleCommitClick = useCallback(
@@ -255,7 +257,7 @@ function CommitGraphViewInner({
       <div className="flex items-center justify-center h-[500px] bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-800">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Loading commit graph...</p>
+          <p className="text-sm text-slate-500">{graphT('loadingCommitGraph')}</p>
         </div>
       </div>
     )
@@ -276,7 +278,9 @@ function CommitGraphViewInner({
     return (
       <div className="flex items-center justify-center h-[500px] bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-800">
         <div className="flex flex-col items-center gap-3 text-center px-4">
-          <p className="text-slate-500 dark:text-slate-400">No commits yet</p>
+          <p className="text-slate-500 dark:text-slate-400">
+            {graphT('noCommits')}
+          </p>
           <p className="text-sm text-slate-400 dark:text-slate-500">
             Commits will appear here once changes are made
           </p>
@@ -318,8 +322,8 @@ function CommitGraphViewInner({
 
   return (
     <FullscreenGraphWrapper
-      title="Design History"
-      subtitle={`${commitCount} commit${commitCount !== 1 ? 's' : ''}`}
+      title={graphT('designHistoryTitle')}
+      subtitle={graphT('commitCount', { count: commitCount })}
       inlineHeight="600px"
       footer={legend}
     >

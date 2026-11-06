@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Plus, Search, Trash2 } from 'lucide-react'
 import { catalogEntry } from '@cascadia/commons/items/relationships/catalog'
@@ -68,60 +69,40 @@ interface TraceLinkedItem {
  */
 export type TraceLinkKind = 'satisfiedBy' | 'allocatedTo'
 
-interface KindConfig {
-  title: string
-  description: string
-  /** The catalog entry whose endpoint types bound the picker. */
-  relationshipType: 'SATISFIES' | 'ALLOCATED_TO'
-  /** The candidate item types, read from the catalog. */
-  candidateTypes: ReadonlyArray<string>
-  subPath: 'satisfy' | 'allocate'
-  addLabel: string
-  emptyText: string
-  /** The reason labels, read from this requirement's side of the link. */
-  reasonLabels: SuspectReasonLabels
-  affirmTitle: string
-  affirmAllTitle: string
-}
-
 const SATISFIES = catalogEntry('SATISFIES')
 const ALLOCATED_TO = catalogEntry('ALLOCATED_TO')
 
-const KINDS: Record<TraceLinkKind, KindConfig> = {
-  satisfiedBy: {
-    title: 'Satisfied by',
-    description: 'Items that claim to satisfy this requirement',
-    relationshipType: 'SATISFIES',
-    candidateTypes: SATISFIES?.sourceTypes ?? ['Part'],
-    subPath: 'satisfy',
-    addLabel: 'Link item',
-    emptyText: 'Nothing claims to satisfy this requirement yet',
-    reasonLabels: {
-      source_revised: 'the item revised since this link was affirmed',
-      target_revised: 'this requirement revised since this link was affirmed',
-    },
-    affirmTitle:
-      'Record that this item still satisfies the requirement as it now stands',
-    affirmAllTitle:
-      'Record that every suspect item still satisfies the requirement as it now stands',
-  },
-  allocatedTo: {
-    title: 'Allocated to',
-    description: 'Items this requirement is allocated to',
-    relationshipType: 'ALLOCATED_TO',
-    candidateTypes: ALLOCATED_TO?.targetTypes ?? ['Part'],
-    subPath: 'allocate',
-    addLabel: 'Allocate',
-    emptyText: 'This requirement is not allocated to anything yet',
-    reasonLabels: {
-      source_revised: 'this requirement revised since this link was affirmed',
-      target_revised: 'the item revised since this link was affirmed',
-    },
-    affirmTitle:
-      'Record that this allocation still holds for the requirement as it now stands',
-    affirmAllTitle:
-      'Record that every suspect allocation still holds for the requirement as it now stands',
-  },
+function useTraceLinkConfig(kind: TraceLinkKind) {
+  const { t: tp } = useTranslation('pages')
+  return useMemo(() => {
+    const tl = (key: string) => tp(`requirements.traceLinks.${kind}.${key}`)
+    const base =
+      kind === 'satisfiedBy'
+        ? {
+            relationshipType: 'SATISFIES' as const,
+            candidateTypes: SATISFIES?.sourceTypes ?? ['Part'],
+            subPath: 'satisfy' as const,
+          }
+        : {
+            relationshipType: 'ALLOCATED_TO' as const,
+            candidateTypes: ALLOCATED_TO?.targetTypes ?? ['Part'],
+            subPath: 'allocate' as const,
+          }
+    return {
+      ...base,
+      title: tl('title'),
+      description: tl('description'),
+      addLabel: tl('addLabel'),
+      emptyText: tl('emptyText'),
+      affirmTitle: tl('affirmTitle'),
+      affirmAllTitle: tl('affirmAllTitle'),
+      linkFailedTitle: tl('linkFailedTitle'),
+      reasonLabels: {
+        source_revised: tl('reasonSourceRevised'),
+        target_revised: tl('reasonTargetRevised'),
+      } satisfies SuspectReasonLabels,
+    }
+  }, [kind, tp])
 }
 
 interface RequirementTraceLinksPanelProps {
@@ -137,7 +118,9 @@ export function RequirementTraceLinksPanel({
   designId,
   isEditable = false,
 }: RequirementTraceLinksPanelProps) {
-  const config = KINDS[kind]
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const config = useTraceLinkConfig(kind)
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [showSearch, setShowSearch] = useState(false)
@@ -205,7 +188,7 @@ export function RequirementTraceLinksPanel({
         )
         setSearchQuery('')
       },
-      `Could not ${config.addLabel.toLowerCase()}`,
+      config.linkFailedTitle,
     )
 
   const handleUnlink = (itemId: string) =>
@@ -216,7 +199,7 @@ export function RequirementTraceLinksPanel({
           method: 'DELETE',
           body: JSON.stringify({ itemId }),
         }),
-      'Could not remove link',
+      tp('requirements.traceLinks.removeLinkFailedTitle'),
     )
 
   return (
@@ -270,7 +253,9 @@ export function RequirementTraceLinksPanel({
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search ${getItemTypeLabel(candidateType).toLowerCase()}s to link...`}
+                  placeholder={tp('requirements.traceLinks.searchPlaceholder', {
+                    type: getItemTypeLabel(candidateType),
+                  })}
                   className="pl-10"
                 />
                 {searching && (
@@ -318,7 +303,7 @@ export function RequirementTraceLinksPanel({
                   setSearchQuery('')
                 }}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
             </div>
           </div>
@@ -378,7 +363,7 @@ export function RequirementTraceLinksPanel({
                     onClick={() => handleUnlink(item.id)}
                     disabled={busy === `unlink:${item.id}`}
                     className="text-slate-400 hover:text-red-500"
-                    title="Remove link"
+                    title={tp('requirements.linking.removeLink')}
                   >
                     {busy === `unlink:${item.id}` ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

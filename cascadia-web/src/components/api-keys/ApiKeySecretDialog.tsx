@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui'
 import {
@@ -32,6 +33,9 @@ export function ApiKeySecretDialog({
   mode,
   onClose,
 }: ApiKeySecretDialogProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const ts = (key: string) => t(`admin.apiKeys.secret.${key}`)
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
@@ -55,12 +59,9 @@ export function ApiKeySecretDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'created' ? 'API key created' : 'API key rotated'}
+            {mode === 'created' ? ts('createdTitle') : ts('rotatedTitle')}
           </DialogTitle>
-          <DialogDescription>
-            Copy this key now — only a hash is stored, so it cannot be shown
-            again.
-          </DialogDescription>
+          <DialogDescription>{ts('description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -74,23 +75,20 @@ export function ApiKeySecretDialog({
               ) : (
                 <Copy className="w-4 h-4 mr-1" />
               )}
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? ts('copied') : ts('copy')}
             </Button>
           </div>
 
           {mode === 'rotated' && (
             <div className="flex items-start gap-2 text-sm text-amber-600 dark:text-amber-400">
               <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-              <span>
-                The previous secret stopped working immediately. Update every
-                client using this key before it next runs.
-              </span>
+              <span>{ts('rotatedWarning')}</span>
             </div>
           )}
         </div>
 
         <DialogFooter>
-          <Button onClick={handleClose}>Done</Button>
+          <Button onClick={handleClose}>{tc('actions.done')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

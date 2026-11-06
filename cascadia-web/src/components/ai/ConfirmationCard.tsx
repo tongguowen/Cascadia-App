@@ -8,7 +8,9 @@
  * Used in the chat UI when AI requests confirmation for write operations.
  */
 
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Check, X } from 'lucide-react'
+import i18n from '@/i18n'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
 
@@ -42,20 +44,10 @@ interface ConfirmationCardProps {
  * Get a human-readable action label
  */
 function getActionLabel(action: string): string {
-  switch (action) {
-    case 'create':
-      return 'Create'
-    case 'update':
-      return 'Update'
-    case 'delete':
-      return 'Delete'
-    case 'transition':
-      return 'Transition'
-    case 'relationship':
-      return 'Add Relationship'
-    default:
-      return action.charAt(0).toUpperCase() + action.slice(1)
-  }
+  const key = `confirmation.${action}` as const
+  const translated = i18n.t(key, { ns: 'ai', defaultValue: '' })
+  if (translated) return translated
+  return action.charAt(0).toUpperCase() + action.slice(1)
 }
 
 /**
@@ -81,6 +73,8 @@ export function ConfirmationCard({
   responded = false,
   response,
 }: ConfirmationCardProps) {
+  const { t } = useTranslation('ai')
+  const { t: tc } = useTranslation('common')
   // If already responded, show a static card with the result
   if (responded) {
     return (
@@ -97,14 +91,14 @@ export function ConfirmationCard({
             <>
               <Check className="h-4 w-4 text-green-500" />
               <span className="text-green-700 dark:text-green-300">
-                Confirmed
+                {t('confirmation.confirmed')}
               </span>
             </>
           ) : (
             <>
               <X className="h-4 w-4 text-slate-400" />
               <span className="text-slate-500 dark:text-slate-400">
-                Cancelled
+                {t('confirmation.cancelled')}
               </span>
             </>
           )}
@@ -132,7 +126,7 @@ export function ConfirmationCard({
         />
         <div className="flex-1">
           <p className="font-medium text-slate-900 dark:text-slate-100 text-sm">
-            Confirm Action
+            {t('confirmation.confirmAction')}
           </p>
           <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
             {message}
@@ -145,22 +139,27 @@ export function ConfirmationCard({
         <div className="ml-7 mb-3 text-xs text-slate-600 dark:text-slate-400 space-y-1">
           {details.itemType && (
             <div>
-              <span className="font-medium">Type:</span> {details.itemType}
+              <span className="font-medium">{t('confirmation.typeLabel')}</span>{' '}
+              {details.itemType}
             </div>
           )}
           {details.itemName && (
             <div>
-              <span className="font-medium">Name:</span> {details.itemName}
+              <span className="font-medium">{t('confirmation.nameLabel')}</span>{' '}
+              {details.itemName}
             </div>
           )}
           {details.designName && (
             <div>
-              <span className="font-medium">Design:</span> {details.designName}
+              <span className="font-medium">{t('confirmation.designLabel')}</span>{' '}
+              {details.designName}
             </div>
           )}
           {details.changeOrderNumber && (
             <div>
-              <span className="font-medium">Change order:</span>{' '}
+              <span className="font-medium">
+                {t('confirmation.changeOrderLabel')}
+              </span>{' '}
               {details.changeOrderNumber}
             </div>
           )}
@@ -184,7 +183,7 @@ export function ConfirmationCard({
           className="bg-cyan-600 hover:bg-cyan-700 text-white"
         >
           <Check className="h-3.5 w-3.5 mr-1" />
-          Confirm
+          {tc('actions.confirm')}
         </Button>
         <Button
           variant="outline"
@@ -193,7 +192,7 @@ export function ConfirmationCard({
           disabled={disabled}
         >
           <X className="h-3.5 w-3.5 mr-1" />
-          Cancel
+          {tc('actions.cancel')}
         </Button>
       </div>
     </div>

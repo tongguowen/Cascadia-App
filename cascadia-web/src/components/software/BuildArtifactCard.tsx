@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Download, Package, Trash2, Upload } from 'lucide-react'
 import type { Software } from '@cascadia/commons/items/types/software'
@@ -25,6 +26,7 @@ import { fileMetadataQuery, useInvalidateResources } from '@/query'
  * on release alongside the source it was built from.
  */
 export function BuildArtifactCard({ software }: { software: Software }) {
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -94,7 +96,7 @@ export function BuildArtifactCard({ software }: { software: Software }) {
       showSuccess('Build artifact attached', file.name)
       await invalidate('files', 'software')
     } catch (error) {
-      handleError(error, { title: 'Failed to upload build artifact' })
+      handleError(error, { title: tp('software.build.uploadArtifactFailedTitle') })
     } finally {
       setIsUploading(false)
     }
@@ -112,7 +114,7 @@ export function BuildArtifactCard({ software }: { software: Software }) {
       showSuccess('Build artifact detached', 'The vault file was kept')
       await invalidate('software')
     } catch (error) {
-      handleError(error, { title: 'Failed to detach build artifact' })
+      handleError(error, { title: tp('software.build.detachArtifactFailedTitle') })
     }
   }
 
@@ -138,7 +140,11 @@ export function BuildArtifactCard({ software }: { software: Software }) {
             </span>
             <div className="flex shrink-0 gap-1">
               <a href={`/api/v1/files/${artifactFileId}/download`} download>
-                <Button variant="ghost" size="sm" title="Download">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title={tp('software.build.downloadArtifactTitle')}
+                >
                   <Download className="h-4 w-4" />
                 </Button>
               </a>
@@ -146,7 +152,7 @@ export function BuildArtifactCard({ software }: { software: Software }) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  title="Detach"
+                  title={tp('software.build.detachArtifactTitle')}
                   onClick={handleRemove}
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />

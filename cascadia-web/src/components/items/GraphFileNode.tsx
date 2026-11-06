@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Handle, Position } from '@xyflow/react'
 import {
   Archive,
@@ -114,7 +115,7 @@ export const GraphFileNode = memo(({ data }: GraphFileNodeProps) => {
             transition-colors
           "
           title="Download file"
-        >
+          title={tc('tooltips.downloadFile')}
           <Download className="h-4 w-4" />
         </a>
       </div>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -76,6 +77,10 @@ export function PartAttachmentPanel({
   onError,
   onSuccess,
 }: PartAttachmentPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const attT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.attachments.${key}`, options)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [attaching, setAttaching] = useState<string | null>(null)
@@ -117,7 +122,7 @@ export function PartAttachmentPanel({
       setSearchQuery('')
       setShowSearch(false)
 
-      onSuccess?.(`Attached ${part.itemNumber}`)
+      onSuccess?.(attT('toastAttached', { itemNumber: part.itemNumber }))
     } catch (error) {
       onError?.(error as Error)
     } finally {
@@ -136,7 +141,13 @@ export function PartAttachmentPanel({
       })
       await invalidate('work-instructions')
       onSuccess?.(
-        `${attachment.inheritToMBOM ? 'Disabled' : 'Enabled'} MBOM inheritance for ${attachment.part.itemNumber}`,
+        attachment.inheritToMBOM
+          ? attT('toastMbomDisabled', {
+              itemNumber: attachment.part.itemNumber,
+            })
+          : attT('toastMbomEnabled', {
+              itemNumber: attachment.part.itemNumber,
+            }),
       )
     } catch (error) {
       onError?.(error as Error)
@@ -155,7 +166,9 @@ export function PartAttachmentPanel({
         body: JSON.stringify({ partId: attachment.partId, isOutput: true }),
       })
       await invalidate('work-instructions')
-      onSuccess?.(`${attachment.part.itemNumber} is now the output part`)
+      onSuccess?.(
+        attT('toastOutputSet', { itemNumber: attachment.part.itemNumber }),
+      )
     } catch (error) {
       onError?.(error as Error)
     }
@@ -168,7 +181,9 @@ export function PartAttachmentPanel({
         { method: 'DELETE' },
       )
       await invalidate('work-instructions')
-      onSuccess?.(`Detached ${attachment.part.itemNumber}`)
+      onSuccess?.(
+        attT('toastDetached', { itemNumber: attachment.part.itemNumber }),
+      )
     } catch (error) {
       onError?.(error as Error)
     }
@@ -181,12 +196,9 @@ export function PartAttachmentPanel({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Link2 className="h-5 w-5" />
-              Attached Parts
+              {attT('title')}
             </CardTitle>
-            <CardDescription>
-              The output part is what this procedure builds and sets the work
-              instruction's design; the rest are parts it also applies to.
-            </CardDescription>
+            <CardDescription>{attT('description')}</CardDescription>
           </div>
           {!showSearch && !readOnly && (
             <Button
@@ -195,7 +207,7 @@ export function PartAttachmentPanel({
               onClick={() => setShowSearch(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Attach Part
+              {attT('attachPart')}
             </Button>
           )}
         </div>
@@ -206,7 +218,7 @@ export function PartAttachmentPanel({
           <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Search for a part to attach
+                {attT('searchLabel')}
               </label>
               <Button
                 variant="ghost"
@@ -223,7 +235,7 @@ export function PartAttachmentPanel({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search by part number or name..."
+                placeholder={tc('placeholders.searchPartNumberOrName')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -233,13 +245,13 @@ export function PartAttachmentPanel({
 
             {/* Search Results */}
             {searching && (
-              <p className="text-sm text-slate-500 py-2">Searching...</p>
+              <p className="text-sm text-slate-500 py-2">{attT('searching')}</p>
             )}
             {!searching &&
               searchQuery.length >= 2 &&
               searchResults.length === 0 && (
                 <p className="text-sm text-slate-500 py-2">
-                  No parts found matching "{searchQuery}"
+                  {attT('noPartsFound', { query: searchQuery })}
                 </p>
               )}
             {searchResults.length > 0 && (
@@ -264,7 +276,7 @@ export function PartAttachmentPanel({
                         </Badge>
                       </div>
                       <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
-                        {part.name || 'Unnamed part'}
+                        {part.name || attT('unnamedPart')}
                       </p>
                     </div>
                     <Button
@@ -277,11 +289,11 @@ export function PartAttachmentPanel({
                       }}
                     >
                       {attaching === part.id ? (
-                        'Adding...'
+                        attT('adding')
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-1" />
-                          Add
+                          {attT('add')}
                         </>
                       )}
                     </Button>
@@ -294,15 +306,11 @@ export function PartAttachmentPanel({
 
         {/* Attachments List */}
         {loading ? (
-          <p className="text-slate-500 text-center py-4">
-            Loading attachments...
-          </p>
+          <p className="text-slate-500 text-center py-4">{attT('loading')}</p>
         ) : attachments.length === 0 ? (
           <p className="text-slate-500 text-center py-8">
-            No parts attached yet.
-            {!showSearch && !readOnly && (
-              <> Click "Attach Part" to link parts to this work instruction.</>
-            )}
+            {attT('empty')}
+            {!showSearch && !readOnly && attT('emptyHint')}
           </p>
         ) : (
           <div className="space-y-2">
@@ -326,18 +334,18 @@ export function PartAttachmentPanel({
                     {attachment.isOutput && (
                       <Badge variant="default" className="text-xs gap-1">
                         <Package className="h-3 w-3" />
-                        Output Part
+                        {attT('outputPart')}
                       </Badge>
                     )}
                     {attachment.inheritedFromId && (
                       <Badge variant="outline" className="text-xs gap-1">
                         <ArrowDownRight className="h-3 w-3" />
-                        Inherited
+                        {attT('inherited')}
                       </Badge>
                     )}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
-                    {attachment.part.name || 'Unnamed part'}
+                    {attachment.part.name || attT('unnamedPart')}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -347,7 +355,7 @@ export function PartAttachmentPanel({
                       attachment.inheritToMBOM && (
                         <span className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                           <ArrowDownRight className="h-3 w-3" />
-                          Inherits to MBOM
+                          {attT('inheritsToMbom')}
                         </span>
                       )
                     ) : (
@@ -361,14 +369,14 @@ export function PartAttachmentPanel({
                         onClick={() => handleToggleInherit(attachment)}
                         title={
                           attachment.inheritToMBOM
-                            ? 'Click to disable MBOM inheritance'
-                            : 'Click to enable MBOM inheritance'
+                            ? attT('disableMbomInheritTitle')
+                            : attT('enableMbomInheritTitle')
                         }
                       >
                         <ArrowDownRight className="h-3 w-3" />
                         {attachment.inheritToMBOM
-                          ? 'Inherits to MBOM'
-                          : 'No MBOM inherit'}
+                          ? attT('inheritsToMbom')
+                          : attT('noMbomInherit')}
                       </button>
                     ))}
                   {!readOnly && !attachment.isOutput && (
@@ -377,9 +385,9 @@ export function PartAttachmentPanel({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleSetOutput(attachment)}
-                        title="Make this the part the procedure builds. Moves the work instruction into this part's design."
+                        title={attT('setAsOutputTitle')}
                       >
-                        Set as output
+                        {attT('setAsOutput')}
                       </Button>
                       <Button
                         variant="ghost"

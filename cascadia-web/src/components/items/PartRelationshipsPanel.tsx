@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowUpFromLine,
@@ -82,6 +83,8 @@ export function PartRelationshipsPanel({
   const { theme } = useTheme()
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const invalidate = useInvalidateResources()
   const [activeView, setActiveView] = useState<ViewMode>('bom')
 
@@ -160,10 +163,10 @@ export function PartRelationshipsPanel({
 
   const handleRemoveRelationship = (relationshipId: string) => {
     confirm({
-      title: 'Remove Relationship',
-      description: 'Are you sure you want to remove this relationship?',
-      actionLabel: 'Remove',
-      cancelLabel: 'Cancel',
+      title: tp('relationships.removeTitle'),
+      description: tp('relationships.removeDescription'),
+      actionLabel: tc('actions.remove'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -172,7 +175,7 @@ export function PartRelationshipsPanel({
           })
           await invalidate('relationships')
         } catch (error) {
-          handleError(error, { title: 'Failed to remove relationship' })
+          handleError(error, { title: tp('relationships.removeFailedTitle') })
         }
       },
     })
@@ -214,21 +217,23 @@ export function PartRelationshipsPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Relationships
+              {tp('relationships.title')}
             </h2>
             <Badge variant="outline">
-              {relationships.length} relationship
-              {relationships.length !== 1 ? 's' : ''}
+              {tp('relationships.countRelationships', {
+                count: relationships.length,
+              })}
             </Badge>
             <Badge variant="outline">
-              {Object.keys(groupedRelationships).length} type
-              {Object.keys(groupedRelationships).length !== 1 ? 's' : ''}
+              {tp('relationships.countTypes', {
+                count: Object.keys(groupedRelationships).length,
+              })}
             </Badge>
           </div>
           {!readOnly && (
             <Button variant="outline" size="sm" onClick={handleAddNewType}>
               <Plus className="h-4 w-4 mr-1" />
-              Add Relationship
+              {tp('relationships.addRelationship')}
             </Button>
           )}
         </div>
@@ -240,19 +245,19 @@ export function PartRelationshipsPanel({
           <TabsList>
             <TabsTrigger value="bom" className="gap-2">
               <FolderTree className="h-4 w-4" />
-              BOM Structure
+              {tc('tabs.bomStructure')}
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-2">
               <GitBranch className="h-4 w-4" />
-              Graph View
+              {tc('tabs.graphView')}
             </TabsTrigger>
             <TabsTrigger value="table" className="gap-2">
               <TableIcon className="h-4 w-4" />
-              Table View
+              {tc('tabs.tableView')}
             </TabsTrigger>
             <TabsTrigger value="where-used" className="gap-2">
               <ArrowUpFromLine className="h-4 w-4" />
-              Where Used
+              {tc('tabs.whereUsed')}
             </TabsTrigger>
           </TabsList>
 

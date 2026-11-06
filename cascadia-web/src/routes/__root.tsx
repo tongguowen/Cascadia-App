@@ -14,6 +14,7 @@ import { authSessionQuery } from '../query/options/auth'
 
 import { Header } from '../components/layout'
 import { ThemeProvider } from '../theme'
+import '@/i18n'
 import { SidebarProvider, useSidebar } from '../sidebar-context'
 import { AlertDialogProvider } from '../hooks/useAlertDialog'
 import { ToastProvider } from '../hooks/useToast'

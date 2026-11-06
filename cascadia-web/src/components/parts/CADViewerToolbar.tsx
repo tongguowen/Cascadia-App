@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Sun,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { BACKGROUND_PRESETS, MATERIAL_PRESETS } from './CADViewerTypes'
 import type { BackgroundPreset, MaterialPreset } from './CADViewerTypes'
 import { cn } from '@/utils'
@@ -97,22 +98,25 @@ export function CADViewerToolbar({
   onMaterialChange,
   onDownload,
 }: CADViewerToolbarProps) {
+  const { t: tc } = useTranslation('common')
+  const cadT = (key: string) => tc(`cadViewer.${key}`)
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="absolute top-3 left-3 z-20 flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-lg shadow-lg px-2 py-1.5 border border-slate-200 dark:border-slate-700">
         {/* View Group */}
-        <ToolbarButton tooltip="Reset View (R)" onClick={onResetView}>
+        <ToolbarButton tooltip={cadT('resetView')} onClick={onResetView}>
           <RotateCcw className="h-3.5 w-3.5" />
         </ToolbarButton>
         <ToolbarButton
-          tooltip="Wireframe (W)"
+          tooltip={cadT('wireframe')}
           active={wireframe}
           onClick={onToggleWireframe}
         >
           <Grid3x3 className="h-3.5 w-3.5" />
         </ToolbarButton>
         <ToolbarButton
-          tooltip="Grid (G)"
+          tooltip={cadT('grid')}
           active={showGrid}
           onClick={onToggleGrid}
         >
@@ -132,11 +136,11 @@ export function CADViewerToolbar({
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Background
+              {cadT('background')}
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Background</DropdownMenuLabel>
+            <DropdownMenuLabel>{cadT('background')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
               value={backgroundPreset}
@@ -151,7 +155,7 @@ export function CADViewerToolbar({
                 >
               ).map(([key, config]) => (
                 <DropdownMenuRadioItem key={key} value={key}>
-                  {config.label}
+                  {cadT(`backgroundPresets.${key}`)}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
@@ -168,11 +172,11 @@ export function CADViewerToolbar({
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Material
+              {cadT('material')}
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Material</DropdownMenuLabel>
+            <DropdownMenuLabel>{cadT('material')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup
               value={materialPreset}
@@ -199,8 +203,8 @@ export function CADViewerToolbar({
                     }}
                   />
                   {key === 'default' && hasEmbeddedColors
-                    ? 'Original Colors'
-                    : config.label}
+                    ? cadT('originalColors')
+                    : cadT(`materialPresets.${key}`)}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
@@ -211,12 +215,14 @@ export function CADViewerToolbar({
 
         {/* Actions Group */}
         {onDownload && (
-          <ToolbarButton tooltip="Download" onClick={onDownload}>
+          <ToolbarButton tooltip={cadT('download')} onClick={onDownload}>
             <Download className="h-3.5 w-3.5" />
           </ToolbarButton>
         )}
         <ToolbarButton
-          tooltip={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
+          tooltip={
+            isFullscreen ? cadT('exitFullscreen') : cadT('fullscreen')
+          }
           active={isFullscreen}
           onClick={onToggleFullscreen}
         >
@@ -235,7 +241,7 @@ export function CADViewerToolbar({
               {polygonCount >= 1000
                 ? `${(polygonCount / 1000).toFixed(1)}k`
                 : polygonCount}{' '}
-              tris
+              {cadT('tris')}
             </span>
           </>
         )}

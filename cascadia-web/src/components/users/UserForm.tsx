@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useForm } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import {
   userCreateSchema,
   userUpdateSchema,
@@ -79,10 +80,10 @@ export function UserForm({
             <FormField
               label="Email"
               required
+              label={tc('columns.email')}
+              required
               error={field.state.meta.errors[0]}
-              helpText="User's email address (used for login)"
-            >
-              <Input
+              helpText={tp('users.form.emailHelp')}
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -90,7 +91,7 @@ export function UserForm({
                 type="email"
                 placeholder="user@example.com"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('users.form.emailPlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -101,15 +102,17 @@ export function UserForm({
             <FormField
               label="Name"
               required
+              label={tc('fields.name')}
+              required
               error={field.state.meta.errors[0]}
-              helpText="User's full name"
-            >
-              <Input
+              helpText={tp('users.form.nameHelp')}
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
                 placeholder="John Doe"
+                error={!!field.state.meta.errors.length}
+                placeholder={tp('users.form.namePlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -121,10 +124,10 @@ export function UserForm({
           <form.Field name="password">
             {(field) => (
               <FormField
-                label="Password"
+                label={tp('users.form.password')}
                 required
                 error={field.state.meta.errors[0]}
-                helpText="Minimum 8 characters"
+                helpText={tp('users.form.passwordHelp')}
               >
                 <Input
                   name={field.name}
@@ -132,9 +135,7 @@ export function UserForm({
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                   type="password"
-                  placeholder="••••••••"
-                  error={!!field.state.meta.errors.length}
-                />
+                  placeholder={tp('users.form.passwordPlaceholder')}
               </FormField>
             )}
           </form.Field>
@@ -146,22 +147,30 @@ export function UserForm({
             <FormField
               label="Provider"
               error={field.state.meta.errors[0]}
-              helpText="Authentication provider"
+              label={tc('columns.provider')}
+              error={field.state.meta.errors[0]}
+              helpText={tp('users.form.providerHelp')}
             >
               <Select
                 value={field.state.value}
                 onValueChange={(value) => field.handleChange(value)}
               >
                 <SelectTrigger error={field.state.meta.errors.length > 0}>
-                  <SelectValue placeholder="Select provider" />
+                  <SelectValue placeholder={tp('users.form.selectProvider')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="local">Local</SelectItem>
-                  <SelectItem value="azure">Azure AD</SelectItem>
-                  <SelectItem value="google">Google</SelectItem>
-                  <SelectItem value="github">GitHub</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectItem value="local">
+                    {tp('users.form.providerLocal')}
+                  </SelectItem>
+                  <SelectItem value="azure">
+                    {tc('enum.oauthProvider.azure')}
+                  </SelectItem>
+                  <SelectItem value="google">
+                    {tc('enum.oauthProvider.google')}
+                  </SelectItem>
+                  <SelectItem value="github">
+                    {tc('enum.oauthProvider.github')}
+                  </SelectItem>
             </FormField>
           )}
         </form.Field>
@@ -176,16 +185,16 @@ export function UserForm({
                     <FormField
                       label="Provider ID"
                       error={field.state.meta.errors[0]}
-                      helpText="External provider user ID"
-                    >
-                      <Input
+                      label={tp('users.form.providerId')}
+                      error={field.state.meta.errors[0]}
+                      helpText={tp('users.form.providerIdHelp')}
                         name={field.name}
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         placeholder="External ID"
                         error={!!field.state.meta.errors.length}
-                      />
+                        placeholder={tp('users.form.externalIdPlaceholder')}
                     </FormField>
                   )}
                 </form.Field>
@@ -201,7 +210,9 @@ export function UserForm({
               <FormField
                 label="Active Status"
                 error={field.state.meta.errors[0]}
-                helpText="Active users can log in"
+                label={tp('users.form.activeStatus')}
+                error={field.state.meta.errors[0]}
+                helpText={tp('users.form.activeStatusHelp')}
               >
                 <Select
                   value={field.state.value ? 'true' : 'false'}
@@ -210,13 +221,11 @@ export function UserForm({
                   }
                 >
                   <SelectTrigger error={field.state.meta.errors.length > 0}>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder={tc('labels.selectStatus')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">Active</SelectItem>
-                    <SelectItem value="false">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectItem value="true">{tp('users.active')}</SelectItem>
+                    <SelectItem value="false">{tp('users.inactive')}</SelectItem>
               </FormField>
             )}
           </form.Field>
@@ -229,15 +238,15 @@ export function UserForm({
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
+            {tc('actions.cancel')}
+          </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : mode === 'create'
-              ? 'Create User'
-              : 'Update User'}
-        </Button>
-      </div>
+              ? tp('users.form.createSubmit')
+              : tp('users.form.updateSubmit')}
     </form>
   )
 }

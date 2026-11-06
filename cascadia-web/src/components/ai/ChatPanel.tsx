@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { AlertCircle, History, Plus, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { ChatInput } from './ChatInput'
 import { ChatMessage } from './ChatMessage'
@@ -34,6 +35,8 @@ import {
 import { cn } from '@/utils'
 
 export function ChatPanel() {
+  const { t } = useTranslation('ai')
+  const { t: tc } = useTranslation('common')
   const {
     isOpen,
     setIsOpen,
@@ -288,11 +291,11 @@ export function ChatPanel() {
       <div className="flex items-center justify-between border-b border-slate-300 dark:border-slate-700 px-4 h-12">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-slate-900 dark:text-slate-100">
-            Cascadia Chat
+            {t('panel.title')}
           </h2>
           {isLoading && (
             <span className="text-xs text-cyan-600 dark:text-cyan-400">
-              Thinking...
+              {t('panel.thinking')}
             </span>
           )}
         </div>
@@ -302,7 +305,7 @@ export function ChatPanel() {
             size="icon"
             onClick={() => setShowSessions(!showSessions)}
             className="h-8 w-8"
-            aria-label="View history"
+            aria-label={t('panel.historyAria')}
           >
             <History className="h-4 w-4" />
           </Button>
@@ -311,7 +314,7 @@ export function ChatPanel() {
             size="icon"
             onClick={handleNewSession}
             className="h-8 w-8"
-            aria-label="New conversation"
+            aria-label={t('panel.newConversationAria')}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -320,7 +323,7 @@ export function ChatPanel() {
             size="icon"
             onClick={() => setIsOpen(false)}
             className="h-8 w-8"
-            aria-label="Close"
+            aria-label={tc('actions.close')}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -332,15 +335,17 @@ export function ChatPanel() {
         <div className="absolute inset-0 top-12 z-10 bg-white dark:bg-slate-800 flex flex-col">
           <div className="p-4 border-b border-slate-300 dark:border-slate-700">
             <h3 className="font-medium text-slate-900 dark:text-slate-100">
-              Conversation History
+              {t('panel.historyTitle')}
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto">
             {loadingSessions ? (
-              <div className="p-4 text-center text-slate-500">Loading...</div>
+              <div className="p-4 text-center text-slate-500">
+                {t('panel.loading')}
+              </div>
             ) : sessions.length === 0 ? (
               <div className="p-4 text-center text-slate-500">
-                No conversations yet
+                {t('panel.noConversations')}
               </div>
             ) : (
               <div className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -357,7 +362,7 @@ export function ChatPanel() {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                        {session.title || 'New conversation'}
+                        {session.title || t('panel.newConversation')}
                       </p>
                       <p className="text-xs text-slate-500">
                         {new Date(session.updatedAt).toLocaleDateString()}
@@ -385,7 +390,7 @@ export function ChatPanel() {
               className="w-full"
               onClick={() => setShowSessions(false)}
             >
-              Close
+              {tc('actions.close')}
             </Button>
           </div>
         </div>
@@ -399,11 +404,10 @@ export function ChatPanel() {
               <span className="text-2xl">🤖</span>
             </div>
             <h3 className="font-medium text-slate-900 dark:text-slate-100">
-              How can I help you?
+              {t('panel.emptyTitle')}
             </h3>
             <p className="mt-1 text-sm text-slate-500 max-w-xs">
-              Ask questions about your PLM data, find items, or get help with
-              workflows.
+              {t('panel.emptyDescription')}
             </p>
           </div>
         ) : (
@@ -437,7 +441,7 @@ export function ChatPanel() {
       {error && (
         <div className="mx-2 mb-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>{error.message || 'An error occurred'}</span>
+          <span>{error.message || t('panel.genericError')}</span>
         </div>
       )}
 

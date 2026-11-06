@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Factory, Save } from 'lucide-react'
 import { makeCodeSchema } from '@cascadia/commons/types/variants'
@@ -50,6 +51,8 @@ export function PartConfigurator({
   /** Absent until the MBOM route accepts a configuration. */
   onCreateMbom?: (selections: Record<string, string>) => void
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const hasSelection = Object.keys(selections).length > 0
   const resolved = useQuery(
     partVariantResolveQuery(partId, selections, branchId, hasSelection),
@@ -106,7 +109,7 @@ export function PartConfigurator({
     },
     {
       id: 'name',
-      label: 'Name',
+      label: tc('fields.name'),
       width: 'flex-[2] min-w-[140px]',
       renderCell: (node) => (
         <span className="truncate text-slate-600 dark:text-slate-400">
@@ -188,7 +191,7 @@ export function PartConfigurator({
               }
             >
               <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder="Select…" />
+                <SelectValue placeholder={tc('placeholders.selectGeneric')} />
               </SelectTrigger>
               <SelectContent>
                 {family.values.map((v) => (
@@ -267,19 +270,23 @@ export function PartConfigurator({
         {onSaveAsMake && (
           <>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Execution code</div>
+              <div className="text-xs text-slate-500 mb-1">
+                {tp('parts.variantsTab.executionCode')}
+              </div>
               <Input
                 className="h-8 w-28 text-sm font-mono"
-                placeholder="MK1"
+                placeholder={tp('variants.placeholders.makeCodeExample')}
                 value={makeCode}
                 onChange={(e) => setMakeCode(e.target.value)}
               />
             </div>
             <div>
-              <div className="text-xs text-slate-500 mb-1">Name</div>
+              <div className="text-xs text-slate-500 mb-1">
+                {tc('fields.name')}
+              </div>
               <Input
                 className="h-8 w-40 text-sm"
-                placeholder="Black"
+                placeholder={tp('variants.placeholders.makeNameExample')}
                 value={makeName}
                 onChange={(e) => setMakeName(e.target.value)}
               />

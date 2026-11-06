@@ -3,6 +3,7 @@
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Wrench } from 'lucide-react'
 import type { WorkOrderCreateInput } from '@cascadia/commons/items/types/work-order'
 import { PageContainer } from '@/components/layout'
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/work-orders/new')({
 
 function NewWorkOrderPage() {
   const navigate = useNavigate()
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -50,7 +52,7 @@ function NewWorkOrderPage() {
         params: { id: workOrder.id },
       })
     } catch (error) {
-      handleError(error, { title: 'Failed to create work order' })
+      handleError(error, { title: tp('workOrders.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)
@@ -79,10 +81,10 @@ function NewWorkOrderPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              New Work Order
+              {tp('workOrders.form.createTitle')}
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Create a manufacturing work order
+              {tp('workOrders.form.createSubtitle')}
             </p>
           </div>
         </div>
@@ -91,9 +93,9 @@ function NewWorkOrderPage() {
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Work Order Details</CardTitle>
+          <CardTitle>{tp('workOrders.form.detailsTitle')}</CardTitle>
           <CardDescription>
-            Enter the details for this work order.
+            {tp('workOrders.form.detailsDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>

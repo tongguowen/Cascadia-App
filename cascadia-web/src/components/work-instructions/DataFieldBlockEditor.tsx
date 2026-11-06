@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FormInput, Trash2 } from 'lucide-react'
 import type { StepContentBlock } from '@cascadia/commons/items/types/work-instruction'
 import { Button, Input } from '@/components/ui'
@@ -17,6 +18,7 @@ export function DataFieldBlockEditor({
   onUpdate,
   onDelete,
 }: DataFieldBlockEditorProps) {
+  const { t: tc } = useTranslation('common')
   const [localLabel, setLocalLabel] = useState(block.fieldLabel || '')
   const labelTimeoutRef = useState<NodeJS.Timeout | undefined>(undefined)
 
@@ -77,7 +79,7 @@ export function DataFieldBlockEditor({
               }, 300)
               labelTimeoutRef[1](t)
             }}
-            placeholder="e.g., Torque (ft-lbs)"
+            placeholder={tc('placeholders.torqueExample')}
           />
         </div>
 
@@ -119,7 +121,7 @@ export function DataFieldBlockEditor({
                     },
                   })
                 }
-                placeholder="No minimum"
+                placeholder={tc('placeholders.noMinimum')}
               />
             </div>
             <div>
@@ -138,7 +140,7 @@ export function DataFieldBlockEditor({
                     },
                   })
                 }
-                placeholder="No maximum"
+                placeholder={tc('placeholders.noMaximum')}
               />
             </div>
           </div>

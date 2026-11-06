@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ChevronLeft,
@@ -60,14 +61,6 @@ export function useItemImages(
   return { images, isLoading }
 }
 
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`
-}
-
 /** Vault files are served from one endpoint; `<img>` ignores its attachment disposition. */
 const imageUrl = (fileId: string) => `/api/v1/files/${fileId}/download`
 
@@ -104,6 +97,17 @@ export function ImageGallery({
   mainBranchId,
   className,
 }: ImageGalleryProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return tc('fileSize.zero')
+    const k = 1024
+    const sizes = tc('fileSize.byteUnits', {
+      returnObjects: true,
+    }) as Array<string>
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i] ?? sizes[sizes.length - 1]}`
+  }
   const { images, isLoading } = useItemImages(itemId, {
     branchId,
     mainBranchId,
@@ -143,7 +147,9 @@ export function ImageGallery({
   if (isLoading) {
     return (
       <div className={cn('text-center py-12', className)}>
-        <p className="text-slate-600 dark:text-slate-400">Loading images...</p>
+        <p className="text-slate-600 dark:text-slate-400">
+          {tp('vault.imageGallery.loading')}
+        </p>
       </div>
     )
   }
@@ -153,10 +159,10 @@ export function ImageGallery({
       <div className={cn('text-center py-12', className)}>
         <ImageIcon className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
         <p className="text-slate-600 dark:text-slate-400">
-          No images attached to this item
+          {tp('vault.imageGallery.empty')}
         </p>
         <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-          Upload an image on the Details tab to start a gallery
+          {tp('vault.imageGallery.emptyHint')}
         </p>
       </div>
     )
@@ -193,7 +199,7 @@ export function ImageGallery({
                 </span>
                 {image.isItemThumbnail && (
                   <Badge variant="secondary" className="text-xs">
-                    Thumbnail
+                    {tp('vault.imageGallery.thumbnail')}
                   </Badge>
                 )}
               </div>
@@ -219,10 +225,14 @@ export function ImageGallery({
                 {openImage.originalFileName}
               </DialogTitle>
               <DialogDescription>
-                {formatFileSize(openImage.fileSize)} • uploaded{' '}
+                {formatFileSize(openImage.fileSize)} •{' '}
+                {tp('vault.imageGallery.uploaded')}{' '}
                 {new Date(openImage.uploadedAt).toLocaleDateString()}
                 {images.length > 1 &&
-                  ` • ${(openIndex ?? 0) + 1} of ${images.length}`}
+                  ` • ${tp('vault.imageGallery.imageOf', {
+                    current: (openIndex ?? 0) + 1,
+                    total: images.length,
+                  })}`}
               </DialogDescription>
             </div>
 
@@ -238,8 +248,8 @@ export function ImageGallery({
                     variant="outline"
                     size="icon"
                     onClick={showPrevious}
-                    title="Previous image"
-                    aria-label="Previous image"
+                    title={tp('vault.imageGallery.previousImage')}
+                    aria-label={tp('vault.imageGallery.previousImage')}
                     className="absolute left-2 top-1/2 -translate-y-1/2"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -248,8 +258,8 @@ export function ImageGallery({
                     variant="outline"
                     size="icon"
                     onClick={showNext}
-                    title="Next image"
-                    aria-label="Next image"
+                    title={tp('vault.imageGallery.nextImage')}
+                    aria-label={tp('vault.imageGallery.nextImage')}
                     className="absolute right-2 top-1/2 -translate-y-1/2"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -261,7 +271,7 @@ export function ImageGallery({
             <div className="flex justify-end">
               <Button variant="outline" onClick={() => download(openImage)}>
                 <Download className="h-4 w-4 mr-2" />
-                Download
+                {tc('actions.download')}
               </Button>
             </div>
           </DialogContent>

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import {
   Archive,
   Box,
@@ -57,6 +58,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { Button } from '@/components/ui/Button'
 import { ItemLink } from '@/components/items/ItemLink'
+import { translateItemTypeLabel } from '@/i18n'
 
 // Re-export for backwards compatibility
 export type VaultFileRecord = FileRecordWithItem
@@ -86,6 +88,7 @@ export function FileTable({
   defaultColumnFilters,
   defaultGlobalFilter,
 }: FileTableProps) {
+  const { t } = useTranslation('common')
   const getFileIcon = (mimeType: string, fileCategory?: string | null) => {
     // Check file category first (more specific)
     if (fileCategory === 'cad_model')
@@ -121,7 +124,7 @@ export function FileTable({
         </Badge>
         {isPrimary && (
           <Badge variant="success" className="text-xs">
-            Primary
+            {t('columns.primary')}
           </Badge>
         )}
       </div>
@@ -155,11 +158,11 @@ export function FileTable({
     },
     {
       id: 'fileName',
-      header: 'File Name',
+      header: t('columns.fileName'),
       accessorKey: 'originalFileName',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search files...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) => {
         const file = row.original
         return (
@@ -176,11 +179,11 @@ export function FileTable({
     },
     {
       id: 'item',
-      header: 'Item',
+      header: t('columns.item'),
       accessorFn: (row) => row.item.itemNumber,
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search items...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) => {
         const file = row.original
         return (
@@ -206,7 +209,7 @@ export function FileTable({
     },
     {
       id: 'itemType',
-      header: 'Type',
+      header: t('columns.type'),
       accessorFn: (row) => row.item.itemType,
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -232,19 +235,21 @@ export function FileTable({
             variant={variantMap[itemType] ?? 'default'}
             className="text-xs"
           >
-            {itemType === 'ChangeOrder' ? 'Change Order' : itemType}
+            {translateItemTypeLabel(
+              itemType === 'ChangeOrder' ? 'Change Order' : itemType,
+            )}
           </Badge>
         )
       },
     },
     {
       id: 'fileSize',
-      header: 'Size',
+      header: t('columns.size'),
       accessorKey: 'fileSize',
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: t('actions.any'),
       meta: { align: 'right' as const },
       cell: ({ getValue }) => {
         const bytes = getValue() as number
@@ -257,7 +262,7 @@ export function FileTable({
     },
     {
       id: 'fileVersion',
-      header: 'Version',
+      header: t('columns.version'),
       accessorKey: 'fileVersion',
       enableSorting: true,
       cell: ({ row }) => {
@@ -267,7 +272,7 @@ export function FileTable({
             v{file.fileVersion}
             {file.isLatestVersion && (
               <span className="ml-1 text-xs text-green-600 dark:text-green-400">
-                (latest)
+                ({t('columns.latest')})
               </span>
             )}
           </span>
@@ -276,13 +281,13 @@ export function FileTable({
     },
     {
       id: 'isCheckedOut',
-      header: 'Status',
+      header: t('columns.status'),
       accessorKey: 'isCheckedOut',
       enableFiltering: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Available', value: 'false' },
-        { label: 'Checked Out', value: 'true' },
+        { label: t('columns.available'), value: 'false' },
+        { label: t('columns.checkedOutStatus'), value: 'true' },
       ],
       cell: ({ getValue }) => {
         const isCheckedOut = getValue() as boolean
@@ -290,21 +295,21 @@ export function FileTable({
           return (
             <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
               <Lock className="w-3 h-3" />
-              <span className="text-xs">Checked Out</span>
+              <span className="text-xs">{t('columns.checkedOutStatus')}</span>
             </div>
           )
         }
         return (
           <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <Unlock className="w-3 h-3" />
-            <span className="text-xs">Available</span>
+            <span className="text-xs">{t('columns.available')}</span>
           </div>
         )
       },
     },
     {
       id: 'uploadedAt',
-      header: 'Uploaded',
+      header: t('columns.uploadedAt'),
       accessorKey: 'uploadedAt',
       enableSorting: true,
       cell: ({ row }) => {
@@ -323,7 +328,7 @@ export function FileTable({
     },
     {
       id: 'fileCategory',
-      header: 'Category',
+      header: t('columns.category'),
       accessorKey: 'fileCategory',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -340,33 +345,33 @@ export function FileTable({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {isViewableCAD(file) && onViewCAD && (
             <DropdownMenuItem onClick={() => onViewCAD(file)}>
               <Eye className="mr-2 h-4 w-4" />
-              View in 3D
+              {t('actions.viewIn3d')}
             </DropdownMenuItem>
           )}
           {onDownload && (
             <DropdownMenuItem onClick={() => onDownload(file)}>
               <Download className="mr-2 h-4 w-4" />
-              Download
+              {t('actions.download')}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem asChild>
             <ItemLink itemType={file.item.itemType} itemId={file.item.id}>
               <FileIcon className="mr-2 h-4 w-4" />
-              View Item
+              {t('actions.viewDetails')}
             </ItemLink>
           </DropdownMenuItem>
           {onSetCategory && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Tag className="mr-2 h-4 w-4" />
-                Category
+                {t('columns.category')}
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 <DropdownMenuRadioGroup
@@ -391,7 +396,7 @@ export function FileTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => onSetCategory(file, null)}>
                       <RotateCcw className="mr-2 h-4 w-4" />
-                      Reset to auto-detected
+                      {t('actions.resetAutoCategory')}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -407,7 +412,7 @@ export function FileTable({
                 className="text-red-600 dark:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -423,26 +428,26 @@ export function FileTable({
         {isViewableCAD(file) && onViewCAD && (
           <ContextMenuItem onClick={() => onViewCAD(file)}>
             <Eye className="mr-2 h-4 w-4" />
-            View in 3D
+            {t('actions.viewIn3d')}
           </ContextMenuItem>
         )}
         {onDownload && (
           <ContextMenuItem onClick={() => onDownload(file)}>
             <Download className="mr-2 h-4 w-4" />
-            Download
+            {t('actions.download')}
           </ContextMenuItem>
         )}
         <ContextMenuItem asChild>
           <ItemLink itemType={file.item.itemType} itemId={file.item.id}>
             <FileIcon className="mr-2 h-4 w-4" />
-            View Item
+            {t('actions.viewDetails')}
           </ItemLink>
         </ContextMenuItem>
         {onSetCategory && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <Tag className="mr-2 h-4 w-4" />
-              Category
+              {t('columns.category')}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent>
               <ContextMenuRadioGroup
@@ -464,7 +469,7 @@ export function FileTable({
                   <ContextMenuSeparator />
                   <ContextMenuItem onClick={() => onSetCategory(file, null)}>
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    Reset to auto-detected
+                    {t('actions.resetAutoCategory')}
                   </ContextMenuItem>
                 </>
               )}
@@ -480,7 +485,7 @@ export function FileTable({
               className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              {t('actions.delete')}
             </ContextMenuItem>
           </>
         )}

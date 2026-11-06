@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
@@ -29,6 +30,10 @@ export const Route = createFileRoute('/work-instructions/$id/present')({
 })
 
 function StepBlockRenderer({ block }: { block: StepContentBlock }) {
+  const { t: tp } = useTranslation('pages')
+  const presT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.present.${key}`, options)
+
   if (block.type === 'text') {
     return (
       <div className="max-w-none">
@@ -46,7 +51,7 @@ function StepBlockRenderer({ block }: { block: StepContentBlock }) {
           <>
             <img
               src={`/api/v1/files/${block.fileId}`}
-              alt={block.alt || 'Step image'}
+              alt={block.alt || presT('stepImageAlt')}
               className="max-w-full max-h-[50vh] rounded-lg shadow-lg"
             />
             {block.caption && (
@@ -57,7 +62,7 @@ function StepBlockRenderer({ block }: { block: StepContentBlock }) {
           </>
         ) : (
           <div className="flex items-center justify-center w-full h-64 bg-slate-100 dark:bg-slate-800 rounded-lg">
-            <p className="text-slate-500">Image placeholder</p>
+            <p className="text-slate-500">{presT('imagePlaceholder')}</p>
           </div>
         )}
       </div>
@@ -85,13 +90,13 @@ function StepBlockRenderer({ block }: { block: StepContentBlock }) {
     )
   }
 
-  const fieldLabel = block.fieldLabel || 'Data Field'
+  const fieldLabel = block.fieldLabel || presT('dataFieldDefault')
   const fieldType = block.fieldType || 'text'
   const typeLabels: Record<string, string> = {
-    text: 'Text',
-    numeric: 'Numeric',
-    checkbox: 'Checkbox',
-    passFail: 'Pass/Fail',
+    text: presT('fieldTypes.text'),
+    numeric: presT('fieldTypes.numeric'),
+    checkbox: presT('fieldTypes.checkbox'),
+    passFail: presT('fieldTypes.passFail'),
   }
   return (
     <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-md">
@@ -129,6 +134,9 @@ function PresentationView({
 }: {
   workInstruction: WorkInstructionWithSteps
 }) {
+  const { t: tp } = useTranslation('pages')
+  const presT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.present.${key}`, options)
   const navigate = useNavigate()
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
 
@@ -247,13 +255,11 @@ function PresentationView({
     return (
       <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">No Steps Available</h1>
-          <p className="text-slate-400 mb-8">
-            This work instruction has no steps to present.
-          </p>
+          <h1 className="text-2xl font-bold mb-4">{presT('noStepsTitle')}</h1>
+          <p className="text-slate-400 mb-8">{presT('noStepsDescription')}</p>
           <Button onClick={handleExit} variant="outline">
             <X className="h-4 w-4 mr-2" />
-            Exit
+            {presT('exit')}
           </Button>
         </div>
       </div>
@@ -287,10 +293,8 @@ function PresentationView({
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <span className="font-medium text-slate-900 dark:text-white">
-            Step {currentStepNumber}
+            {presT('stepOf', { current: currentStepNumber, total: totalSteps })}
           </span>
-          <span>of</span>
-          <span>{totalSteps}</span>
         </div>
       </header>
 
@@ -310,7 +314,9 @@ function PresentationView({
             <div className="flex flex-col items-center justify-center min-h-[50vh]">
               <div className="text-center">
                 <span className="text-sm font-medium text-sky-600 dark:text-sky-400 uppercase tracking-wider">
-                  Operation {sortedOps.indexOf(currentItem.operation) + 1}
+                  {presT('operationLabel', {
+                    index: sortedOps.indexOf(currentItem.operation) + 1,
+                  })}
                 </span>
                 <h2 className="text-4xl font-bold text-slate-900 dark:text-white mt-2">
                   {currentItem.operation.title}
@@ -347,7 +353,8 @@ function PresentationView({
                     {currentStepNumber}
                   </span>
                   <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {currentItem.step.title || `Step ${currentStepNumber}`}
+                    {currentItem.step.title ||
+                      presT('stepLabel', { number: currentStepNumber })}
                   </h2>
                 </div>
               </div>
@@ -418,7 +425,7 @@ function PresentationView({
           className="min-w-[150px]"
         >
           <ChevronLeft className="h-5 w-5 mr-2" />
-          Previous
+          {presT('previous')}
         </Button>
 
         {/* Step indicators */}
@@ -470,7 +477,7 @@ function PresentationView({
             </>
           ) : (
             <>
-              Next
+              {presT('next')}
               <ChevronRight className="h-5 w-5 ml-2" />
             </>
           )}

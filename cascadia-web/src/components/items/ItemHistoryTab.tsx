@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowUpCircle,
@@ -200,6 +201,7 @@ function FieldChangesList({
   changes: Array<FieldChange>
   itemId: string
 }) {
+  const { t: tc } = useTranslation('common')
   if (changes.length === 0) return null
 
   // Group by category
@@ -212,20 +214,15 @@ function FieldChangesList({
     {} as Record<string, Array<FieldChange>>,
   )
 
-  const categoryLabels: Record<string, string> = {
-    core: 'Core Fields',
-    type: 'Type-Specific Fields',
-    attribute: 'Custom Attributes',
-    relationship: 'Relationships',
-    source: 'Source Files',
-  }
+  const categoryLabel = (category: string) =>
+    tc(`itemHistory.fieldCategories.${category}`, { defaultValue: category })
 
   return (
     <div className="mt-3 pt-3 border-t border-slate-300 dark:border-slate-700 space-y-3">
       {Object.entries(grouped).map(([category, categoryChanges]) => (
         <div key={category}>
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-            {categoryLabels[category] || category}
+            {categoryLabel(category)}
           </div>
           <div className="space-y-1">
             {category === 'source' ? (
@@ -264,6 +261,8 @@ export function ItemHistoryTab({
   onViewHistoricalState,
   itemType,
 }: ItemHistoryTabProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { resolvePhase } = useLifecyclePhases(itemType)
   const [expandedCommits, setExpandedCommits] = useState<Set<string>>(new Set())
 
@@ -341,11 +340,11 @@ export function ItemHistoryTab({
   const getChangeBadge = (changeType: 'added' | 'modified' | 'deleted') => {
     switch (changeType) {
       case 'added':
-        return <Badge variant="success">Added</Badge>
+        return <Badge variant="success">{tc('badges.added')}</Badge>
       case 'modified':
-        return <Badge variant="default">Modified</Badge>
+        return <Badge variant="default">{tc('badges.modified')}</Badge>
       case 'deleted':
-        return <Badge variant="destructive">Deleted</Badge>
+        return <Badge variant="destructive">{tc('badges.deleted')}</Badge>
     }
   }
 
@@ -367,7 +366,7 @@ export function ItemHistoryTab({
           <div className="text-center space-y-3">
             <Info className="h-12 w-12 mx-auto text-slate-400" />
             <h3 className="text-lg font-medium text-slate-900 dark:text-white">
-              No Version History Available
+              {tp('parts.detail.historyTab.noDesignTitle')}
             </h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
               This item is not associated with a design and does not have
@@ -402,12 +401,14 @@ export function ItemHistoryTab({
       {/* Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Version History</CardTitle>
+          <CardTitle>{tp('parts.detail.historyTab.title')}</CardTitle>
           <CardDescription>
-            Timeline of changes to this item
+            {tp('parts.detail.historyTab.timelineDescription')}
             {versionContext.branchName && (
               <span className="ml-2 font-semibold">
-                (on {versionContext.branchName})
+                {tp('parts.detail.historyTab.timelineOnBranch', {
+                  branchName: versionContext.branchName,
+                })}
               </span>
             )}
           </CardDescription>

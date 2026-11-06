@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -98,6 +99,8 @@ export const Route = createFileRoute('/requirements/')({
 })
 
 function RequirementsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -135,10 +138,12 @@ function RequirementsListPage() {
     if (!requirement.id) return
 
     confirm({
-      title: 'Delete Requirement',
-      description: `Are you sure you want to delete ${requirement.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('requirements.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: requirement.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -147,12 +152,14 @@ function RequirementsListPage() {
           })
 
           showSuccess(
-            'Requirement deleted',
-            `${requirement.itemNumber} has been deleted`,
+            t('requirements.deletedTitle'),
+            tc('dialog.deletedMessage', {
+              identifier: requirement.itemNumber,
+            }),
           )
           await invalidate('requirements')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete requirement' })
+          handleError(error, { title: t('requirements.deleteFailed') })
         }
       },
     })
@@ -181,7 +188,7 @@ function RequirementsListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Requirements
+              {t('requirements.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -190,9 +197,11 @@ function RequirementsListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage your requirements library
+            {t('requirements.subtitle')}
             {selectedDesign && (
-              <span className="text-slate-500"> in {selectedDesign.name}</span>
+              <span className="text-slate-500">
+                {tc('context.inDesign', { designName: selectedDesign.name })}
+              </span>
             )}
           </p>
         </div>
@@ -212,7 +221,7 @@ function RequirementsListPage() {
           >
             <Button disabled={!isEditable && context.type !== 'main'}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Requirement
+              {t('requirements.create')}
             </Button>
           </Link>
         </div>
@@ -223,18 +232,18 @@ function RequirementsListPage() {
         itemType="Requirement"
         filters={filters}
         total={total}
-        totalLabel="Total Requirements"
+        totalLabel={t('requirements.total')}
       />
 
       {/* Requirements Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Requirements</CardTitle>
+          <CardTitle>{t('requirements.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'requirement' : 'requirements'} in the system
+            {t('requirements.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

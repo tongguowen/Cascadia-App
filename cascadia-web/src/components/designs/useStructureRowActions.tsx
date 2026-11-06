@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Fragment } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import {
@@ -169,6 +170,8 @@ export function useStructureRowActions({
   onAddChild,
   onPullIn,
 }: UseStructureRowActionsOptions) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -196,7 +199,7 @@ export function useStructureRowActions({
       }),
     invalidates: ['designs'],
     onError: (error: Error) =>
-      handleError(error, { title: 'Failed to remove from structure' }),
+      handleError(error, { title: tp('designs.structureTab.removeFromStructureFailed') }),
   })
 
   // Sets inDesignStructure: a non-structure part becomes a root.
@@ -209,7 +212,7 @@ export function useStructureRowActions({
       }),
     invalidates: ['designs'],
     onError: (error: Error) =>
-      handleError(error, { title: 'Failed to add to structure' }),
+      handleError(error, { title: tp('designs.structureTab.addToStructureFailed') }),
   })
 
   // The part itself, not its place in the tree. Named 'parts' so the parts
@@ -221,7 +224,7 @@ export function useStructureRowActions({
     onSuccess: (_data, part) =>
       showSuccess('Part deleted', `${part.itemNumber} has been deleted`),
     onError: (error: Error) =>
-      handleError(error, { title: 'Failed to delete part' }),
+      handleError(error, { title: tp('designs.structureTab.deletePartFailed') }),
   })
 
   // A reference is a row of its own, so removing one leaves the part it names
@@ -238,12 +241,12 @@ export function useStructureRowActions({
     },
     invalidates: ['designs'],
     onError: (error: Error) =>
-      handleError(error, { title: 'Failed to remove reference' }),
+      handleError(error, { title: tp('designs.structureTab.removeReferenceFailed') }),
   })
 
   const confirmRemoveFromStructure = (node: BOMTreeNode) =>
     confirm({
-      title: 'Remove from Structure',
+      title: tc('confirm.removeFromStructure'),
       description: `Are you sure you want to remove ${node.itemNumber} from the design structure? The part will move to Non-Structure Items but will still belong to this design.`,
       actionLabel: 'Remove',
       cancelLabel: 'Cancel',
@@ -253,7 +256,7 @@ export function useStructureRowActions({
 
   const confirmAddToStructure = (item: NonStructureItem) =>
     confirm({
-      title: 'Add to Structure',
+      title: tc('confirm.addToStructure'),
       description: `Add ${item.itemNumber} to the design structure as a top-level part?`,
       actionLabel: 'Add',
       cancelLabel: 'Cancel',
@@ -262,7 +265,7 @@ export function useStructureRowActions({
 
   const confirmDeletePart = (part: { id: string; itemNumber: string }) =>
     confirm({
-      title: 'Delete Part',
+      title: tc('confirm.deletePart'),
       description: `Permanently delete ${part.itemNumber} from ${designCode}? Assemblies that use it lose that BOM line, and parts under it stay in the design. This cannot be undone.`,
       actionLabel: 'Delete',
       cancelLabel: 'Cancel',
@@ -272,7 +275,7 @@ export function useStructureRowActions({
 
   const confirmRemoveReference = (node: BOMTreeNode, referenceId: string) =>
     confirm({
-      title: 'Remove Reference',
+      title: tc('confirm.removeReference'),
       description: `Remove the reference to ${node.itemNumber} from ${designCode}? The part stays in ${node.designCode ?? 'its own design'}; only this design's link to it is removed.`,
       actionLabel: 'Remove',
       cancelLabel: 'Cancel',

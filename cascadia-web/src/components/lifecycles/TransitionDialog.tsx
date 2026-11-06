@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Check, Loader2 } from 'lucide-react'
 import { TraceImpactSummary } from './TraceImpactSummary'
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui'
 import { cn } from '@/utils'
 import { changeOrderReleasePreviewQuery } from '@/query/options/change-orders'
+import { translateStateName } from '@/i18n'
 
 interface TransitionDialogProps {
   isOpen: boolean
@@ -49,6 +51,7 @@ export function TransitionDialog({
   onConfirm,
   isSubmitting = false,
 }: TransitionDialogProps) {
+  const { t: tc } = useTranslation('common')
   // The transition the user actually clicked. Every button used to open this
   // dialog with nothing chosen, so pressing "Approve" made you pick Approve
   // again from a list that also offered Cancel.
@@ -61,6 +64,9 @@ export function TransitionDialog({
     string | null
   >(defaultTransitionId)
   const [comments, setComments] = useState('')
+  // Large initial releases dump hundreds of "PN -→A" lines and push the
+  // confirm button off-screen; keep the list collapsed unless opened.
+  const [showRevisionDetails, setShowRevisionDetails] = useState(false)
 
   // Re-seed when the dialog opens or the clicked transition changes
   useEffect(() => {
@@ -71,6 +77,7 @@ export function TransitionDialog({
           ? (availableTransitions[0]?.transition.id ?? null)
           : null),
     )
+    setShowRevisionDetails(false)
   }, [isOpen, initialTransitionId, availableTransitions])
 
   const selectedTransition = availableTransitions.find(
@@ -137,26 +144,31 @@ export function TransitionDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className={cn(isReleaseTransition ? 'max-w-lg' : 'max-w-md')}
+        className={cn(
+          // Dialog shell already centers + caps height; keep a scroll body so
+          // the footer (确认流转) stays on screen for tall release previews.
+          isReleaseTransition ? 'max-w-lg' : 'max-w-md',
+          'gap-3 p-4',
+        )}
       >
-        <DialogHeader>
-          <DialogTitle>Sign Off Workflow</DialogTitle>
+        <DialogHeader className="space-y-1">
+          <DialogTitle>{tc('dialogs.transition.title')}</DialogTitle>
           <DialogDescription>
-            Transition {changeOrderNumber} to the next workflow step
+            {tc('dialogs.transition.description', { changeOrderNumber })}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-1">
           {/* Current State */}
           <div>
             <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Current State
+              {tc('labels.currentState')}
             </label>
             <div className="mt-1">
               <Badge
                 className={cn('border', getStateColor(currentState.color))}
               >
-                {currentState.name}
+                {translateStateName(currentState.name)}
               </Badge>
             </div>
           </div>
@@ -165,8 +177,8 @@ export function TransitionDialog({
           <div>
             <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
               {availableTransitions.length === 1
-                ? 'Target State'
-                : 'Select Target State'}
+                ? tc('labels.targetState')
+                : tc('labels.selectTargetState')}
             </label>
             <div className="mt-2 space-y-2">
               {availableTransitions.map((at) => {
@@ -185,7 +197,7 @@ export function TransitionDialog({
                       }
                       disabled={!canTransition || isSubmitting}
                       className={cn(
-                        'w-full p-3 rounded-lg border-2 text-left transition-all relative',
+                        'w-full p-2 rounded-lg border text-left transition-all relative',
                         isSelected
                           ? 'border-green-500 dark:border-green-400 bg-green-500/10 dark:bg-green-500/15 ring-2 ring-green-500/30 ring-offset-1 ring-offset-background'
                           : canTransition
@@ -194,34 +206,36 @@ export function TransitionDialog({
                       )}
                     >
                       {isSelected && (
-                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-green-500 flex items-center justify-center">
-                          <Check className="h-3 w-3 text-white" />
+                        <div className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-green-500 flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5 text-white" />
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Badge
                           className={cn(
                             'border',
                             getStateColor(currentState.color),
                           )}
                         >
-                          {currentState.name}
+                          {translateStateName(currentState.name)}
                         </Badge>
-                        <ArrowRight className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                        <ArrowRight className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                         <Badge
                           className={cn(
                             'border',
                             getStateColor(targetState?.color),
                           )}
                         >
-                          {targetState?.name || at.transition.toStateId}
+                          {targetState
+                            ? translateStateName(targetState.name)
+                            : at.transition.toStateId}
                         </Badge>
                       </div>
-                      <div className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                      <div className="mt-0.5 text-sm font-medium text-slate-900 dark:text-slate-100">
                         {at.transition.name}
                       </div>
                       {at.transition.description && (
-                        <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+                        <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
                           {at.transition.description}
                         </div>
                       )}
@@ -232,7 +246,10 @@ export function TransitionDialog({
                       <div className="mt-1 ml-2 text-xs text-destructive">
                         {failedGuards.map((g, idx) => (
                           <div key={idx}>
-                            {g.errorMessage || `Guard "${g.guardName}" failed`}
+                            {g.errorMessage ||
+                              tc('dialogs.transition.guardFailed', {
+                                guardName: g.guardName,
+                              })}
                           </div>
                         ))}
                       </div>
@@ -245,14 +262,14 @@ export function TransitionDialog({
 
           {/* Release Preview (shown when the transition releases) */}
           {isReleaseTransition && (
-            <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 p-3">
-              <div className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-2">
-                Release Preview
+            <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/50 p-2">
+              <div className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1.5">
+                {tc('dialogs.transition.releasePreview')}
               </div>
               {loadingPreview ? (
                 <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading preview...
+                  {tc('dialogs.transition.loadingPreview')}
                 </div>
               ) : releasePreview ? (
                 <div className="space-y-2 text-sm">
@@ -276,8 +293,10 @@ export function TransitionDialog({
                     </div>
                   )}
                   <div className="text-amber-800 dark:text-amber-200">
-                    {(releasePreview.designs ?? []).length} design(s),{' '}
-                    {releasePreview.totalItems} item(s) will be merged to main
+                    {tc('dialogs.transition.mergeSummary', {
+                      designCount: (releasePreview.designs ?? []).length,
+                      itemCount: releasePreview.totalItems,
+                    })}
                   </div>
                   {(releasePreview.designs ?? []).map((design) => {
                     const items = design.items ?? []
@@ -288,21 +307,61 @@ export function TransitionDialog({
                       >
                         <span className="font-medium">{design.designName}</span>
                         {' — '}
-                        {items.length} item(s)
-                        {items.length > 0 && (
-                          <span>
-                            , revisions:{' '}
-                            {items
-                              .map(
-                                (r) =>
-                                  `${r.itemNumber} ${r.currentRevision}→${r.newRevision}`,
-                              )
-                              .join(', ')}
-                          </span>
-                        )}
+                        {tc('dialogs.transition.designItemCount', {
+                          count: items.length,
+                        })}
                       </div>
                     )
                   })}
+                  {(releasePreview.totalItems ?? 0) > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        {tc('dialogs.transition.revisionDetailsHint')}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs border-amber-300 text-amber-900 dark:border-amber-700 dark:text-amber-100"
+                        onClick={() =>
+                          setShowRevisionDetails((open) => !open)
+                        }
+                      >
+                        {showRevisionDetails
+                          ? tc('dialogs.transition.hideRevisionDetails')
+                          : tc('dialogs.transition.showRevisionDetails', {
+                              count: releasePreview.totalItems,
+                            })}
+                      </Button>
+                      {showRevisionDetails && (
+                        <div className="max-h-40 overflow-y-auto rounded border border-amber-200 dark:border-amber-800 bg-amber-100/60 dark:bg-amber-900/40 p-2 space-y-2">
+                          {(releasePreview.designs ?? []).map((design) => {
+                            const items = design.items ?? []
+                            if (items.length === 0) return null
+                            return (
+                              <div
+                                key={`${design.designId}-revs`}
+                                className="text-xs text-amber-800 dark:text-amber-200"
+                              >
+                                <div className="font-medium mb-1">
+                                  {design.designName} —{' '}
+                                  {tc('dialogs.transition.revisions')}
+                                </div>
+                                <ul className="list-disc list-inside space-y-0.5">
+                                  {items.map((r) => (
+                                    <li key={`${r.itemNumber}-${r.newRevision}`}>
+                                      {r.itemNumber} {r.currentRevision}→
+                                      {r.newRevision}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {releasePreview.traceImpact &&
                     releasePreview.traceImpact.suspectAfterRelease > 0 && (
                       <TraceImpactSummary impact={releasePreview.traceImpact} />
@@ -310,8 +369,7 @@ export function TransitionDialog({
                 </div>
               ) : (
                 <div className="text-sm text-amber-700 dark:text-amber-300">
-                  This transition will merge ECO changes to main and assign
-                  revisions.
+                  {tc('dialogs.transition.releaseFallback')}
                 </div>
               )}
             </div>
@@ -321,12 +379,10 @@ export function TransitionDialog({
           {isCancelTransition && (
             <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/50 p-3">
               <div className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
-                This will abandon {changeOrderNumber}
+                {tc('dialogs.transition.cancelTitle', { changeOrderNumber })}
               </div>
               <div className="text-sm text-red-700 dark:text-red-300">
-                Nothing is merged to main and no revisions are assigned. The
-                change order&apos;s branches are archived for audit, and the
-                work on them is not released.
+                {tc('dialogs.transition.cancelDescription')}
               </div>
             </div>
           )}
@@ -334,26 +390,26 @@ export function TransitionDialog({
           {/* Comments */}
           <div>
             <label className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Comments (Optional)
+              {tc('labels.commentsOptional')}
             </label>
             <Textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}
-              placeholder="Add any notes about this transition..."
-              rows={3}
+              placeholder={tc('dialogs.transition.commentsPlaceholder')}
+              rows={2}
               className="mt-1"
               disabled={isSubmitting}
             />
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="mt-0 border-t border-slate-200 pt-3 dark:border-slate-800">
           <Button
             variant="outline"
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
@@ -364,7 +420,9 @@ export function TransitionDialog({
               releaseBlocked
             }
           >
-            {isSubmitting ? 'Processing...' : 'Confirm Transition'}
+            {isSubmitting
+              ? tc('actions.processing')
+              : tc('actions.confirmTransition')}
           </Button>
         </DialogFooter>
       </DialogContent>

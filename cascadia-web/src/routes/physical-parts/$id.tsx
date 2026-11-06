@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { BadgeCheck, GitCompareArrows, GitFork, Package } from 'lucide-react'
@@ -31,6 +32,7 @@ import { FileList, FileUploadZone } from '@/components/vault'
 import { apiFetch } from '@/api/client'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useErrorHandler } from '@/hooks/useErrorHandler'
+import { translatePhysicalPartState } from '@/i18n'
 import {
   itemTextSearchQuery,
   physicalPartAsBuiltQuery,
@@ -49,6 +51,8 @@ export const Route = createFileRoute('/physical-parts/$id')({
 const STATES = ['Available', 'Consumed', 'In Service', 'Scrapped']
 
 function PhysicalPartDetailPage() {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { id } = Route.useParams()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -62,7 +66,10 @@ function PhysicalPartDetailPage() {
         method: 'PATCH',
         body: JSON.stringify({ state }),
       })
-      showSuccess('State updated', `${physicalPart.itemNumber} → ${state}`)
+      showSuccess(
+        tp('physicalParts.detail.stateUpdatedTitle'),
+        `${physicalPart.itemNumber} → ${translatePhysicalPartState(state)}`,
+      )
       await invalidate('physical-parts')
     } catch (error) {
       handleError(error)
@@ -70,7 +77,9 @@ function PhysicalPartDetailPage() {
   }
 
   const identityLabel =
-    physicalPart.instanceKind === 'unit' ? 'Serial Number' : 'Lot Number'
+    physicalPart.instanceKind === 'unit'
+      ? tp('physicalParts.detail.serialNumberLabel')
+      : tp('physicalParts.detail.lotNumberLabel')
   const identityValue = physicalPart.serialNumber ?? physicalPart.lotNumber
 
   return (
@@ -82,7 +91,9 @@ function PhysicalPartDetailPage() {
             <h1 className="text-2xl font-semibold">
               {physicalPart.itemNumber}
               <Badge variant="outline" className="ml-3 align-middle">
-                {physicalPart.instanceKind === 'unit' ? 'Unit' : 'Lot'}
+                {physicalPart.instanceKind === 'unit'
+                  ? tp('physicalParts.unit')
+                  : tp('physicalParts.lot')}
               </Badge>
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -97,7 +108,7 @@ function PhysicalPartDetailPage() {
           <SelectContent>
             {STATES.map((s) => (
               <SelectItem key={s} value={s}>
-                {s}
+                {translatePhysicalPartState(s)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -120,7 +131,9 @@ function PhysicalPartDetailPage() {
               <span className="font-mono font-medium">{identityValue}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500 dark:text-slate-400">Part</span>
+              <span className="text-slate-500 dark:text-slate-400">
+                {tc('columns.part')}
+              </span>
               <span>
                 <span className="font-medium">
                   {physicalPart.partItemNumber}
@@ -135,7 +148,7 @@ function PhysicalPartDetailPage() {
             {physicalPart.erpRef && (
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  ERP Ref
+                  {tp('physicalParts.detail.erpRef')}
                 </span>
                 <span className="font-mono">{physicalPart.erpRef}</span>
               </div>
@@ -143,21 +156,21 @@ function PhysicalPartDetailPage() {
             {physicalPart.producingWorkOrderId && (
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Produced by
+                  {tp('physicalParts.detail.producedBy')}
                 </span>
                 <Link
                   to="/work-orders/$id"
                   params={{ id: physicalPart.producingWorkOrderId }}
                   className="underline underline-offset-2"
                 >
-                  Work Order
+                  {tp('physicalParts.detail.workOrderLink')}
                 </Link>
               </div>
             )}
             {physicalPart.notes && (
               <div className="pt-2">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Notes
+                  {tc('fields.notes')}
                 </span>
                 <p className="mt-1 whitespace-pre-wrap">{physicalPart.notes}</p>
               </div>
@@ -167,10 +180,11 @@ function PhysicalPartDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Documents</CardTitle>
+            <CardTitle>{tp('physicalParts.detail.documentsTitle')}</CardTitle>
             <CardDescription>
-              Material certs, test reports, CoCs — the qualification evidence
-              for this {physicalPart.instanceKind}
+              {tp('physicalParts.detail.documentsDescription', {
+                kind: physicalPart.instanceKind,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -207,6 +221,8 @@ interface RequirementSuggestion {
 }
 
 function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [query, setQuery] = useState('')
@@ -233,7 +249,12 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
           note: note.trim() || undefined,
         }),
       })
-      showSuccess('Evidence linked', `${requirement.itemNumber} evidenced`)
+      showSuccess(
+        tp('physicalParts.detail.evidenceLinkedTitle'),
+        tp('physicalParts.detail.evidenceLinkedDescription', {
+          itemNumber: requirement.itemNumber,
+        }),
+      )
       setQuery('')
       setNote('')
       await invalidate('physical-parts')
@@ -261,11 +282,10 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BadgeCheck className="h-4 w-4" />
-          Requirement Evidence
+          {tp('physicalParts.detail.evidenceTitle')}
         </CardTitle>
         <CardDescription>
-          Assert which requirements this instance&rsquo;s certifications satisfy
-          — these assertions drive the work order qualification rollup
+          {tp('physicalParts.detail.evidenceDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -274,7 +294,7 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search requirement to evidence…"
+              placeholder={tp('physicalParts.searchRequirementPlaceholder')}
             />
             {suggestions.length > 0 && (
               <div className="absolute z-10 mt-1 w-full rounded-md border border-slate-300 bg-white shadow-md dark:border-slate-700 dark:bg-slate-950">
@@ -299,14 +319,14 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
           <Input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Note (e.g. 'mill cert §1.2.3')"
+            placeholder={tp('physicalParts.evidenceNotePlaceholder')}
             className="max-w-xs"
           />
         </div>
 
         {links.length === 0 ? (
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            No requirement evidence asserted yet.
+            {tp('physicalParts.detail.evidenceEmpty')}
           </p>
         ) : (
           <ul className="space-y-1">
@@ -333,7 +353,7 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
                   size="sm"
                   onClick={() => handleRemove(link)}
                 >
-                  Remove
+                  {tc('actions.remove')}
                 </Button>
               </li>
             ))}
@@ -345,6 +365,7 @@ function EvidenceCard({ physicalPartId }: { physicalPartId: string }) {
 }
 
 function GenealogyNodeList({ nodes }: { nodes: Array<GenealogyNode> }) {
+  const { t: tp } = useTranslation('pages')
   if (nodes.length === 0) return null
   return (
     <ul className="ml-4 space-y-1 border-l border-slate-300 pl-3 dark:border-slate-700">
@@ -367,8 +388,12 @@ function GenealogyNodeList({ nodes }: { nodes: Array<GenealogyNode> }) {
                 className="font-mono underline-offset-2 hover:underline"
               >
                 {node.serialNumber
-                  ? `SN ${node.serialNumber}`
-                  : `Lot ${node.lotNumber}`}
+                  ? tp('workOrders.materials.serialLink', {
+                      serial: node.serialNumber,
+                    })
+                  : tp('workOrders.materials.lotLink', {
+                      lot: node.lotNumber ?? '',
+                    })}
               </Link>
             )}
             {node.kind !== 'bulk' && node.partItemNumber && (
@@ -398,33 +423,32 @@ function GenealogyNodeList({ nodes }: { nodes: Array<GenealogyNode> }) {
   )
 }
 
-const AS_BUILT_STATUS: Record<
-  AsBuiltLine['status'],
-  { label: string; className: string }
-> = {
-  match: {
-    label: 'Match',
-    className:
-      'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  },
-  missing: {
-    label: 'Missing',
-    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  },
-  extra: {
-    label: 'Extra',
-    className:
-      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  },
-  quantity_mismatch: {
-    label: 'Qty mismatch',
-    className:
-      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  },
+const AS_BUILT_STATUS_CLASS: Record<AsBuiltLine['status'], string> = {
+  match:
+    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  missing: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  extra:
+    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  quantity_mismatch:
+    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
 }
 
 function AsBuiltComparisonCard({ physicalPartId }: { physicalPartId: string }) {
+  const { t: tp } = useTranslation('pages')
   const { data } = useQuery(physicalPartAsBuiltQuery(physicalPartId))
+
+  const asBuiltStatusLabel = (status: AsBuiltLine['status']) => {
+    switch (status) {
+      case 'match':
+        return tp('physicalParts.detail.asBuiltStatusMatch')
+      case 'missing':
+        return tp('physicalParts.detail.asBuiltStatusMissing')
+      case 'extra':
+        return tp('physicalParts.detail.asBuiltStatusExtra')
+      case 'quantity_mismatch':
+        return tp('physicalParts.detail.asBuiltStatusQtyMismatch')
+    }
+  }
 
   if (!data) return null
 
@@ -433,21 +457,26 @@ function AsBuiltComparisonCard({ physicalPartId }: { physicalPartId: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <GitCompareArrows className="h-4 w-4" />
-          As-Designed vs As-Built
+          {tp('physicalParts.detail.asBuiltComparisonTitle')}
         </CardTitle>
         <CardDescription>
-          BOM of the built revision
+          {tp('physicalParts.detail.asBuiltDescriptionIntro')}
           {data.asBuiltItem &&
-            ` (${data.asBuiltItem.itemNumber} Rev ${data.asBuiltItem.revision})`}{' '}
-          against what the producing work order consumed
+            tp('physicalParts.detail.asBuiltDescriptionRevision', {
+              itemNumber: data.asBuiltItem.itemNumber,
+              revision: data.asBuiltItem.revision,
+            })}
+          {tp('physicalParts.detail.asBuiltDescriptionConsumed')}
           {data.producedUnitCount > 1 &&
-            ` — quantities span the batch of ${data.producedUnitCount} units`}
+            tp('physicalParts.detail.asBuiltDescriptionBatch', {
+              count: data.producedUnitCount,
+            })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {data.lines.length === 0 ? (
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            The built revision has no BOM and no materials were consumed.
+            {tp('physicalParts.detail.asBuiltEmpty')}
           </p>
         ) : (
           <ul className="space-y-1">
@@ -466,14 +495,16 @@ function AsBuiltComparisonCard({ physicalPartId }: { physicalPartId: string }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-slate-500 dark:text-slate-400">
-                    designed {line.designedQuantity ?? '—'} · consumed{' '}
-                    {line.consumedQuantity ?? '—'}
+                    {tp('physicalParts.detail.asBuiltQuantities', {
+                      designed: line.designedQuantity ?? '—',
+                      consumed: line.consumedQuantity ?? '—',
+                    })}
                   </span>
                   <Badge
                     variant="secondary"
-                    className={AS_BUILT_STATUS[line.status].className}
+                    className={AS_BUILT_STATUS_CLASS[line.status]}
                   >
-                    {AS_BUILT_STATUS[line.status].label}
+                    {asBuiltStatusLabel(line.status)}
                   </Badge>
                 </div>
               </li>
@@ -486,6 +517,7 @@ function AsBuiltComparisonCard({ physicalPartId }: { physicalPartId: string }) {
 }
 
 function GenealogyCard({ physicalPartId }: { physicalPartId: string }) {
+  const { t: tp } = useTranslation('pages')
   const { data } = useQuery(physicalPartGenealogyQuery(physicalPartId))
 
   const composition = data?.composition ?? []
@@ -496,21 +528,21 @@ function GenealogyCard({ physicalPartId }: { physicalPartId: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <GitFork className="h-4 w-4" />
-          Genealogy
+          {tp('physicalParts.detail.genealogyTitle')}
         </CardTitle>
         <CardDescription>
-          Derived from work order consumption and production records
+          {tp('physicalParts.detail.genealogyDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6 md:grid-cols-2">
           <div>
             <h3 className="mb-2 text-sm font-medium">
-              Composition — what went into this
+              {tp('physicalParts.detail.compositionTitle')}
             </h3>
             {composition.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                No production record yet.
+                {tp('physicalParts.detail.compositionEmpty')}
               </p>
             ) : (
               <GenealogyNodeList nodes={composition} />
@@ -518,11 +550,11 @@ function GenealogyCard({ physicalPartId }: { physicalPartId: string }) {
           </div>
           <div>
             <h3 className="mb-2 text-sm font-medium">
-              Where used — what this went into
+              {tp('physicalParts.detail.whereUsedTitle')}
             </h3>
             {whereUsed.length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Not consumed by any work order.
+                {tp('physicalParts.detail.whereUsedEmpty')}
               </p>
             ) : (
               <GenealogyNodeList nodes={whereUsed} />

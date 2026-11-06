@@ -4,6 +4,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Edit,
@@ -121,6 +122,18 @@ export function TestPlanDetail({
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const td = (key: string) => tp(`testPlans.detail.${key}` as const)
+
+  const executionStatusLabel = (status: string | null | undefined) => {
+    if (!status || status === 'NotRun') {
+      return tp('testCases.detail.executionStatus.NotRun')
+    }
+    const key = `testCases.detail.executionStatus.${status}`
+    const translated = tp(key)
+    return translated === key ? status : translated
+  }
 
   const isCreateMode = !initialTestPlan?.id
 
@@ -227,7 +240,7 @@ export function TestPlanDetail({
       try {
         await editLock.acquire()
       } catch (error) {
-        handleError(error, { title: 'Cannot edit item' })
+        handleError(error, { title: tc('errors.cannotEditItem') })
         return
       }
     }
@@ -292,10 +305,12 @@ export function TestPlanDetail({
   const handleDelete = () => {
     if (!onDelete || !currentTestPlan.id) return
     confirm({
-      title: 'Delete Test Plan',
-      description: `Are you sure you want to delete ${currentTestPlan.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('testPlans.deleteTitle'),
+      description: tp('testPlans.detail.deleteDescription', {
+        itemNumber: currentTestPlan.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: onDelete,
     })
@@ -370,7 +385,7 @@ export function TestPlanDetail({
             <div className="flex items-center gap-3">
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                 {isCreateMode
-                  ? 'Create New Test Plan'
+                  ? tp('testPlans.form.createTitle')
                   : currentTestPlan.itemNumber}
               </h1>
               {!isCreateMode && isLoadingVersion && (
@@ -414,8 +429,11 @@ export function TestPlanDetail({
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new test plan'
-                : `Revision ${currentTestPlan.revision} • ${currentTestPlan.name || 'Unnamed'}`}
+                ? tp('testPlans.form.createSubtitle')
+                : tp('testPlans.detail.revisionSubtitle', {
+                    revision: currentTestPlan.revision,
+                    name: currentTestPlan.name || tc('labels.unnamed'),
+                  })}
             </p>
           </div>
         </div>
@@ -430,7 +448,7 @@ export function TestPlanDetail({
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -441,10 +459,10 @@ export function TestPlanDetail({
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create Test Plan'
-                      : 'Save Changes'}
+                      ? tp('testPlans.form.createSubmit')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
@@ -532,12 +550,16 @@ export function TestPlanDetail({
         <TabsList
           className={`grid w-full ${isCreateMode ? 'grid-cols-2' : 'grid-cols-4'}`}
         >
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
           {!isCreateMode && (
-            <TabsTrigger value="test-cases">Test Cases</TabsTrigger>
+            <TabsTrigger value="test-cases">{td('tabs.testCases')}</TabsTrigger>
           )}
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
-          {!isCreateMode && <TabsTrigger value="history">History</TabsTrigger>}
+          <TabsTrigger value="relationships">
+            {tc('tabs.relationships')}
+          </TabsTrigger>
+          {!isCreateMode && (
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent
@@ -547,15 +569,13 @@ export function TestPlanDetail({
         >
           <Card>
             <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>
-                General information about this test plan
-              </CardDescription>
+              <CardTitle>{tc('sections.overview')}</CardTitle>
+              <CardDescription>{td('overviewDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ViewEditText
-                  label="Item Number"
+                  label={tc('fields.itemNumber')}
                   value={
                     isEditing ? testPlan.itemNumber : currentTestPlan.itemNumber
                   }
@@ -566,17 +586,17 @@ export function TestPlanDetail({
                   data-testid="test-plan-item-number"
                 />
                 <ViewEditText
-                  label="Revision"
+                  label={tc('fields.revision')}
                   value={currentTestPlan.revision}
                   onChange={() => {}}
                   isEditing={false}
                 />
                 <ViewEditText
-                  label="Name"
+                  label={tc('fields.name')}
                   value={isEditing ? testPlan.name : currentTestPlan.name}
                   onChange={(v) => updateField('name', v)}
                   isEditing={isEditing}
-                  placeholder="Test plan name"
+                  placeholder={td('namePlaceholder')}
                   required
                   data-testid="test-plan-name"
                 />
@@ -594,7 +614,7 @@ export function TestPlanDetail({
                       isCreateMode={isCreateMode}
                       selectedBranchId={selectedBranchId}
                       onBranchChange={setSelectedBranchId}
-                      itemLabel="test plan"
+                      itemLabel={td('itemLabel')}
                     />
                   )}
               </dl>
@@ -603,15 +623,13 @@ export function TestPlanDetail({
 
           <Card>
             <CardHeader>
-              <CardTitle>Test Plan Details</CardTitle>
-              <CardDescription>
-                Scope, environment, and criteria
-              </CardDescription>
+              <CardTitle>{td('detailsTitle')}</CardTitle>
+              <CardDescription>{td('detailsDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ViewEditTextarea
-                  label="Scope"
+                  label={td('fields.scope')}
                   value={isEditing ? testPlan.scope : currentTestPlan.scope}
                   onChange={(v) => updateField('scope', v)}
                   isEditing={isEditing}
@@ -619,7 +637,7 @@ export function TestPlanDetail({
                   className="md:col-span-2"
                 />
                 <ViewEditText
-                  label="Environment"
+                  label={td('fields.environment')}
                   value={
                     isEditing
                       ? testPlan.environment
@@ -627,10 +645,10 @@ export function TestPlanDetail({
                   }
                   onChange={(v) => updateField('environment', v)}
                   isEditing={isEditing}
-                  placeholder="Lab, Staging, Production, etc."
+                  placeholder={td('environmentPlaceholder')}
                 />
                 <ViewEditTextarea
-                  label="Entry Criteria"
+                  label={td('fields.entryCriteria')}
                   value={
                     isEditing
                       ? testPlan.entryCriteria
@@ -642,7 +660,7 @@ export function TestPlanDetail({
                   className="md:col-span-2"
                 />
                 <ViewEditTextarea
-                  label="Exit Criteria"
+                  label={td('fields.exitCriteria')}
                   value={
                     isEditing
                       ? testPlan.exitCriteria
@@ -661,8 +679,10 @@ export function TestPlanDetail({
           {!isCreateMode && summary && (
             <Card>
               <CardHeader>
-                <CardTitle>Execution Summary</CardTitle>
-                <CardDescription>Overall test execution status</CardDescription>
+                <CardTitle>{td('executionSummaryTitle')}</CardTitle>
+                <CardDescription>
+                  {td('executionSummaryDescription')}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -670,31 +690,41 @@ export function TestPlanDetail({
                     <div className="text-2xl font-bold text-slate-900 dark:text-white">
                       {summary.total}
                     </div>
-                    <div className="text-sm text-slate-500">Total</div>
+                    <div className="text-sm text-slate-500">
+                      {td('executionTotal')}
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {summary.passed}
                     </div>
-                    <div className="text-sm text-slate-500">Passed</div>
+                    <div className="text-sm text-slate-500">
+                      {td('executionPassed')}
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                       {summary.failed}
                     </div>
-                    <div className="text-sm text-slate-500">Failed</div>
+                    <div className="text-sm text-slate-500">
+                      {td('executionFailed')}
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                       {summary.blocked}
                     </div>
-                    <div className="text-sm text-slate-500">Blocked</div>
+                    <div className="text-sm text-slate-500">
+                      {td('executionBlocked')}
+                    </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-slate-400">
                       {summary.notRun}
                     </div>
-                    <div className="text-sm text-slate-500">Not Run</div>
+                    <div className="text-sm text-slate-500">
+                      {td('executionNotRun')}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -705,15 +735,15 @@ export function TestPlanDetail({
             <Card>
               <CardHeader>
                 <CollapsibleTrigger className="hover:opacity-70">
-                  <CardTitle>Metadata</CardTitle>
+                  <CardTitle>{tc('sections.metadata')}</CardTitle>
                 </CollapsibleTrigger>
-                <CardDescription>System information</CardDescription>
+                <CardDescription>{td('metadataDescription')}</CardDescription>
               </CardHeader>
               <CollapsibleContent>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditStatic
-                      label="Created"
+                      label={tc('columns.created')}
                       value={
                         currentTestPlan.createdAt
                           ? new Date(
@@ -723,7 +753,7 @@ export function TestPlanDetail({
                       }
                     />
                     <ViewEditStatic
-                      label="Last Modified"
+                      label={tp('programs.detail.lastModified')}
                       value={
                         currentTestPlan.modifiedAt
                           ? new Date(
@@ -735,12 +765,12 @@ export function TestPlanDetail({
                     {!isCreateMode && (
                       <>
                         <ViewEditStatic
-                          label="Master ID"
+                          label={td('masterId')}
                           value={currentTestPlan.masterId}
                           mono
                         />
                         <ViewEditStatic
-                          label="Test Plan ID"
+                          label={td('testPlanId')}
                           value={currentTestPlan.id}
                           mono
                         />
@@ -759,10 +789,8 @@ export function TestPlanDetail({
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Test Cases</CardTitle>
-                    <CardDescription>
-                      Test cases in this test plan
-                    </CardDescription>
+                    <CardTitle>{td('testCasesTitle')}</CardTitle>
+                    <CardDescription>{td('testCasesDescription')}</CardDescription>
                   </div>
                   <Link
                     to="/test-cases/new"
@@ -770,7 +798,7 @@ export function TestPlanDetail({
                   >
                     <Button size="sm">
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Test Case
+                      {td('addTestCase')}
                     </Button>
                   </Link>
                 </div>
@@ -782,7 +810,7 @@ export function TestPlanDetail({
                   </div>
                 ) : testCases.length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
-                    No test cases in this plan yet
+                    {td('noTestCases')}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -813,7 +841,7 @@ export function TestPlanDetail({
                                     : 'secondary'
                             }
                           >
-                            {tc.executionStatus || 'Not Run'}
+                            {executionStatusLabel(tc.executionStatus)}
                           </Badge>
                         </div>
                       </Link>
@@ -843,9 +871,7 @@ export function TestPlanDetail({
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-slate-500">
-                  Save the test plan first to manage relationships
-                </p>
+                <p className="text-slate-500">{td('saveFirstRelationships')}</p>
               </CardContent>
             </Card>
           )}

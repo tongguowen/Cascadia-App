@@ -9,6 +9,7 @@ import type {
   PermissionAction,
   ResourceType,
 } from '@cascadia/commons/auth/permissions'
+import { useTranslation } from 'react-i18next'
 import { Checkbox, Label, Switch } from '@/components/ui'
 
 export interface ScopeState {
@@ -68,6 +69,7 @@ export function ApiKeyScopeEditor({
   onChange,
   scopableRoles,
 }: ApiKeyScopeEditorProps) {
+  const { t: tp } = useTranslation('pages')
   const toggleAction = (resource: ResourceType, action: PermissionAction) => {
     const current = value.permissions[resource] ?? []
     const nextActions = current.includes(action)
@@ -106,7 +108,9 @@ export function ApiKeyScopeEditor({
             }
           />
           <div>
-            <Label htmlFor="restrict-roles">Restrict roles</Label>
+            <Label htmlFor="restrict-roles">
+              {tp('admin.apiKeys.form.restrictRolesLabel')}
+            </Label>
             <p className="text-xs text-muted-foreground">
               Roles are checked separately from permissions. Turn this off and
               the key clears every role gate its owner can — including
@@ -161,7 +165,9 @@ export function ApiKeyScopeEditor({
             }
           />
           <div>
-            <Label htmlFor="restrict-permissions">Restrict permissions</Label>
+            <Label htmlFor="restrict-permissions">
+              {tp('admin.apiKeys.form.restrictPermissionsLabel')}
+            </Label>
             <p className="text-xs text-muted-foreground">
               Off means the key inherits the owner&apos;s full role-derived
               permissions.

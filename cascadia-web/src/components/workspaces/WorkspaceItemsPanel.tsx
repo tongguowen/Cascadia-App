@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { GitBranch, Loader2, X } from 'lucide-react'
 import type { WorkspaceItem } from '@/query'
 import {
@@ -40,6 +41,8 @@ export function WorkspaceItemsPanel({
   workspaceId,
   readOnly = false,
 }: WorkspaceItemsPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -48,16 +51,19 @@ export function WorkspaceItemsPanel({
   )
 
   const removeItem = async (item: WorkspaceItem) => {
-    const label = item.itemNumber ?? 'Item'
+    const label = item.itemNumber ?? tp('workspaces.itemsPanel.fallbackItem')
     try {
       await apiFetch(
         `/api/v1/workspaces/${workspaceId}/items/${item.itemMasterId}`,
         { method: 'DELETE' },
       )
-      showSuccess('Item removed', `${label} removed from workspace`)
+      showSuccess(
+        tp('workspaces.itemsPanel.itemRemovedTitle'),
+        tp('workspaces.itemsPanel.itemRemovedDescription', { label }),
+      )
       await invalidate('workspaces')
     } catch (error) {
-      handleError(error, { title: 'Failed to remove item' })
+      handleError(error, { title: tp('workspaces.removeItemFailedTitle') })
     }
   }
 
@@ -65,13 +71,16 @@ export function WorkspaceItemsPanel({
   // a modified item discards the workspace's edits. Both deserve a warning —
   // undoing an untouched checkout does not.
   const handleRemove = (item: WorkspaceItem) => {
-    const label = item.itemNumber ?? 'this item'
+    const label =
+      item.itemNumber ?? tp('workspaces.itemsPanel.fallbackThisItem')
     if (item.changeType === 'added') {
       confirm({
-        title: 'Delete Draft Item',
-        description: `"${label}" was created on this workspace and exists nowhere else. Removing it permanently deletes the draft.\n\nThis action cannot be undone.`,
-        actionLabel: 'Delete Draft',
-        cancelLabel: 'Cancel',
+        title: tc('confirm.deleteDraftItem'),
+        description: tp('workspaces.itemsPanel.deleteDraftDescription', {
+          label,
+        }),
+        actionLabel: tp('workspaces.itemsPanel.deleteDraftAction'),
+        cancelLabel: tc('actions.cancel'),
         variant: 'destructive',
         onConfirm: () => removeItem(item),
       })
@@ -80,10 +89,12 @@ export function WorkspaceItemsPanel({
       item.changeType === 'deleted'
     ) {
       confirm({
-        title: 'Discard Workspace Changes',
-        description: `Remove "${label}" from this workspace? The changes made on this workspace are discarded and the item reverts to its released version.\n\nThis action cannot be undone.`,
-        actionLabel: 'Discard Changes',
-        cancelLabel: 'Cancel',
+        title: tc('confirm.discardWorkspaceChanges'),
+        description: tp('workspaces.itemsPanel.discardChangesDescription', {
+          label,
+        }),
+        actionLabel: tp('workspaces.itemsPanel.discardChangesAction'),
+        cancelLabel: tc('actions.cancel'),
         variant: 'destructive',
         onConfirm: () => removeItem(item),
       })
@@ -116,18 +127,30 @@ export function WorkspaceItemsPanel({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Workspace Items
+            {tp('workspaces.itemsPanel.title')}
           </h2>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{totalItems} total</Badge>
+            <Badge variant="outline">
+              {tp('workspaces.itemsPanel.totalBadge', { count: totalItems })}
+            </Badge>
             {addedCount > 0 && (
-              <Badge variant="success">{addedCount} added</Badge>
+              <Badge variant="success">
+                {tp('workspaces.itemsPanel.addedBadge', { count: addedCount })}
+              </Badge>
             )}
             {modifiedCount > 0 && (
-              <Badge variant="default">{modifiedCount} modified</Badge>
+              <Badge variant="default">
+                {tp('workspaces.itemsPanel.modifiedBadge', {
+                  count: modifiedCount,
+                })}
+              </Badge>
             )}
             {deletedCount > 0 && (
-              <Badge variant="destructive">{deletedCount} deleted</Badge>
+              <Badge variant="destructive">
+                {tp('workspaces.itemsPanel.deletedBadge', {
+                  count: deletedCount,
+                })}
+              </Badge>
             )}
           </div>
         </div>
@@ -139,24 +162,26 @@ export function WorkspaceItemsPanel({
             <div className="text-center py-8 border rounded-lg">
               <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
               <p className="text-slate-500 dark:text-slate-400">
-                No items in this workspace yet
+                {tp('workspaces.itemsPanel.emptyTitle')}
               </p>
               <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">
-                Check out items to this workspace to start working on them
+                {tp('workspaces.itemsPanel.emptyDescription')}
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item Number</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Change Type</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead>Rev</TableHead>
+                  <TableHead>{tc('columns.itemNumber')}</TableHead>
+                  <TableHead>{tc('columns.name')}</TableHead>
+                  <TableHead>{tc('columns.type')}</TableHead>
+                  <TableHead>{tc('fields.changeType')}</TableHead>
+                  <TableHead>{tc('columns.state')}</TableHead>
+                  <TableHead>{tc('columns.rev')}</TableHead>
                   {!readOnly && (
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">
+                      {tc('columns.actions')}
+                    </TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -189,7 +214,7 @@ export function WorkspaceItemsPanel({
                         </Badge>
                       ) : (
                         <span className="text-sm text-slate-400">
-                          checked out
+                          {tp('workspaces.itemsPanel.checkedOut')}
                         </span>
                       )}
                     </TableCell>
@@ -208,7 +233,7 @@ export function WorkspaceItemsPanel({
                             size="sm"
                             variant="ghost"
                             onClick={() => handleRemove(item)}
-                            title="Remove from workspace"
+                            title={tp('workspaces.itemsPanel.removeFromWorkspace')}
                           >
                             <X className="h-4 w-4 text-red-600 dark:text-red-400" />
                           </Button>

@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useForm } from '@tanstack/react-form'
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import {
@@ -36,125 +38,115 @@ interface ReportBuilderProps {
   isSubmitting?: boolean
 }
 
-// Available item types
-const itemTypes = [
-  { value: 'Part', label: 'Part' },
-  { value: 'Document', label: 'Document' },
-  { value: 'ChangeOrder', label: 'Change Order' },
-  { value: 'Requirement', label: 'Requirement' },
-  { value: 'Task', label: 'Task' },
-  { value: 'TestPlan', label: 'Test Plan' },
-  { value: 'TestCase', label: 'Test Case' },
-  { value: 'Issue', label: 'Issue' },
-]
+const REPORT_ITEM_TYPES = [
+  'Part',
+  'Document',
+  'ChangeOrder',
+  'Requirement',
+  'Task',
+  'TestPlan',
+  'TestCase',
+  'Issue',
+] as const
 
-// Operator labels for display
-const operatorLabels: Record<string, string> = {
-  eq: 'Equals',
-  ne: 'Not Equals',
-  gt: 'Greater Than',
-  lt: 'Less Than',
-  gte: 'Greater Than or Equal',
-  lte: 'Less Than or Equal',
-  like: 'Contains',
-  not_like: 'Does Not Contain',
-  in: 'In List',
-  not_in: 'Not In List',
-  is_null: 'Is Empty',
-  is_not_null: 'Is Not Empty',
-  starts_with: 'Starts With',
-  ends_with: 'Ends With',
-  between: 'Between',
+const ITEM_TYPE_I18N_KEY: Record<string, string> = {
+  Part: 'Part',
+  Document: 'Document',
+  ChangeOrder: 'Change Order',
+  Requirement: 'Requirement',
+  Task: 'Task',
+  TestPlan: 'Test Plan',
+  TestCase: 'Test Case',
+  Issue: 'Issue',
 }
 
+function resolveReportFieldLabel(
+  path: string,
+  tc: TFunction<'common'>,
+  tp: TFunction<'pages'>,
+): string {
+  if (path === 'createdAt') return tp('reports.form.createdAt')
+  if (path === 'modifiedAt') return tp('reports.form.modifiedAt')
+
+  const leaf = path.includes('.') ? (path.split('.').pop() ?? path) : path
+  const commonKeys: Record<string, string> = {
+    itemNumber: 'fields.itemNumber',
+    revision: 'fields.revision',
+    name: 'fields.name',
+    state: 'labels.state',
+    description: 'fields.description',
+    partType: 'fields.type',
+    type: 'fields.type',
+    material: 'fields.material',
+    weight: 'fields.weight',
+    cost: 'fields.cost',
+    leadTimeDays: 'fields.leadTimeDays',
+    fileName: 'fields.fileName',
+    fileSize: 'fields.fileSize',
+    mimeType: 'fields.mimeType',
+    changeType: 'fields.changeType',
+    priority: 'fields.priority',
+    reasonForChange: 'fields.reasonForChange',
+    riskLevel: 'fields.riskLevel',
+    status: 'fields.status',
+    category: 'fields.category',
+    dueDate: 'fields.dueDate',
+    estimatedHours: 'fields.estimatedHours',
+    actualHours: 'fields.actualHours',
+  }
+  const key = commonKeys[leaf]
+  return key ? tc(key) : leaf
+}
+
+type FieldSpec = Omit<FieldDefinition, 'label'>
+
 // Get available fields based on item type
-function getAvailableFields(itemType: string): Array<FieldDefinition> {
-  const baseFields: Array<FieldDefinition> = [
-    { path: 'itemNumber', label: 'Item Number', type: 'string' },
-    { path: 'revision', label: 'Revision', type: 'string' },
-    { path: 'name', label: 'Name', type: 'string' },
-    { path: 'state', label: 'State', type: 'string' },
-    { path: 'createdAt', label: 'Created At', type: 'datetime' },
-    { path: 'modifiedAt', label: 'Modified At', type: 'datetime' },
+function getAvailableFields(
+  itemType: string,
+  resolveLabel: (path: string) => string,
+): Array<FieldDefinition> {
+  const baseFields: Array<FieldSpec> = [
+    { path: 'itemNumber', type: 'string' },
+    { path: 'revision', type: 'string' },
+    { path: 'name', type: 'string' },
+    { path: 'state', type: 'string' },
+    { path: 'createdAt', type: 'datetime' },
+    { path: 'modifiedAt', type: 'datetime' },
   ]
 
-  const typeSpecificFields: Record<string, Array<FieldDefinition>> = {
+  const typeSpecificFields: Record<string, Array<FieldSpec>> = {
     Part: [
-      {
-        path: 'parts.description',
-        label: 'Description',
-        type: 'string',
-        table: 'parts',
-      },
-      {
-        path: 'parts.partType',
-        label: 'Type',
-        type: 'string',
-        table: 'parts',
-      },
-      {
-        path: 'parts.material',
-        label: 'Material',
-        type: 'string',
-        table: 'parts',
-      },
-      { path: 'parts.weight', label: 'Weight', type: 'number', table: 'parts' },
-      { path: 'parts.cost', label: 'Cost', type: 'number', table: 'parts' },
-      {
-        path: 'parts.leadTimeDays',
-        label: 'Lead Time (Days)',
-        type: 'number',
-        table: 'parts',
-      },
+      { path: 'parts.description', type: 'string', table: 'parts' },
+      { path: 'parts.partType', type: 'string', table: 'parts' },
+      { path: 'parts.material', type: 'string', table: 'parts' },
+      { path: 'parts.weight', type: 'number', table: 'parts' },
+      { path: 'parts.cost', type: 'number', table: 'parts' },
+      { path: 'parts.leadTimeDays', type: 'number', table: 'parts' },
     ],
     Document: [
-      {
-        path: 'documents.description',
-        label: 'Description',
-        type: 'string',
-        table: 'documents',
-      },
-      {
-        path: 'documents.fileName',
-        label: 'File Name',
-        type: 'string',
-        table: 'documents',
-      },
-      {
-        path: 'documents.fileSize',
-        label: 'File Size',
-        type: 'number',
-        table: 'documents',
-      },
-      {
-        path: 'documents.mimeType',
-        label: 'MIME Type',
-        type: 'string',
-        table: 'documents',
-      },
+      { path: 'documents.description', type: 'string', table: 'documents' },
+      { path: 'documents.fileName', type: 'string', table: 'documents' },
+      { path: 'documents.fileSize', type: 'number', table: 'documents' },
+      { path: 'documents.mimeType', type: 'string', table: 'documents' },
     ],
     ChangeOrder: [
       {
         path: 'change_orders.changeType',
-        label: 'Change Type',
         type: 'string',
         table: 'change_orders',
       },
       {
         path: 'change_orders.priority',
-        label: 'Priority',
         type: 'string',
         table: 'change_orders',
       },
       {
         path: 'change_orders.reasonForChange',
-        label: 'Reason for Change',
         type: 'string',
         table: 'change_orders',
       },
       {
         path: 'change_orders.riskLevel',
-        label: 'Risk Level',
         type: 'string',
         table: 'change_orders',
       },
@@ -162,70 +154,37 @@ function getAvailableFields(itemType: string): Array<FieldDefinition> {
     Requirement: [
       {
         path: 'requirements.description',
-        label: 'Description',
         type: 'string',
         table: 'requirements',
       },
-      {
-        path: 'requirements.type',
-        label: 'Type',
-        type: 'string',
-        table: 'requirements',
-      },
+      { path: 'requirements.type', type: 'string', table: 'requirements' },
       {
         path: 'requirements.priority',
-        label: 'Priority',
         type: 'string',
         table: 'requirements',
       },
-      {
-        path: 'requirements.status',
-        label: 'Status',
-        type: 'string',
-        table: 'requirements',
-      },
+      { path: 'requirements.status', type: 'string', table: 'requirements' },
       {
         path: 'requirements.category',
-        label: 'Category',
         type: 'string',
         table: 'requirements',
       },
     ],
     Task: [
-      {
-        path: 'tasks.description',
-        label: 'Description',
-        type: 'string',
-        table: 'tasks',
-      },
-      {
-        path: 'tasks.priority',
-        label: 'Priority',
-        type: 'string',
-        table: 'tasks',
-      },
-      {
-        path: 'tasks.dueDate',
-        label: 'Due Date',
-        type: 'date',
-        table: 'tasks',
-      },
-      {
-        path: 'tasks.estimatedHours',
-        label: 'Estimated Hours',
-        type: 'number',
-        table: 'tasks',
-      },
-      {
-        path: 'tasks.actualHours',
-        label: 'Actual Hours',
-        type: 'number',
-        table: 'tasks',
-      },
+      { path: 'tasks.description', type: 'string', table: 'tasks' },
+      { path: 'tasks.priority', type: 'string', table: 'tasks' },
+      { path: 'tasks.dueDate', type: 'date', table: 'tasks' },
+      { path: 'tasks.estimatedHours', type: 'number', table: 'tasks' },
+      { path: 'tasks.actualHours', type: 'number', table: 'tasks' },
     ],
   }
 
-  return [...baseFields, ...(typeSpecificFields[itemType] ?? [])]
+  return [...baseFields, ...(typeSpecificFields[itemType] ?? [])].map(
+    (field) => ({
+      ...field,
+      label: resolveLabel(field.path),
+    }),
+  )
 }
 
 // Use the imported types from reports/types.ts, with local simplified versions for form manipulation
@@ -257,6 +216,13 @@ export function ReportBuilder({
   onCancel,
   isSubmitting,
 }: ReportBuilderProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const { t: ti } = useTranslation('itemTypes')
+
+  const fieldLabel = (path: string) =>
+    resolveReportFieldLabel(path, tc, t)
+
   const [selectedItemType, setSelectedItemType] = useState(
     initialData?.itemType || 'Part',
   )
@@ -265,7 +231,7 @@ export function ReportBuilder({
   const defaultColumns: Array<ReportColumn> = initialData?.columns ?? [
     {
       fieldPath: 'itemNumber',
-      label: 'Item Number',
+      label: fieldLabel('itemNumber'),
       displayOrder: 0,
       isVisible: true,
     },
@@ -292,14 +258,14 @@ export function ReportBuilder({
     },
   })
 
-  const availableFields = getAvailableFields(selectedItemType)
+  const availableFields = getAvailableFields(selectedItemType, fieldLabel)
 
   // Column management
   const addColumn = () => {
     const columns = form.getFieldValue('columns')
     const newColumn: LocalReportColumn = {
       fieldPath: 'itemNumber',
-      label: 'Item Number',
+      label: fieldLabel('itemNumber'),
       displayOrder: columns.length,
       isVisible: true,
     }
@@ -426,7 +392,7 @@ export function ReportBuilder({
     form.setFieldValue('columns', [
       {
         fieldPath: 'itemNumber',
-        label: 'Item Number',
+        label: fieldLabel('itemNumber'),
         displayOrder: 0,
         isVisible: true,
       },
@@ -446,12 +412,14 @@ export function ReportBuilder({
     >
       {/* Report Information Section */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Report Information</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {t('reports.form.reportInformation')}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <form.Field name="name">
             {(field) => (
               <FormField
-                label="Report Name"
+                label={t('reports.form.reportName')}
                 required
                 error={field.state.meta.errors[0]}
               >
@@ -460,7 +428,7 @@ export function ReportBuilder({
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="My Report"
+                  placeholder={t('reports.form.reportNamePlaceholder')}
                   error={field.state.meta.errors.length > 0}
                 />
               </FormField>
@@ -470,7 +438,7 @@ export function ReportBuilder({
           <form.Field name="itemType">
             {(field) => (
               <FormField
-                label="Item Type"
+                label={t('reports.form.itemType')}
                 required
                 error={field.state.meta.errors[0]}
               >
@@ -479,12 +447,12 @@ export function ReportBuilder({
                   onValueChange={handleItemTypeChange}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select item type" />
+                    <SelectValue placeholder={t('reports.form.selectItemType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {itemTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                    {REPORT_ITEM_TYPES.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {ti(ITEM_TYPE_I18N_KEY[value] ?? value)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -496,7 +464,7 @@ export function ReportBuilder({
           <form.Field name="description">
             {(field) => (
               <FormField
-                label="Description"
+                label={tc('fields.description')}
                 error={field.state.meta.errors[0]}
                 className="md:col-span-2"
               >
@@ -505,7 +473,7 @@ export function ReportBuilder({
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Optional description of this report..."
+                  placeholder={t('reports.form.descriptionPlaceholder')}
                   rows={3}
                 />
               </FormField>
@@ -514,7 +482,7 @@ export function ReportBuilder({
 
           <form.Field name="isPublic">
             {(field) => (
-              <FormField label="Visibility">
+              <FormField label={t('reports.form.visibility')}>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -522,7 +490,7 @@ export function ReportBuilder({
                     onChange={(e) => field.handleChange(e.target.checked)}
                     className="w-4 h-4 rounded border-gray-300 dark:border-gray-700"
                   />
-                  <span className="text-sm">Make this report public</span>
+                  <span className="text-sm">{t('reports.form.makePublic')}</span>
                 </label>
               </FormField>
             )}
@@ -533,10 +501,10 @@ export function ReportBuilder({
       {/* Columns Section */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Columns</h3>
+          <h3 className="text-lg font-semibold">{t('reports.form.columns')}</h3>
           <Button type="button" variant="outline" size="sm" onClick={addColumn}>
             <Plus className="w-4 h-4 mr-1" />
-            Add Column
+            {t('reports.form.addColumn')}
           </Button>
         </div>
 
@@ -586,7 +554,9 @@ export function ReportBuilder({
                         }
                       >
                         <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Select field" />
+                          <SelectValue
+                            placeholder={t('reports.form.selectField')}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {availableFields.map((f) => (
@@ -602,7 +572,7 @@ export function ReportBuilder({
                         onChange={(e) =>
                           updateColumn(index, 'label', e.target.value)
                         }
-                        placeholder="Column Label"
+                        placeholder={t('reports.form.columnLabel')}
                         className="flex-1"
                       />
 
@@ -613,12 +583,12 @@ export function ReportBuilder({
                         }
                       >
                         <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Format" />
+                          <SelectValue placeholder={t('reports.form.format')} />
                         </SelectTrigger>
                         <SelectContent>
                           {formatTypes.map((format) => (
                             <SelectItem key={format} value={format}>
-                              {format.charAt(0).toUpperCase() + format.slice(1)}
+                              {t(`reports.form.formats.${format}`)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -646,10 +616,12 @@ export function ReportBuilder({
       {/* Filters Section */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Filters (Optional)</h3>
+          <h3 className="text-lg font-semibold">
+            {t('reports.form.filtersOptional')}
+          </h3>
           <Button type="button" variant="outline" size="sm" onClick={addFilter}>
             <Plus className="w-4 h-4 mr-1" />
-            Add Filter
+            {t('reports.form.addFilter')}
           </Button>
         </div>
 
@@ -658,7 +630,7 @@ export function ReportBuilder({
             <>
               {field.state.value.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                  No filters configured. All matching items will be included.
+                  {t('reports.form.noFilters')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -675,7 +647,9 @@ export function ReportBuilder({
                           }
                         >
                           <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Select field" />
+                            <SelectValue
+                            placeholder={t('reports.form.selectField')}
+                          />
                           </SelectTrigger>
                           <SelectContent>
                             {availableFields.map((f) => (
@@ -693,12 +667,14 @@ export function ReportBuilder({
                           }
                         >
                           <SelectTrigger className="w-48">
-                            <SelectValue placeholder="Operator" />
+                            <SelectValue
+                              placeholder={t('reports.form.operator')}
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {filterOperators.map((op) => (
                               <SelectItem key={op} value={op}>
-                                {operatorLabels[op]}
+                                {t(`reports.form.operators.${op}`)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -712,7 +688,7 @@ export function ReportBuilder({
                             onChange={(e) =>
                               updateFilter(index, 'value', e.target.value)
                             }
-                            placeholder="Value"
+                            placeholder={t('reports.form.value')}
                             className="flex-1"
                           />
                         )}
@@ -723,7 +699,7 @@ export function ReportBuilder({
                             onChange={(e) =>
                               updateFilter(index, 'value2', e.target.value)
                             }
-                            placeholder="End Value"
+                            placeholder={t('reports.form.endValue')}
                             className="flex-1"
                           />
                         )}
@@ -750,10 +726,12 @@ export function ReportBuilder({
       {/* Sorting Section */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Sorting (Optional)</h3>
+          <h3 className="text-lg font-semibold">
+            {t('reports.form.sortingOptional')}
+          </h3>
           <Button type="button" variant="outline" size="sm" onClick={addSort}>
             <Plus className="w-4 h-4 mr-1" />
-            Add Sort
+            {t('reports.form.addSort')}
           </Button>
         </div>
 
@@ -762,8 +740,7 @@ export function ReportBuilder({
             <>
               {field.state.value.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                  No sorting configured. Results will be sorted by Modified At
-                  descending.
+                  {t('reports.form.noSorting')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -783,7 +760,9 @@ export function ReportBuilder({
                         }
                       >
                         <SelectTrigger className="w-48">
-                          <SelectValue placeholder="Select field" />
+                          <SelectValue
+                            placeholder={t('reports.form.selectField')}
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {availableFields.map((f) => (
@@ -801,11 +780,17 @@ export function ReportBuilder({
                         }
                       >
                         <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Direction" />
+                          <SelectValue
+                            placeholder={t('reports.form.sortDirection')}
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="asc">Ascending</SelectItem>
-                          <SelectItem value="desc">Descending</SelectItem>
+                          <SelectItem value="asc">
+                            {t('reports.form.sortAsc')}
+                          </SelectItem>
+                          <SelectItem value="desc">
+                            {t('reports.form.sortDesc')}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
 
@@ -836,15 +821,15 @@ export function ReportBuilder({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : initialData?.name
-              ? 'Update Report'
-              : 'Create Report'}
+              ? t('reports.form.updateReport')
+              : t('reports.form.createReport')}
         </Button>
       </div>
     </form>

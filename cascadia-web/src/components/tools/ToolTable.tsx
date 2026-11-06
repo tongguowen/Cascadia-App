@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import { TOOL_SUBTYPES } from '@cascadia/commons/items/types/tool'
 import type { KnownToolSubtype, Tool } from '@cascadia/commons/items/types/tool'
@@ -89,14 +90,27 @@ export function ToolTable({
   pagination,
   onPaginationChange,
 }: ToolTableProps) {
+  const { t } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const toolTypeLabel = (toolType: string) => {
+    const keys: Record<string, string> = {
+      manufacturing: 'tools.form.toolTypeManufacturing',
+      quality: 'tools.form.toolTypeQuality',
+      utility: 'tools.form.toolTypeUtility',
+    }
+    const key = keys[toolType]
+    return key ? tp(key) : toolType
+  }
+  const toolStateLabel = (state: string) =>
+    t(`enum.toolOperationalState.${state}`, { defaultValue: state })
   const columns: Array<DataGridColumn<Tool>> = [
     {
       id: 'itemNumber',
-      header: 'Item Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -112,33 +126,33 @@ export function ToolTable({
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'toolType',
-      header: 'Type',
+      header: t('columns.type'),
       accessorKey: 'toolType',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Manufacturing', value: 'manufacturing' },
-        { label: 'Quality', value: 'quality' },
-        { label: 'Utility', value: 'utility' },
+        { label: toolTypeLabel('manufacturing'), value: 'manufacturing' },
+        { label: toolTypeLabel('quality'), value: 'quality' },
+        { label: toolTypeLabel('utility'), value: 'utility' },
       ],
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         if (!value) return '-'
-        return <span className="capitalize">{value}</span>
+        return <span>{toolTypeLabel(value)}</span>
       },
     },
     {
       id: 'toolSubtype',
-      header: 'Subtype',
+      header: t('columns.subtype'),
       accessorKey: 'toolSubtype',
       enableFiltering: false,
       cell: ({ getValue }) => (
@@ -149,44 +163,46 @@ export function ToolTable({
     },
     {
       id: 'manufacturer',
-      header: 'Manufacturer',
+      header: t('columns.manufacturer'),
       accessorKey: 'manufacturer',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'model',
-      header: 'Model',
+      header: t('columns.model'),
       accessorKey: 'model',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter state...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         if (!value) return '-'
         return (
-          <Badge variant={statusVariant[value] ?? 'secondary'}>{value}</Badge>
+          <Badge variant={statusVariant[value] ?? 'secondary'}>
+            {toolStateLabel(value)}
+          </Badge>
         )
       },
     },
     {
       id: 'location',
-      header: 'Location',
+      header: t('columns.location'),
       accessorKey: 'location',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
   ]
@@ -201,7 +217,7 @@ export function ToolTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -209,14 +225,14 @@ export function ToolTable({
             <DropdownMenuItem asChild>
               <Link to="/tools/$id" params={{ id: tool.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(tool)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -227,7 +243,7 @@ export function ToolTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -247,7 +263,7 @@ export function ToolTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(tool)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -258,7 +274,7 @@ export function ToolTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

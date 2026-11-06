@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import type { InstructionExecution } from '@cascadia/commons/items/types/work-order'
 import type {
   StepContent,
@@ -83,6 +84,7 @@ export function ExecutionDetailView({
   execution,
   steps,
 }: ExecutionDetailViewProps) {
+  const { t: tc } = useTranslation('common')
   const sortedSteps = [...steps].sort((a, b) => a.orderIndex - b.orderIndex)
   const stepData = execution.stepData
 
@@ -91,7 +93,9 @@ export function ExecutionDetailView({
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <span className="text-xs text-slate-500 block">Status</span>
+          <span className="text-xs text-slate-500 block">
+            {tc('columns.status')}
+          </span>
           <Badge
             variant="secondary"
             className={cn(
@@ -138,7 +142,7 @@ export function ExecutionDetailView({
       {execution.notes && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Notes</CardTitle>
+            <CardTitle className="text-sm">{tc('fields.notes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">

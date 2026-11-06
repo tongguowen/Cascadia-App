@@ -10,6 +10,7 @@
  */
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
@@ -283,6 +284,7 @@ export function RequirementsTab({
   versionContext,
   isHistoricalView,
 }: RequirementsTabProps) {
+  const { t: tp } = useTranslation('pages')
   const {
     data: matrix,
     isPending,
@@ -560,34 +562,34 @@ export function RequirementsTab({
       {totals && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           <StatCard
-            label="Requirements"
+            label={tp('programs.detail.requirements.columns.requirements')}
             value={totals.total}
             icon={ListChecks}
             tone="bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400"
           />
           <StatCard
-            label="Allocated"
+            label={tp('programs.detail.requirements.columns.allocated')}
             value={totals.allocated}
             of={totals.total}
             icon={Link2}
             tone="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
           />
           <StatCard
-            label="Satisfied"
+            label={tp('programs.detail.requirements.columns.satisfied')}
             value={totals.satisfied}
             of={totals.total}
             icon={Link2}
             tone="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
           />
           <StatCard
-            label="Verified"
+            label={tp('programs.detail.requirements.columns.verified')}
             value={totals.verified}
             of={totals.total}
             icon={CheckCircle2}
             tone="bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400"
           />
           <StatCard
-            label="With suspect links"
+            label={tp('designs.requirementsTab.withSuspectLinks')}
             value={totals.suspect}
             of={totals.total}
             icon={AlertTriangle}
@@ -601,8 +603,8 @@ export function RequirementsTab({
           <div>
             <CardTitle>
               {view === 'rtm'
-                ? 'Requirements traceability matrix'
-                : 'Verification cross-reference matrix'}
+                ? tp('designs.requirementsTab.rtmTitle')
+                : tp('designs.requirementsTab.vcrmTitle')}
             </CardTitle>
             <CardDescription>
               {view === 'rtm'
@@ -636,7 +638,7 @@ export function RequirementsTab({
                 relationshipIds={suspectRelationshipIds}
                 pendingIds={pendingIds}
                 onAffirm={affirm}
-                title="Affirm every suspect claim in this matrix"
+                title={tp('designs.requirementsTab.affirmAllSuspectClaimsTitle')}
               />
             )}
             {!isHistoricalView && (
@@ -654,7 +656,7 @@ export function RequirementsTab({
             <Button
               variant="outline"
               size="sm"
-              title="Download the requirements on main as a sheet the import reads back"
+              title={tp('designs.requirementsTab.downloadRequirementsSheetTitle')}
               onClick={() => {
                 window.location.assign(
                   `/api/v1/designs/${designId}/requirements-export?format=csv`,

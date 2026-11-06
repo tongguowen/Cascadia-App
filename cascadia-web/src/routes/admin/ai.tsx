@@ -16,6 +16,7 @@ import {
   TestTube,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AI_PROVIDERS,
   DEFAULT_MODEL,
@@ -80,6 +81,7 @@ function toFormState(record: AiProviderSettings | null): AISettings {
 }
 
 function AISettingsPage() {
+  const { t } = useTranslation('pages')
   const { data, isPending } = useQuery(aiSettingsQuery())
 
   return (
@@ -89,10 +91,10 @@ function AISettingsPage() {
         <Bot className="w-8 h-8 text-slate-700 dark:text-slate-300" />
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            AI Assistant
+            {t('admin.ai.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Configure the AI chatbot provider and settings
+            {t('admin.ai.subtitle')}
           </p>
         </div>
       </div>
@@ -102,7 +104,7 @@ function AISettingsPage() {
           <CardContent className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
             <span className="text-slate-600 dark:text-slate-400">
-              Loading AI settings...
+              {t('admin.ai.loading')}
             </span>
           </CardContent>
         </Card>
@@ -125,6 +127,8 @@ function AIProviderForm({
   initialSettings: AiProviderSettings | null
   envVarsDetected: AiSettingsEnvVars
 }) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [settings, setSettings] = useState<AISettings>(() =>
     toFormState(initialSettings),
@@ -227,7 +231,7 @@ function AIProviderForm({
       )
 
       setTestStatus('success')
-      setTestMessage(result.data.message ?? 'Connection successful!')
+      setTestMessage(result.data.message ?? t('admin.ai.connectionSuccess'))
       setTimeout(() => setTestStatus('idle'), 5000)
     } catch (error) {
       console.error('Error testing AI connection:', error)
@@ -262,7 +266,7 @@ function AIProviderForm({
               <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div>
                 <p className="font-medium text-blue-900 dark:text-blue-100">
-                  Environment variables detected
+                  {t('admin.ai.envDetectedTitle')}
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                   {envVarsDetected.openai && (
@@ -270,7 +274,7 @@ function AIProviderForm({
                       <Badge variant="outline" className="mr-1">
                         OPENAI_API_KEY
                       </Badge>
-                      configured
+                      {t('admin.ai.envConfigured')}
                     </span>
                   )}
                   {envVarsDetected.anthropic && (
@@ -278,13 +282,12 @@ function AIProviderForm({
                       <Badge variant="outline" className="mr-1">
                         ANTHROPIC_API_KEY
                       </Badge>
-                      configured
+                      {t('admin.ai.envConfigured')}
                     </span>
                   )}
                 </p>
                 <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-                  Database settings will override environment variables when
-                  enabled.
+                  {t('admin.ai.envOverrideNote')}
                 </p>
               </div>
             </div>
@@ -298,13 +301,15 @@ function AIProviderForm({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-              <CardTitle>AI Assistant Status</CardTitle>
+              <CardTitle>{t('admin.ai.statusTitle')}</CardTitle>
             </div>
             <div className="flex items-center gap-3">
               <span
                 className={`text-sm ${settings.enabled ? 'text-green-600 dark:text-green-400' : 'text-slate-500'}`}
               >
-                {settings.enabled ? 'Enabled' : 'Disabled'}
+                {settings.enabled
+                  ? t('admin.ai.enabled')
+                  : t('admin.ai.disabled')}
               </span>
               <Switch
                 checked={settings.enabled}
@@ -314,9 +319,7 @@ function AIProviderForm({
               />
             </div>
           </div>
-          <CardDescription>
-            Enable or disable the AI chatbot for all users
-          </CardDescription>
+          <CardDescription>{t('admin.ai.statusDescription')}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -325,16 +328,14 @@ function AIProviderForm({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>Provider Configuration</CardTitle>
+            <CardTitle>{t('admin.ai.providerTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Select your AI provider and configure API credentials
-          </CardDescription>
+          <CardDescription>{t('admin.ai.providerDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Provider Selection */}
           <div className="space-y-2">
-            <Label htmlFor="provider">Provider</Label>
+            <Label htmlFor="provider">{t('admin.ai.providerLabel')}</Label>
             <Select
               value={settings.provider}
               onValueChange={(value) =>
@@ -342,7 +343,7 @@ function AIProviderForm({
               }
             >
               <SelectTrigger id="provider" className="w-full max-w-md">
-                <SelectValue placeholder="Select a provider" />
+                <SelectValue placeholder={t('admin.ai.selectProvider')} />
               </SelectTrigger>
               <SelectContent>
                 {AI_PROVIDERS.map((key) => (
@@ -357,7 +358,7 @@ function AIProviderForm({
           {/* API Key */}
           {settings.provider !== 'ollama' && (
             <div className="space-y-2">
-              <Label htmlFor="apiKey">API Key</Label>
+              <Label htmlFor="apiKey">{t('admin.ai.apiKeyLabel')}</Label>
               <div className="flex gap-2 max-w-md">
                 <div className="relative flex-1">
                   {/* Hidden input to prevent browser autofill from targeting the header search bar */}
@@ -379,7 +380,9 @@ function AIProviderForm({
                     id="apiKey"
                     name="api-key-field"
                     type={showApiKey ? 'text' : 'password'}
-                    placeholder={`Enter your ${PROVIDER_LABELS[settings.provider]} API key`}
+                    placeholder={t('admin.ai.apiKeyPlaceholder', {
+                      provider: PROVIDER_LABELS[settings.provider],
+                    })}
                     value={settings.apiKey}
                     onChange={(e) =>
                       setSettings((prev) => ({
@@ -408,7 +411,7 @@ function AIProviderForm({
                   envVarsDetected.anthropic)) &&
                 !settings.apiKey && (
                   <p className="text-sm text-slate-500">
-                    Leave blank to use environment variable
+                    {t('admin.ai.leaveBlankEnv')}
                   </p>
                 )}
             </div>
@@ -416,7 +419,7 @@ function AIProviderForm({
 
           {/* Model Selection */}
           <div className="space-y-2">
-            <Label htmlFor="model">Model</Label>
+            <Label htmlFor="model">{t('admin.ai.modelLabel')}</Label>
             <div className="flex items-center gap-2 max-w-md">
               <Select
                 value={settings.model}
@@ -425,7 +428,7 @@ function AIProviderForm({
                 }
               >
                 <SelectTrigger id="model" className="flex-1">
-                  <SelectValue placeholder="Select a model" />
+                  <SelectValue placeholder={t('admin.ai.selectModel')} />
                 </SelectTrigger>
                 <SelectContent>
                   {modelOptions.map((model) => (
@@ -443,8 +446,8 @@ function AIProviderForm({
                 size="icon"
                 onClick={models.refresh}
                 disabled={models.isFetching}
-                title="Refresh model list from provider"
-                aria-label="Refresh model list from provider"
+                title={t('admin.ai.refreshModelsTitle')}
+                aria-label={t('admin.ai.refreshModelsTitle')}
               >
                 <RefreshCw
                   className={`w-4 h-4 ${models.isFetching ? 'animate-spin' : ''}`}
@@ -453,10 +456,15 @@ function AIProviderForm({
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {models.isFetching
-                ? 'Loading models…'
+                ? t('admin.ai.loadingModels')
                 : models.isLive
-                  ? `${modelOptions.length} models available from ${models.source}.`
-                  : `Showing the built-in list. ${models.fallbackReason ?? ''}`}
+                  ? t('admin.ai.modelsAvailable', {
+                      count: modelOptions.length,
+                      source: models.source,
+                    })
+                  : t('admin.ai.builtinList', {
+                      reason: models.fallbackReason ?? '',
+                    })}
             </p>
           </div>
 
@@ -465,8 +473,10 @@ function AIProviderForm({
             settings.provider === 'ollama') && (
             <div className="space-y-2">
               <Label htmlFor="baseURL">
-                Base URL{' '}
-                <span className="text-slate-400 font-normal">(optional)</span>
+                {t('admin.ai.baseUrlLabel')}{' '}
+                <span className="text-slate-400 font-normal">
+                  {t('admin.ai.optional')}
+                </span>
               </Label>
               <Input
                 id="baseURL"
@@ -487,8 +497,8 @@ function AIProviderForm({
               />
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {settings.provider === 'ollama'
-                  ? 'URL of your local Ollama instance'
-                  : 'Custom endpoint for OpenAI-compatible APIs (e.g., Azure OpenAI)'}
+                  ? t('admin.ai.baseUrlHelpOllama')
+                  : t('admin.ai.baseUrlHelpOpenai')}
               </p>
             </div>
           )}
@@ -505,7 +515,7 @@ function AIProviderForm({
               ) : (
                 <TestTube className="w-4 h-4 mr-2" />
               )}
-              {testing ? 'Testing...' : 'Test Connection'}
+              {testing ? t('admin.ai.testing') : t('admin.ai.testConnection')}
             </Button>
             {testStatus === 'success' && (
               <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
@@ -531,12 +541,12 @@ function AIProviderForm({
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          {saving ? 'Saving...' : 'Save Configuration'}
+          {saving ? tc('actions.saving') : t('admin.ai.saveConfiguration')}
         </Button>
         {saveStatus === 'success' && (
           <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
             <CheckCircle className="w-4 h-4" />
-            Settings saved successfully!
+            {t('admin.ai.settingsSaved')}
           </span>
         )}
         {saveStatus === 'error' && (

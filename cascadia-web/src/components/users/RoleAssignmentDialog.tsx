@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Role, UserWithRoles } from '@cascadia/commons/auth/types'
 import {
   Button,
@@ -30,6 +31,7 @@ export function RoleAssignmentDialog({
   onClose,
   onSave,
 }: RoleAssignmentDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { handleError } = useErrorHandler()
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set())
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -58,7 +60,7 @@ export function RoleAssignmentDialog({
       await onSave(user.id, Array.from(selectedRoles))
       onClose()
     } catch (error) {
-      handleError(error, { title: 'Failed to assign roles' })
+      handleError(error, { title: tc('dialogs.roleAssignment.failedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -70,15 +72,19 @@ export function RoleAssignmentDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Manage Roles</DialogTitle>
+          <DialogTitle>{tc('dialogs.roleAssignment.title')}</DialogTitle>
           <DialogDescription>
-            Assign roles to {user.name || user.email}
+            {tc('dialogs.roleAssignment.description', {
+              userName: user.name || user.email,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-6 space-y-4">
           {roles.length === 0 ? (
-            <p className="text-sm text-slate-500">No roles available</p>
+            <p className="text-sm text-slate-500">
+              {tc('dialogs.roleAssignment.noRoles')}
+            </p>
           ) : (
             roles.map((role) => (
               <label
@@ -107,10 +113,12 @@ export function RoleAssignmentDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Roles'}
+            {isSubmitting
+              ? tc('actions.saving')
+              : tc('dialogs.roleAssignment.saveRoles')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { Trash2, X } from 'lucide-react'
 import type { InstanceTransition } from '@cascadia/commons/lifecycles/types'
 import {
@@ -28,6 +29,10 @@ export function InstanceTransitionPropertiesPanel({
   onClose,
   readOnly = false,
 }: InstanceTransitionPropertiesPanelProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const tp = (key: string) => t(`lifecycles.transitionPanel.${key}`)
+
   const handleChange = (updates: Partial<InstanceTransition>) => {
     onUpdate({ ...transition, ...updates })
   }
@@ -36,7 +41,7 @@ export function InstanceTransitionPropertiesPanel({
     <Card className="w-80 shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Transition Properties</CardTitle>
+          <CardTitle className="text-base">{tp('title')}</CardTitle>
           <Button
             type="button"
             variant="ghost"
@@ -52,14 +57,14 @@ export function InstanceTransitionPropertiesPanel({
         {/* Transition Name */}
         <div className="space-y-1.5">
           <Label htmlFor="transitionName" className="text-xs">
-            Name
+            {tc('fields.name')}
           </Label>
           <Input
             id="transitionName"
             value={transition.name}
             onChange={(e) => handleChange({ name: e.target.value })}
             className="h-8 text-sm"
-            placeholder="e.g., Submit for Review"
+            placeholder={t('changeOrders.workflowEditor.transitionNamePlaceholder')}
             disabled={readOnly}
           />
         </div>
@@ -67,14 +72,16 @@ export function InstanceTransitionPropertiesPanel({
         {/* Description */}
         <div className="space-y-1.5">
           <Label htmlFor="transitionDescription" className="text-xs">
-            Description
+            {tc('fields.description')}
           </Label>
           <textarea
             id="transitionDescription"
             value={transition.description || ''}
             onChange={(e) => handleChange({ description: e.target.value })}
             className="w-full h-16 px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none disabled:opacity-50"
-            placeholder="What happens when this transition is taken?"
+            placeholder={t(
+              'changeOrders.workflowEditor.transitionDescriptionPlaceholder',
+            )}
             disabled={readOnly}
           />
         </div>
@@ -85,7 +92,7 @@ export function InstanceTransitionPropertiesPanel({
             named approvers configured on the source state. */}
         <div className="space-y-1.5">
           <Label htmlFor="requiredApprovals" className="text-xs">
-            Minimum approvals to leave source state
+            {tp('minApprovalsLeaveSource')}
           </Label>
           <Input
             id="requiredApprovals"
@@ -131,7 +138,7 @@ export function InstanceTransitionPropertiesPanel({
             className="w-full"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Delete Transition
+            {tp('deleteTransition')}
           </Button>
         )}
       </CardContent>

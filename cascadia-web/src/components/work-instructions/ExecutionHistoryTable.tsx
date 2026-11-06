@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DataGridColumn } from '@/components/ui'
 import type { InstructionExecution } from '@cascadia/commons/items/types/work-order'
 import { Badge, DataGrid } from '@/components/ui'
@@ -11,39 +13,6 @@ interface ExecutionHistoryTableProps {
   executions: Array<InstructionExecution>
   /** Owning work order — review links are scoped to it. */
   workOrderId: string
-}
-
-const inProgressStatus = {
-  className:
-    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  label: 'In Progress',
-}
-
-const statusConfig: Record<string, { className: string; label: string }> = {
-  'In Progress': inProgressStatus,
-  Complete: {
-    className:
-      'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-    label: 'Complete',
-  },
-  Incomplete: {
-    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    label: 'Incomplete',
-  },
-  'Pending Approval': {
-    className:
-      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    label: 'Pending Approval',
-  },
-  Approved: {
-    className:
-      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-    label: 'Approved',
-  },
-  Rejected: {
-    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    label: 'Rejected',
-  },
 }
 
 function formatDuration(seconds?: number | null): string {
@@ -61,10 +30,51 @@ export function ExecutionHistoryTable({
   executions,
   workOrderId,
 }: ExecutionHistoryTableProps) {
+  const { t: tp } = useTranslation('pages')
+  const histT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.executionHistory.${key}`, options)
+
+  const statusConfig = useMemo(() => {
+    const label = (status: string) =>
+      histT(`statusLabels.${status}`, { defaultValue: status })
+    const inProgress = {
+      className:
+        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+      label: label('In Progress'),
+    }
+    return {
+      'In Progress': inProgress,
+      Complete: {
+        className:
+          'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+        label: label('Complete'),
+      },
+      Incomplete: {
+        className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+        label: label('Incomplete'),
+      },
+      'Pending Approval': {
+        className:
+          'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+        label: label('Pending Approval'),
+      },
+      Approved: {
+        className:
+          'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+        label: label('Approved'),
+      },
+      Rejected: {
+        className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+        label: label('Rejected'),
+      },
+      inProgressFallback: inProgress,
+    }
+  }, [histT])
+
   const columns: Array<DataGridColumn<InstructionExecution>> = [
     {
       id: 'instruction',
-      header: 'Instruction',
+      header: histT('instruction'),
       accessorFn: (row) => row.instruction?.title || '—',
       cell: ({ row }) => (
         <span className="font-medium">
@@ -74,7 +84,7 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'executor',
-      header: 'Executor',
+      header: histT('executor'),
       accessorFn: (row) => row.executor?.name || row.executor?.email || '—',
       cell: ({ row }) => (
         <span>
@@ -84,7 +94,7 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'unit',
-      header: 'Unit',
+      header: histT('unit'),
       accessorFn: (row) => row.unitLabel || '—',
       cell: ({ row }) =>
         row.original.unitLabel ? (
@@ -95,11 +105,13 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'status',
-      header: 'Status',
+      header: histT('status'),
       accessorKey: 'status',
       enableFiltering: true,
       cell: ({ row }) => {
-        const config = statusConfig[row.original.status] ?? inProgressStatus
+        const config =
+          statusConfig[row.original.status as keyof typeof statusConfig] ??
+          statusConfig['In Progress']
         return (
           <Badge
             variant="secondary"
@@ -112,7 +124,7 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'startedAt',
-      header: 'Started',
+      header: histT('started'),
       accessorKey: 'startedAt',
       enableSorting: true,
       cell: ({ row }) => (
@@ -123,7 +135,7 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'duration',
-      header: 'Duration',
+      header: histT('duration'),
       accessorKey: 'duration',
       cell: ({ row }) => (
         <span className="tabular-nums">
@@ -133,13 +145,13 @@ export function ExecutionHistoryTable({
     },
     {
       id: 'dataFields',
-      header: 'Data Fields',
+      header: histT('dataFields'),
       accessorFn: (row) => Object.keys(row.stepData).length,
       cell: ({ row }) => {
         const count = Object.keys(row.original.stepData).length
         return count > 0 ? (
           <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            {count} captured
+            {histT('captured', { count })}
           </span>
         ) : (
           <span className="text-slate-400">—</span>
@@ -160,7 +172,9 @@ export function ExecutionHistoryTable({
             }}
             className="text-sm text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium"
           >
-            {row.original.status === 'Pending Approval' ? 'Review' : 'View'}
+            {row.original.status === 'Pending Approval'
+              ? histT('review')
+              : histT('view')}
           </Link>
         </div>
       ),
@@ -171,7 +185,7 @@ export function ExecutionHistoryTable({
     <DataGrid
       data={executions}
       columns={columns}
-      emptyMessage="No executions found"
+      emptyMessage={histT('empty')}
       enablePagination
     />
   )

@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Edit, Save, Trash2, X } from 'lucide-react'
 import type { Issue } from '@cascadia/commons/items/types/issue'
@@ -38,29 +39,7 @@ import {
 } from '@/components/ui'
 import { useAlertDialog } from '@/hooks/useAlertDialog'
 import { FreeTransitionControl } from '@/components/items/FreeTransitionControl'
-
-const SEVERITY_OPTIONS = [
-  { value: 'Critical', label: 'Critical' },
-  { value: 'High', label: 'High' },
-  { value: 'Medium', label: 'Medium' },
-  { value: 'Low', label: 'Low' },
-]
-
-const PRIORITY_OPTIONS = [
-  { value: 'Critical', label: 'Critical' },
-  { value: 'High', label: 'High' },
-  { value: 'Medium', label: 'Medium' },
-  { value: 'Low', label: 'Low' },
-]
-
-const CATEGORY_OPTIONS = [
-  { value: 'Design', label: 'Design' },
-  { value: 'Manufacturing', label: 'Manufacturing' },
-  { value: 'Quality', label: 'Quality' },
-  { value: 'Customer', label: 'Customer' },
-  { value: 'Safety', label: 'Safety' },
-  { value: 'Other', label: 'Other' },
-]
+import { translateStateName } from '@/i18n'
 
 const stateVariant = (state: string) => {
   const variants: Record<
@@ -172,6 +151,45 @@ export function IssueDetail({
   const { confirm } = useAlertDialog()
 
   const isCreateMode = !initialIssue?.id
+  const idt = (key: string, options?: Record<string, unknown>) =>
+    tp(`issues.detail.${key}`, options)
+
+  const levelLabel = (value: string) => {
+    const key = `labels.severity.${value.toLowerCase()}`
+    const translated = tc(key)
+    return translated === key ? value : translated
+  }
+
+  const severityOptions = (
+    ['Critical', 'High', 'Medium', 'Low'] as const
+  ).map((value) => ({ value, label: levelLabel(value) }))
+
+  const priorityOptions = (
+    ['Critical', 'High', 'Medium', 'Low'] as const
+  ).map((value) => ({ value, label: levelLabel(value) }))
+
+  const categoryOptions = (
+    [
+      'Design',
+      'Manufacturing',
+      'Quality',
+      'Customer',
+      'Safety',
+      'Other',
+    ] as const
+  ).map((value) => ({
+    value,
+    label: idt(`categories.${value}`),
+  }))
+
+  const categoryLabel = (value: string | undefined) => {
+    if (!value) return value
+    const translated = idt(`categories.${value}`)
+    return translated === `issues.detail.categories.${value}` ||
+      translated.endsWith(`.${value}`)
+      ? value
+      : translated
+  }
 
   const [issue, setIssue] = useState<Issue>(
     () =>
@@ -248,10 +266,12 @@ export function IssueDetail({
     confirm({
       title: 'Delete Issue',
       description: `Are you sure you want to delete ${currentIssue.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
-      variant: 'destructive',
-      onConfirm: onDelete,
+      title: tp('issues.deleteTitle'),
+      description: tp('issues.detail.deleteDescription', {
+        itemNumber: currentIssue.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
     })
   }
 
@@ -277,12 +297,14 @@ export function IssueDetail({
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
               {isCreateMode ? 'Create New Issue' : currentIssue.itemNumber}
             </h1>
+              {isCreateMode
+                ? tp('issues.form.createTitle')
+                : currentIssue.itemNumber}
+            </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new issue'
-                : currentIssue.name || 'Unnamed'}
-            </p>
-          </div>
+                ? tp('issues.form.createSubtitle')
+                : currentIssue.name || tc('labels.unnamed')}
         </div>
 
         <div className="flex gap-2">
@@ -296,27 +318,27 @@ export function IssueDetail({
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
+                {tc('actions.cancel')}
+              </Button>
               <Button onClick={handleSave} disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-2" />
                 {isSubmitting
-                  ? 'Saving...'
+                  ? tc('actions.saving')
                   : isCreateMode
-                    ? 'Create Issue'
-                    : 'Save Changes'}
-              </Button>
-            </>
+                    ? tp('issues.form.createSubmit')
+                    : tc('actions.saveChanges')}
           ) : (
             <>
               <Button variant="outline" onClick={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
+                {tc('actions.edit')}
+              </Button>
               {onDelete && (
                 <Button variant="destructive" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              )}
+                  {tc('actions.delete')}
             </>
           )}
         </div>
@@ -343,20 +365,24 @@ export function IssueDetail({
             >
               {currentIssue.severity} Severity
             </Badge>
+              {idt('severityBadge', {
+                level: levelLabel(currentIssue.severity),
+              })}
+            </Badge>
           )}
           {currentIssue.priority && (
             <Badge
               variant={priorityVariant(currentIssue.priority)}
               className="text-sm"
             >
-              {currentIssue.priority} Priority
+              {idt('priorityBadge', {
+                level: levelLabel(currentIssue.priority),
+              })}
             </Badge>
           )}
           {currentIssue.category && (
             <Badge variant="secondary" className="text-sm">
-              {currentIssue.category}
-            </Badge>
-          )}
+              {categoryLabel(currentIssue.category)}
         </div>
       )}
 
@@ -368,6 +394,8 @@ export function IssueDetail({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
@@ -375,14 +403,12 @@ export function IssueDetail({
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
-                </CardHeader>
-                <CardContent>
+                  <CardTitle>{idt('overviewTitle')}</CardTitle>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditText
                       label="Issue Number"
                       value={
-                        isEditing ? issue.itemNumber : currentIssue.itemNumber
+                      label={idt('fields.issueNumber')}
                       }
                       onChange={(v) => updateField('itemNumber', v)}
                       isEditing={isEditing && isCreateMode}
@@ -392,53 +418,64 @@ export function IssueDetail({
                     <ViewEditText
                       label="Title"
                       value={isEditing ? issue.name : currentIssue.name}
+                      label={idt('fields.title')}
+                      value={isEditing ? issue.name : currentIssue.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="Issue title"
-                      required
-                    />
+                      placeholder={idt('titlePlaceholder')}
                     {/* State is never edited through the form — Free-
                         lifecycle transitions run through the transition
                         control next to the state badge above (WI-2.1/2.2) */}
                     <ViewEditBadge
                       label="State"
                       value={currentIssue.state}
+                      label={tc('columns.state')}
+                      value={currentIssue.state}
                       onChange={() => undefined}
                       isEditing={false}
-                      options={[]}
+                      options={
+                        currentIssue.state
+                          ? [
+                              {
+                                value: currentIssue.state,
+                                label: translateStateName(currentIssue.state),
+                              },
+                            ]
+                          : []
+                      }
                       variant={stateVariant}
                     />
                     <ViewEditBadge
-                      label="Category"
+                      label={tc('fields.category')}
                       value={isEditing ? issue.category : currentIssue.category}
                       onChange={(v) => updateField('category', v)}
                       isEditing={isEditing}
-                      options={CATEGORY_OPTIONS}
+                      options={categoryOptions}
                     />
                     <ViewEditBadge
-                      label="Severity"
+                      label={tc('fields.severity')}
                       value={isEditing ? issue.severity : currentIssue.severity}
                       onChange={(v) => updateField('severity', v)}
                       isEditing={isEditing}
-                      options={SEVERITY_OPTIONS}
+                      options={severityOptions}
                       variant={severityVariant}
                     />
                     <ViewEditBadge
-                      label="Priority"
+                      label={tc('fields.priority')}
                       value={isEditing ? issue.priority : currentIssue.priority}
                       onChange={(v) => updateField('priority', v)}
                       isEditing={isEditing}
-                      options={PRIORITY_OPTIONS}
+                      options={priorityOptions}
                       variant={priorityVariant}
                     />
                     <ViewEditTextarea
-                      label="Description"
+                      label={tc('fields.description')}
                       value={
                         isEditing ? issue.description : currentIssue.description
                       }
                       onChange={(v) => updateField('description', v)}
                       isEditing={isEditing}
-                      placeholder="Detailed description of the issue"
+                      placeholder={idt('descriptionPlaceholder')}
                       className="md:col-span-2"
                     />
                   </dl>
@@ -447,29 +484,27 @@ export function IssueDetail({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Root Cause & Resolution</CardTitle>
-                </CardHeader>
-                <CardContent>
+                  <CardTitle>{idt('rootCauseResolutionTitle')}</CardTitle>
                   <dl className="space-y-6">
                     <ViewEditTextarea
                       label="Root Cause"
+                      value={
+                      label={tc('fields.rootCause')}
                       value={
                         isEditing ? issue.rootCause : currentIssue.rootCause
                       }
                       onChange={(v) => updateField('rootCause', v)}
                       isEditing={isEditing}
-                      placeholder="Root cause analysis"
+                      placeholder={idt('rootCausePlaceholder')}
                     />
                     <ViewEditTextarea
-                      label="Resolution"
+                      label={tc('fields.resolution')}
                       value={
                         isEditing ? issue.resolution : currentIssue.resolution
                       }
                       onChange={(v) => updateField('resolution', v)}
                       isEditing={isEditing}
-                      placeholder="How the issue was resolved"
-                    />
-                  </dl>
+                      placeholder={idt('resolutionPlaceholder')}
                 </CardContent>
               </Card>
             </div>
@@ -479,24 +514,24 @@ export function IssueDetail({
                 <CardHeader>
                   <CardTitle>Assignment</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                  <CardTitle>{idt('assignmentTitle')}</CardTitle>
                   <ViewEditText
                     label="Assigned To"
+                    value={
+                    label={idt('assignedTo')}
                     value={
                       isEditing ? issue.assignedTo : currentIssue.assignedTo
                     }
                     onChange={(v) => updateField('assignedTo', v)}
                     isEditing={isEditing}
-                    placeholder="user@example.com"
+                    placeholder={idt('assignedToPlaceholder')}
                   />
                   <ViewEditStatic
-                    label="Reported Date"
+                    label={idt('reportedDate')}
                     value={formatDate(currentIssue.reportedDate)}
                   />
                   <ViewEditStatic
-                    label="Resolved Date"
-                    value={formatDate(currentIssue.resolvedDate)}
-                  />
+                    label={idt('resolvedDate')}
                 </CardContent>
               </Card>
 
@@ -506,7 +541,7 @@ export function IssueDetail({
                   <CardHeader>
                     <CardTitle>Associated Designs</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                    <CardTitle>{idt('associatedDesignsTitle')}</CardTitle>
                     {isEditing ? (
                       <div className="space-y-2">
                         <DesignMultiSelector
@@ -515,10 +550,10 @@ export function IssueDetail({
                           onChange={(value) => updateField('designIds', value)}
                           placeholder="Select designs..."
                         />
+                          placeholder={idt('selectDesignsPlaceholder')}
+                        />
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                          Optional: Associate with one or more designs
-                        </p>
-                      </div>
+                          {idt('associatedDesignsHelp')}
                     ) : selectedDesigns.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {selectedDesigns.map((design) => (
@@ -531,7 +566,7 @@ export function IssueDetail({
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         No designs associated
                       </p>
-                    )}
+                        {idt('noDesignsAssociated')}
                   </CardContent>
                 </Card>
               )}
@@ -557,7 +592,7 @@ export function IssueDetail({
                       <CollapsibleTrigger className="hover:opacity-70">
                         <CardTitle>Custom Attributes</CardTitle>
                       </CollapsibleTrigger>
-                    </CardHeader>
+                        <CardTitle>{tc('sections.customAttributes')}</CardTitle>
                     <CollapsibleContent>
                       <CardContent className="pt-0">
                         {Object.keys(currentIssue.attributes || {}).length >
@@ -580,7 +615,7 @@ export function IssueDetail({
                           <p className="text-sm text-slate-500 dark:text-slate-400">
                             No custom attributes defined.
                           </p>
-                        )}
+                            {idt('noCustomAttributes')}
                       </CardContent>
                     </CollapsibleContent>
                   </Collapsible>
@@ -593,26 +628,26 @@ export function IssueDetail({
                     <CollapsibleTrigger className="hover:opacity-70">
                       <CardTitle>Metadata</CardTitle>
                     </CollapsibleTrigger>
-                  </CardHeader>
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
                       <ViewEditStatic
                         label="Revision"
                         value={currentIssue.revision}
+                        label={tc('fields.revision')}
+                        value={currentIssue.revision}
                       />
                       <ViewEditStatic
-                        label="Created"
+                        label={tc('columns.created')}
                         value={formatDate(currentIssue.createdAt)}
                       />
                       <ViewEditStatic
-                        label="Last Modified"
+                        label={tp('programs.detail.lastModified')}
                         value={formatDate(currentIssue.modifiedAt)}
                       />
                       {!isCreateMode && (
                         <ViewEditStatic
-                          label="Issue ID"
-                          value={currentIssue.id}
-                          mono
+                          label={idt('issueId')}
                         />
                       )}
                     </CardContent>
@@ -636,9 +671,7 @@ export function IssueDetail({
               <CardContent className="py-12 text-center">
                 <p className="text-slate-500">
                   Save the issue first to view history
-                </p>
-              </CardContent>
-            </Card>
+                <p className="text-slate-500">{idt('saveFirstHistory')}</p>
           )}
         </TabsContent>
       </Tabs>

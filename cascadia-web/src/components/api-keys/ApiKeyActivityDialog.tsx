@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import type { ApiKeyEvent, ApiKeyRecord } from '@/query'
@@ -19,14 +20,6 @@ interface ApiKeyActivityDialogProps {
   /** Admin reads any key's activity; self-service only the caller's own. */
   scope: 'admin' | 'self'
   onClose: () => void
-}
-
-const OUTCOME_LABELS: Record<string, string> = {
-  success: 'Authenticated',
-  expired: 'Rejected — expired',
-  disabled: 'Rejected — disabled',
-  revoked: 'Rejected — revoked',
-  inactive_user: 'Rejected — owner inactive',
 }
 
 function outcomeVariant(outcome: string) {
@@ -48,6 +41,8 @@ export function ApiKeyActivityDialog({
   scope,
   onClose,
 }: ApiKeyActivityDialogProps) {
+  const { t: tc } = useTranslation('common')
+
   return (
     <Dialog
       open={apiKey !== null}
@@ -57,10 +52,13 @@ export function ApiKeyActivityDialog({
     >
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Activity</DialogTitle>
+          <DialogTitle>{tc('dialogs.apiKeyActivity.title')}</DialogTitle>
           <DialogDescription>
             {apiKey
-              ? `${apiKey.name} (${apiKey.keyPrefix}…) — most recent first.`
+              ? tc('dialogs.apiKeyActivity.description', {
+                  name: apiKey.name,
+                  keyPrefix: apiKey.keyPrefix,
+                })
               : ''}
           </DialogDescription>
         </DialogHeader>
@@ -82,6 +80,7 @@ function ActivityBody({
   keyId: string
   scope: 'admin' | 'self'
 }) {
+  const { t: tc } = useTranslation('common')
   const {
     data: events = [],
     isPending,
@@ -93,7 +92,11 @@ function ActivityBody({
   )
 
   if (isPending) {
-    return <p className="text-sm text-muted-foreground">Loading activity…</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        {tc('dialogs.apiKeyActivity.loading')}
+      </p>
+    )
   }
 
   if (error) {
@@ -108,26 +111,30 @@ function ActivityBody({
     <div className="space-y-3">
       <div className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-        <span>
-          Successful requests are sampled at most once a minute, so this is a
-          usage timeline rather than a complete request log. Every rejection is
-          recorded.
-        </span>
+        <span>{tc('dialogs.apiKeyActivity.samplingNote')}</span>
       </div>
 
       {events.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No activity recorded for this key yet.
+          {tc('dialogs.apiKeyActivity.noActivity')}
         </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
-                <th className="py-2 pr-4 font-medium">When</th>
-                <th className="py-2 pr-4 font-medium">Outcome</th>
-                <th className="py-2 pr-4 font-medium">Request</th>
-                <th className="py-2 pr-4 font-medium">Source</th>
+                <th className="py-2 pr-4 font-medium">
+                  {tc('dialogs.apiKeyActivity.when')}
+                </th>
+                <th className="py-2 pr-4 font-medium">
+                  {tc('dialogs.apiKeyActivity.outcome')}
+                </th>
+                <th className="py-2 pr-4 font-medium">
+                  {tc('dialogs.apiKeyActivity.request')}
+                </th>
+                <th className="py-2 pr-4 font-medium">
+                  {tc('dialogs.apiKeyActivity.source')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -144,7 +151,9 @@ function ActivityBody({
                       variant={outcomeVariant(event.outcome)}
                       className="text-xs"
                     >
-                      {OUTCOME_LABELS[event.outcome] ?? event.outcome}
+                      {tc(`dialogs.apiKeyActivity.outcomes.${event.outcome}`, {
+                        defaultValue: event.outcome,
+                      })}
                     </Badge>
                   </td>
                   <td className="py-2 pr-4">
@@ -171,8 +180,3 @@ function ActivityBody({
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-    </div>
-  )
-}

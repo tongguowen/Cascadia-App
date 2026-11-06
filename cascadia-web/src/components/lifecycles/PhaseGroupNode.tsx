@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit2, RotateCcw, Trash2 } from 'lucide-react'
 import { NO_REVISION_MARKER } from '@cascadia/commons/types/lifecycle'
 import type { Node, NodeProps } from '@xyflow/react'
@@ -96,6 +97,7 @@ function PhaseGroupNodeComponent({
   data,
   selected,
 }: NodeProps<PhaseGroupNodeType>) {
+  const { t: tc } = useTranslation('common')
   const { phase, onEdit, onDelete } = data
   const colors = getPhaseColors(phase.color)
   const revLabel = revisionSchemeLabel(phase)
@@ -124,7 +126,7 @@ function PhaseGroupNodeComponent({
           {phase.resetRevisionOnEntry && (
             <span
               className="text-amber-500 dark:text-amber-400"
-              title="Resets revision on entry"
+              title={tc('tooltips.resetsRevisionOnEntry')}
             >
               <RotateCcw className="h-3 w-3" />
             </span>
@@ -146,7 +148,7 @@ function PhaseGroupNodeComponent({
                   onEdit(phase)
                 }}
                 className="p-0.5 rounded hover:bg-white/50 dark:hover:bg-black/20 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400"
-                title="Edit phase"
+                title={tc('tooltips.editPhase')}
               >
                 <Edit2 className="h-3 w-3" />
               </button>
@@ -159,7 +161,7 @@ function PhaseGroupNodeComponent({
                   onDelete(phase.id)
                 }}
                 className="p-0.5 rounded hover:bg-white/50 dark:hover:bg-black/20 text-slate-500 hover:text-red-600 dark:hover:text-red-400"
-                title="Delete phase"
+                title={tc('tooltips.deletePhase')}
               >
                 <Trash2 className="h-3 w-3" />
               </button>

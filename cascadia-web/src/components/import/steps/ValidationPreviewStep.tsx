@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -42,6 +43,7 @@ export function ValidationPreviewStep({
   bomFormat,
   bomRelationships,
 }: ValidationPreviewStepProps) {
+  const { t: tp } = useTranslation('pages')
   const config = getImportConfig(itemType)
   const [filter, setFilter] = useState<FilterType>('all')
 
@@ -108,10 +110,10 @@ export function ValidationPreviewStep({
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Review validation results
+          {tp('import.validationPreview.title')}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Fix any errors before importing, or proceed with valid rows only
+          {tp('import.validationPreview.subtitle')}
         </p>
       </div>
 
@@ -122,7 +124,7 @@ export function ValidationPreviewStep({
             {summary.totalRows}
           </div>
           <div className="text-sm text-slate-600 dark:text-slate-400">
-            Total Rows
+            {tp('import.validationPreview.totalRows')}
           </div>
         </div>
         <div className="p-4 rounded-lg bg-green-100 dark:bg-green-900/30">
@@ -133,7 +135,7 @@ export function ValidationPreviewStep({
             </span>
           </div>
           <div className="text-sm text-green-600 dark:text-green-400">
-            Valid
+            {tp('import.validationPreview.valid')}
           </div>
         </div>
         <div className="p-4 rounded-lg bg-red-100 dark:bg-red-900/30">
@@ -143,7 +145,9 @@ export function ValidationPreviewStep({
               {summary.invalidRows}
             </span>
           </div>
-          <div className="text-sm text-red-600 dark:text-red-400">Invalid</div>
+          <div className="text-sm text-red-600 dark:text-red-400">
+            {tp('import.validationPreview.invalid')}
+          </div>
         </div>
       </div>
 
@@ -154,23 +158,24 @@ export function ValidationPreviewStep({
             <GitBranch className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div>
               <p className="font-medium text-blue-800 dark:text-blue-200">
-                BOM Structure Detected
+                {tp('import.validationPreview.bomDetected')}
               </p>
               <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                Format:{' '}
+                {tp('import.validationPreview.formatLabel')}{' '}
                 {bomFormat.format === 'level-based'
-                  ? 'Level-based (indented)'
-                  : 'Parent-child references'}
+                  ? tp('import.validationPreview.formatLevelBased')
+                  : tp('import.validationPreview.formatParentChild')}
               </p>
               {bomSummary && (
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  {bomSummary.totalRelationships} parent-child relationship
-                  {bomSummary.totalRelationships !== 1 ? 's' : ''} will be
-                  created
+                  {tp('import.validationPreview.relationshipsWillBeCreated', {
+                    count: bomSummary.totalRelationships,
+                  })}
                   {bomSummary.externalParentCount > 0 && (
                     <span className="ml-1">
-                      ({bomSummary.externalParentCount} with existing parent
-                      {bomSummary.externalParentCount !== 1 ? 's' : ''})
+                      {tp('import.validationPreview.externalParents', {
+                        count: bomSummary.externalParentCount,
+                      })}
                     </span>
                   )}
                 </p>
@@ -187,7 +192,7 @@ export function ValidationPreviewStep({
             <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <p className="font-medium text-red-800 dark:text-red-200">
-                BOM Structure Errors
+                {tp('import.validationPreview.bomStructureErrors')}
               </p>
               <ul className="list-disc list-inside mt-2 text-sm text-red-700 dark:text-red-300">
                 {bomValidation.errors.map((error, i) => (
@@ -209,7 +214,7 @@ export function ValidationPreviewStep({
             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div>
               <p className="font-medium text-amber-800 dark:text-amber-200">
-                BOM Warnings
+                {tp('import.validationPreview.bomWarnings')}
               </p>
               <ul className="list-disc list-inside mt-2 text-sm text-amber-700 dark:text-amber-300">
                 {bomValidation.warnings.map((warning, i) => (
@@ -228,18 +233,22 @@ export function ValidationPreviewStep({
             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div>
               <p className="font-medium text-amber-800 dark:text-amber-200">
-                {summary.invalidRows} row{summary.invalidRows > 1 ? 's' : ''}{' '}
-                have errors
+                {tp('import.validationPreview.rowsHaveErrors', {
+                  count: summary.invalidRows,
+                })}
               </p>
               <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
-                <p>Common issues:</p>
+                <p>{tp('import.validationPreview.commonIssues')}</p>
                 <ul className="list-disc list-inside mt-1">
                   {Object.entries(summary.errorsByField)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 3)
                     .map(([field, count]) => (
                       <li key={field}>
-                        {field}: {count} error{count > 1 ? 's' : ''}
+                        {tp('import.validationPreview.fieldErrors', {
+                          field,
+                          count,
+                        })}
                       </li>
                     ))}
                 </ul>
@@ -253,7 +262,7 @@ export function ValidationPreviewStep({
       <div className="flex items-center gap-2">
         <Filter className="h-4 w-4 text-slate-400" />
         <span className="text-sm text-slate-600 dark:text-slate-400 mr-2">
-          Show:
+          {tp('import.validationPreview.show')}
         </span>
         <div className="flex gap-1">
           <Button
@@ -261,21 +270,25 @@ export function ValidationPreviewStep({
             size="sm"
             onClick={() => setFilter('all')}
           >
-            All ({summary.totalRows})
+            {tp('import.validationPreview.all', { count: summary.totalRows })}
           </Button>
           <Button
             variant={filter === 'valid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter('valid')}
           >
-            Valid ({summary.validRows})
+            {tp('import.validationPreview.validFilter', {
+              count: summary.validRows,
+            })}
           </Button>
           <Button
             variant={filter === 'invalid' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter('invalid')}
           >
-            Invalid ({summary.invalidRows})
+            {tp('import.validationPreview.invalidFilter', {
+              count: summary.invalidRows,
+            })}
           </Button>
         </div>
       </div>
@@ -287,10 +300,10 @@ export function ValidationPreviewStep({
             <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
               <tr>
                 <th className="px-3 py-2 text-left text-slate-600 dark:text-slate-400 font-medium w-16">
-                  Row
+                  {tp('import.validationPreview.colRow')}
                 </th>
                 <th className="px-3 py-2 text-left text-slate-600 dark:text-slate-400 font-medium w-20">
-                  Status
+                  {tp('import.validationPreview.colStatus')}
                 </th>
                 {displayColumns.map((col) => (
                   <th
@@ -301,7 +314,7 @@ export function ValidationPreviewStep({
                   </th>
                 ))}
                 <th className="px-3 py-2 text-left text-slate-600 dark:text-slate-400 font-medium">
-                  Issues
+                  {tp('import.validationPreview.colIssues')}
                 </th>
               </tr>
             </thead>
@@ -319,12 +332,12 @@ export function ValidationPreviewStep({
                     {row.isValid ? (
                       <Badge variant="default" className="bg-green-500">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Valid
+                        {tp('import.validationPreview.statusValid')}
                       </Badge>
                     ) : (
                       <Badge variant="destructive">
                         <XCircle className="h-3 w-3 mr-1" />
-                        Error
+                        {tp('import.validationPreview.statusError')}
                       </Badge>
                     )}
                   </td>
@@ -367,17 +380,23 @@ export function ValidationPreviewStep({
 
       {/* Pagination info */}
       <div className="text-sm text-slate-500 text-center">
-        Showing {filteredRows.length} of {summary.totalRows} rows
+        {tp('import.validationPreview.showingRows', {
+          shown: filteredRows.length,
+          total: summary.totalRows,
+        })}
       </div>
 
       {/* Info about what will be imported */}
       {summary.invalidRows > 0 && summary.validRows > 0 && (
         <div className="text-sm text-slate-500 text-center">
-          Will import {summary.validRows} valid{' '}
-          {summary.validRows !== 1
-            ? config.pluralLabel.toLowerCase()
-            : config.singularLabel.toLowerCase()}
-          , skip {summary.invalidRows} invalid
+          {tp('import.validationPreview.willImportValid', {
+            valid: summary.validRows,
+            invalid: summary.invalidRows,
+            items:
+              summary.validRows !== 1
+                ? config.pluralLabel.toLowerCase()
+                : config.singularLabel.toLowerCase(),
+          })}
         </div>
       )}
     </div>

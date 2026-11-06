@@ -10,6 +10,7 @@
  */
 
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DataGridColumn } from '@/components/ui/DataGrid'
 import type {
   DataGridDialogPayload,
@@ -124,8 +125,8 @@ export function DialogDataGrid({ payload, onNavigate }: DialogDataGridProps) {
         defaultPageSize={20}
         exportFilename="chat-results"
         emptyMessage="No rows"
-        emptyDescription="Nothing matched the filters"
-      />
+        emptyMessage={tc('ui.dialogDataGrid.emptyMessage')}
+        emptyDescription={tc('ui.dialogDataGrid.emptyDescription')}
     </div>
   )
 }

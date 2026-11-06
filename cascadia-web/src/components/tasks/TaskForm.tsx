@@ -3,6 +3,355 @@
 
 import { useForm } from '@tanstack/react-form'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { taskSchema } from '@cascadia/commons/items/types/task'
+import type { Task } from '@cascadia/commons/items/types/task'
+import { AttributesEditor } from '@/components/items/AttributesEditor'
+import { ItemNumberField } from '@/components/items/ItemNumberField'
+import { zodValidator } from '@/form-validation'
+import {
+  Button,
+  FormField,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
+} from '@/components/ui'
+
+interface TaskFormProps {
+  task?: Partial<Task>
+  onSubmit: (data: Task) => void | Promise<void>
+  onCancel?: () => void
+  isSubmitting?: boolean
+}
+
+export function TaskForm({
+  task,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+}: TaskFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const [attributes, setAttributes] = useState<Record<string, unknown>>(
+    task?.attributes ?? {},
+  )
+  const form = useForm({
+    defaultValues: {
+      itemType: 'Task' as const,
+      priority: 'Medium' as const,
+      itemNumber: '',
+      name: '',
+      description: '',
+      projectId: '',
+      assignee: '',
+      dueDate: '',
+      estimatedHours: '',
+      actualHours: '',
+      tags: [] as Array<string>,
+      ...task,
+    },
+    validators: {
+      onSubmit: zodValidator(taskSchema),
+    },
+    onSubmit: async ({ value }) => {
+      const submissionData = {
+        ...value,
+        attributes,
+      } as Task
+      await onSubmit(submissionData)
+    },
+  })
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className="space-y-6"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Item Number */}
+        <form.Field name="itemNumber">
+          {(field) => (
+            <ItemNumberField
+              itemType="Task"
+              label={tp('tasks.form.taskNumber')}
+              name={field.name}
+              value={field.state.value}
+              onChange={field.handleChange}
+              onBlur={field.handleBlur}
+              error={field.state.meta.errors[0]}
+            />
+          )}
+        </form.Field>
+
+        {/* Name */}
+        <form.Field name="name">
+          {(field) => (
+            <FormField
+              label={tp('tasks.form.taskName')}
+              error={field.state.meta.errors[0]}
+              className="md:col-span-2"
+            >
+              <Input
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={tp('tasks.form.namePlaceholder')}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Description */}
+        <form.Field name="description">
+          {(field) => (
+            <FormField
+              label={tc('fields.description')}
+              error={field.state.meta.errors[0]}
+              className="md:col-span-2"
+            >
+              <Textarea
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={tp('tasks.form.descriptionPlaceholder')}
+                rows={4}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* State */}
+        <form.Field name="state">
+          {(field) => (
+            <FormField label={tc('columns.state')} error={field.state.meta.errors[0]}>
+              <Select
+                value={field.state.value}
+                onValueChange={(value) => field.handleChange(value)}
+              >
+                <SelectTrigger error={!!field.state.meta.errors.length}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(
+                    [
+                      'Backlog',
+                      'ToDo',
+                      'InProgress',
+                      'InReview',
+                      'Done',
+                      'Cancelled',
+                    ] as const
+                  ).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {tc(`enum.taskStatus.${value}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Priority */}
+        <form.Field name="priority">
+          {(field) => (
+            <FormField label={tc('fields.priority')} error={field.state.meta.errors[0]}>
+              <Select
+                value={field.state.value}
+                onValueChange={(value) =>
+                  field.handleChange(
+                    value as 'Low' | 'Medium' | 'High' | 'Critical',
+                  )
+                }
+              >
+                <SelectTrigger error={!!field.state.meta.errors.length}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['Low', 'Medium', 'High', 'Critical'] as const).map(
+                    (value) => (
+                      <SelectItem key={value} value={value}>
+                        {tc(`enum.priority.${value}`)}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Project ID */}
+        <form.Field name="projectId">
+          {(field) => (
+            <FormField
+              label={tc('fields.projectId')}
+              error={field.state.meta.errors[0]}
+              helpText="UUID of the project this task belongs to"
+            >
+              <Input
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={tc('placeholders.projectUuid')}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Assignee */}
+        <form.Field name="assignee">
+          {(field) => (
+            <FormField
+              label={tc('fields.assignee')}
+              error={field.state.meta.errors[0]}
+              helpText="UUID of the assigned user"
+            >
+              <Input
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                placeholder={tc('placeholders.userUuid')}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Due Date */}
+        <form.Field name="dueDate">
+          {(field) => (
+            <FormField label={tc('fields.dueDate')} error={field.state.meta.errors[0]}>
+              <Input
+                name={field.name}
+                value={
+                  field.state.value instanceof Date
+                    ? field.state.value.toISOString().slice(0, 16)
+                    : (field.state.value ?? '')
+                }
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type="datetime-local"
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Estimated Hours */}
+        <form.Field name="estimatedHours">
+          {(field) => (
+            <FormField
+              label={tc('fields.estimatedHours')}
+              error={field.state.meta.errors[0]}
+            >
+              <Input
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type="number"
+                step="0.5"
+                placeholder={tp('tasks.form.estimatedHoursPlaceholder')}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Actual Hours */}
+        <form.Field name="actualHours">
+          {(field) => (
+            <FormField label={tc('fields.actualHours')} error={field.state.meta.errors[0]}>
+              <Input
+                name={field.name}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                type="number"
+                step="0.5"
+                placeholder={tp('tasks.form.actualHoursPlaceholder')}
+                error={!!field.state.meta.errors.length}
+              />
+            </FormField>
+          )}
+        </form.Field>
+
+        {/* Tags */}
+        <form.Field name="tags">
+          {(field) => (
+            <FormField
+              label={tc('fields.tags')}
+              helpText="Comma-separated tags"
+              className="md:col-span-2"
+            >
+              <Input
+                placeholder={tp('tasks.detail.tagsPlaceholder')}
+                onChange={(e) => {
+                  const tags = e.target.value
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter(Boolean)
+                  field.handleChange(tags)
+                }}
+                defaultValue={field.state.value.join(', ') || ''}
+              />
+            </FormField>
+          )}
+        </form.Field>
+      </div>
+
+      {/* Custom Attributes */}
+      <AttributesEditor
+        value={attributes}
+        onChange={setAttributes}
+        disabled={isSubmitting}
+      />
+
+      {/* Actions */}
+      <div className="flex gap-3 justify-end pt-4 border-t">
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            {tc('actions.cancel')}
+          </Button>
+        )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? tc('actions.saving')
+            : task?.id
+              ? tp('tasks.form.updateSubmit')
+              : tp('tasks.form.createSubmit')}
+        </Button>
+      </div>
+    </form>
+  )
+}
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2026 Cascadia PLM LLC
+
+import { useForm } from '@tanstack/react-form'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { taskSchema } from '@cascadia/commons/items/types/task'
 import type { Task } from '@cascadia/commons/items/types/task'
 import { AttributesEditor } from '@/components/items/AttributesEditor'

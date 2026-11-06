@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, GitBranch, Trash2 } from 'lucide-react'
 import type { Workspace } from '@/query'
@@ -31,6 +32,8 @@ export const Route = createFileRoute('/designs/workspaces/')({
 })
 
 function WorkspacesPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const queryClient = useQueryClient()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -52,21 +55,23 @@ function WorkspacesPage() {
       // If we can't fetch, proceed without count
     }
 
-    // Build description with item count warning
-    let description = `Are you sure you want to delete the workspace "${displayName}" from ${workspace.designName}?`
+    let description = t('workspaces.deleteDescription', {
+      displayName,
+      designName: workspace.designName,
+    })
     if (draftCount > 0) {
-      description += `\n\nThis will permanently delete ${draftCount} item${draftCount === 1 ? '' : 's'} that exist${draftCount === 1 ? 's' : ''} only on this workspace.`
+      description += `\n\n${t('workspaces.deleteDraftWarning', { draftCount })}`
     }
-    description += '\n\nThis action cannot be undone.'
+    description += `\n\n${tc('dialog.cannotUndo')}`
 
     confirm({
-      title: 'Delete Workspace',
+      title: t('workspaces.deleteTitle'),
       description,
       actionLabel:
         draftCount > 0
-          ? `Delete Workspace and ${draftCount} Item${draftCount === 1 ? '' : 's'}`
-          : 'Delete Workspace',
-      cancelLabel: 'Cancel',
+          ? t('workspaces.deleteActionWithItems', { draftCount })
+          : t('workspaces.deleteAction'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -74,10 +79,13 @@ function WorkspacesPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Workspace deleted', `"${displayName}" has been deleted`)
+          showSuccess(
+            t('workspaces.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: displayName }),
+          )
           await invalidate('workspaces')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete workspace' })
+          handleError(error, { title: tc('dialog.failedDelete') })
         }
       },
     })
@@ -106,10 +114,10 @@ function WorkspacesPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            My Workspaces
+            {t('workspaces.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Manage your private development branches
+            {t('workspaces.subtitle')}
           </p>
         </div>
       </div>
@@ -117,7 +125,7 @@ function WorkspacesPage() {
       {/* Stats */}
       <Card>
         <CardHeader className="pb-3">
-          <CardDescription>Total Workspaces</CardDescription>
+          <CardDescription>{t('workspaces.total')}</CardDescription>
           <CardTitle className="text-3xl">{workspaces.length}</CardTitle>
         </CardHeader>
       </Card>
@@ -128,11 +136,10 @@ function WorkspacesPage() {
           <CardContent className="py-12 text-center">
             <GitBranch className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-              No workspaces yet
+              {t('workspaces.emptyTitle')}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-              Workspaces are private branches for development work. Create one
-              when adding new items to a design.
+              {t('workspaces.emptyDescription')}
             </p>
           </CardContent>
         </Card>
@@ -151,8 +158,9 @@ function WorkspacesPage() {
                   </Link>
                 </CardTitle>
                 <CardDescription>
-                  {designWorkspaces.length} workspace
-                  {designWorkspaces.length !== 1 ? 's' : ''}
+                  {t('workspaces.groupDescription', {
+                    count: designWorkspaces.length,
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -175,14 +183,16 @@ function WorkspacesPage() {
                               {displayName}
                             </div>
                             <div className="text-sm text-slate-500">
-                              Created{' '}
+                              {t('workspaces.created')}{' '}
                               {new Date(
                                 workspace.createdAt,
                               ).toLocaleDateString()}
                             </div>
                           </div>
                           {workspace.isLocked && (
-                            <Badge variant="secondary">Locked</Badge>
+                            <Badge variant="secondary">
+                              {t('workspaces.locked')}
+                            </Badge>
                           )}
                         </Link>
                         <Button

@@ -1,0 +1,41 @@
+{
+  "panel": {
+    "title": "Cascadia Chat",
+    "thinking": "Thinking...",
+    "historyAria": "View history",
+    "newConversationAria": "New conversation",
+    "closeAria": "Close",
+    "historyTitle": "Conversation History",
+    "loading": "Loading...",
+    "noConversations": "No conversations yet",
+    "newConversation": "New conversation",
+    "emptyTitle": "How can I help you?",
+    "emptyDescription": "Ask questions about your PLM data, find items, or get help with workflows.",
+    "genericError": "An error occurred",
+    "openAria": "Open Cascadia Chat",
+    "closePanelAria": "Close Cascadia Chat"
+  },
+  "confirmation": {
+    "create": "Create",
+    "update": "Update",
+    "delete": "Delete",
+    "transition": "Transition",
+    "relationship": "Add Relationship",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "confirmAction": "Confirm Action",
+    "typeLabel": "Type:",
+    "nameLabel": "Name:",
+    "designLabel": "Design:",
+    "changeOrderLabel": "Change order:"
+  },
+  "input": {
+    "placeholder": "Ask a question or request an action...",
+    "stopAria": "Stop generation",
+    "searchAria": "Search (Ctrl+Enter)",
+    "searchTitle": "Search (Ctrl+Enter)",
+    "sendAria": "Send message"
+  }
+}

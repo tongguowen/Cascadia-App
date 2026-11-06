@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link2, Loader2, Search, Trash2, Variable } from 'lucide-react'
 import type { StepContentBlock } from '@cascadia/commons/items/types/work-instruction'
@@ -37,6 +38,10 @@ export function ParametricBlockEditor({
   onDelete,
   onError: _onError,
 }: ParametricBlockEditorProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const pb = (key: string, opts?: Record<string, unknown>) =>
+    tp(`workInstructions.parametricBlock.${key}`, opts)
   const [partSearch, setPartSearch] = useState('')
   // The part the user just picked, before the block's own partId query has
   // caught up — so the field shows the choice immediately.
@@ -96,7 +101,7 @@ export function ParametricBlockEditor({
       <div className="flex items-center gap-2 mb-3">
         <Variable className="h-4 w-4 text-purple-600 dark:text-purple-400" />
         <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
-          Parametric Value
+          {pb('title')}
         </span>
       </div>
 
@@ -104,7 +109,7 @@ export function ParametricBlockEditor({
       <div className="space-y-3">
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-            Part
+            {tc('fields.part')}
           </label>
           {selectedPart ? (
             <div className="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded border">
@@ -116,7 +121,7 @@ export function ParametricBlockEditor({
                 {selectedPart.name}
               </span>
               <span className="text-xs text-slate-400">
-                Rev {selectedPart.revision}
+                {pb('revPrefix', { revision: selectedPart.revision })}
               </span>
               <Button
                 variant="ghost"
@@ -140,7 +145,7 @@ export function ParametricBlockEditor({
               <Input
                 value={partSearch}
                 onChange={(e) => setPartSearch(e.target.value)}
-                placeholder="Search for a part..."
+                placeholder={tc('placeholders.searchPart')}
                 className="pl-8"
               />
               {searching && (
@@ -159,7 +164,7 @@ export function ParametricBlockEditor({
                         <span className="text-slate-500 ml-2">{part.name}</span>
                       )}
                       <span className="text-xs text-slate-400 ml-2">
-                        Rev {part.revision}
+                        {pb('revPrefix', { revision: part.revision })}
                       </span>
                     </button>
                   ))}
@@ -173,12 +178,12 @@ export function ParametricBlockEditor({
         {block.partId && (
           <div>
             <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-              Attribute
+              {pb('attributeLabel')}
             </label>
             {loadingAttrs ? (
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading attributes...
+                {pb('loadingAttributes')}
               </div>
             ) : (
               <select
@@ -186,7 +191,7 @@ export function ParametricBlockEditor({
                 value={block.attributePath || ''}
                 onChange={(e) => handleSelectAttribute(e.target.value)}
               >
-                <option value="">Select an attribute...</option>
+                <option value="">{tc('placeholders.selectAttribute')}</option>
                 {attributes.map((attr) => (
                   <option key={attr.path} value={attr.path}>
                     {attr.label}
@@ -202,22 +207,22 @@ export function ParametricBlockEditor({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-              Label (optional)
+              {pb('labelOptional')}
             </label>
             <Input
               value={block.label || ''}
               onChange={(e) => onUpdate({ ...block, label: e.target.value })}
-              placeholder="e.g., Weight"
+              placeholder={tc('placeholders.weightExample')}
             />
           </div>
           <div>
             <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-              Unit (optional)
+              {pb('unitOptional')}
             </label>
             <Input
               value={block.unit || ''}
               onChange={(e) => onUpdate({ ...block, unit: e.target.value })}
-              placeholder="e.g., kg"
+              placeholder={tc('placeholders.unitExample')}
             />
           </div>
         </div>
@@ -225,21 +230,23 @@ export function ParametricBlockEditor({
         {/* Fallback */}
         <div>
           <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-            Fallback value (shown when part unavailable)
+            {pb('fallbackLabel')}
           </label>
           <Input
             value={block.fallbackValue || ''}
             onChange={(e) =>
               onUpdate({ ...block, fallbackValue: e.target.value })
             }
-            placeholder="e.g., N/A"
+            placeholder={tc('placeholders.naExample')}
           />
         </div>
 
         {/* Live preview */}
         {block.partId && block.attributePath && (
           <div className="mt-2 p-3 bg-white dark:bg-slate-800 rounded border">
-            <span className="text-xs text-slate-500 block mb-1">Preview</span>
+            <span className="text-xs text-slate-500 block mb-1">
+              {pb('previewLabel')}
+            </span>
             <div className="flex items-center gap-2">
               {block.label && (
                 <span className="text-sm font-medium text-purple-700 dark:text-purple-300">

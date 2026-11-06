@@ -3,6 +3,7 @@
 
 import { Link, createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { KeyRound, LockKeyhole, Mail, User } from 'lucide-react'
 import type { FormEvent } from 'react'
 import { PageContainer } from '@/components/layout'
@@ -34,6 +35,8 @@ export const Route = createFileRoute('/profile/')({
 
 function ProfilePage() {
   const { user } = Route.useRouteContext()
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
 
   // Generate initials from name or email
   const getInitials = () => {
@@ -53,18 +56,18 @@ function ProfilePage() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-          Profile
+          {t('profile.title')}
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-2">
-          Manage your account information
+          {t('profile.subtitle')}
         </p>
       </div>
 
       {/* Profile Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Account Information</CardTitle>
-          <CardDescription>Your personal details</CardDescription>
+          <CardTitle>{t('profile.accountInformation')}</CardTitle>
+          <CardDescription>{t('profile.personalDetails')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar */}
@@ -74,7 +77,7 @@ function ProfilePage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {user.name || 'User'}
+                {user.name || tc('layout.userFallback')}
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {user.email}
@@ -88,10 +91,10 @@ function ProfilePage() {
               <User className="w-5 h-5 text-slate-400 mt-0.5" />
               <div className="flex-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Name
+                  {tc('fields.name')}
                 </label>
                 <p className="text-slate-900 dark:text-white">
-                  {user.name || 'Not set'}
+                  {user.name || t('profile.notSet')}
                 </p>
               </div>
             </div>
@@ -100,7 +103,7 @@ function ProfilePage() {
               <Mail className="w-5 h-5 text-slate-400 mt-0.5" />
               <div className="flex-1">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Email
+                  {tc('columns.email')}
                 </label>
                 <p className="text-slate-900 dark:text-white">{user.email}</p>
               </div>
@@ -110,7 +113,7 @@ function ProfilePage() {
           {/* Coming Soon Notice */}
           <div className="pt-6 border-t border-slate-300 dark:border-slate-700">
             <p className="text-sm text-slate-600 dark:text-slate-400 text-center py-4">
-              Profile detail editing and additional settings coming soon
+              {t('profile.comingSoon')}
             </p>
           </div>
         </CardContent>
@@ -123,23 +126,19 @@ function ProfilePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>API Keys</CardTitle>
+            <CardTitle>{t('profile.apiKeysTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Credentials for headless clients that act as you
-          </CardDescription>
+          <CardDescription>{t('profile.apiKeysDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Issue keys for CI jobs, CAD connectors, and MCP; scope each one to
-              the permissions and roles its client actually needs, and review
-              where it has been used.
+              {t('profile.apiKeysBody')}
             </p>
             <Link to="/profile/api-keys">
               <Button>
                 <KeyRound className="w-4 h-4 mr-2" />
-                Manage API Keys
+                {t('profile.manageApiKeys')}
               </Button>
             </Link>
           </div>
@@ -150,6 +149,8 @@ function ProfilePage() {
 }
 
 function PasswordChangeCard() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [currentPassword, setCurrentPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -163,17 +164,17 @@ function PasswordChangeCard() {
     setSuccess(null)
 
     if (password.length < 8) {
-      setError('New password must be at least 8 characters')
+      setError(t('profile.passwordTooShort'))
       return
     }
 
     if (password.length > 128) {
-      setError('New password must not exceed 128 characters')
+      setError(t('profile.passwordTooLong'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('New passwords do not match')
+      setError(t('profile.passwordMismatch'))
       return
     }
 
@@ -188,12 +189,12 @@ function PasswordChangeCard() {
       setCurrentPassword('')
       setPassword('')
       setConfirmPassword('')
-      setSuccess('Password changed. Your other sessions have been signed out.')
+      setSuccess(t('profile.passwordChangedSuccess'))
     } catch (changeError) {
       setError(
         changeError instanceof Error
           ? changeError.message
-          : 'Failed to change password',
+          : t('profile.changePasswordFailed'),
       )
     } finally {
       setIsSubmitting(false)
@@ -205,16 +206,16 @@ function PasswordChangeCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <LockKeyhole className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-          <CardTitle>Change Password</CardTitle>
+          <CardTitle>{t('profile.changePassword')}</CardTitle>
         </div>
-        <CardDescription>
-          Verify your current password before choosing a new one
-        </CardDescription>
+        <CardDescription>{t('profile.changePasswordDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           <div className="space-y-2">
-            <Label htmlFor="current-password">Current Password</Label>
+            <Label htmlFor="current-password">
+              {t('profile.currentPassword')}
+            </Label>
             <Input
               id="current-password"
               type="password"
@@ -226,7 +227,7 @@ function PasswordChangeCard() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="new-password">{t('profile.newPassword')}</Label>
             <Input
               id="new-password"
               type="password"
@@ -238,12 +239,14 @@ function PasswordChangeCard() {
               required
             />
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              8 to 128 characters
+              {t('profile.passwordLengthHint')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+            <Label htmlFor="confirm-new-password">
+              {t('profile.confirmNewPassword')}
+            </Label>
             <Input
               id="confirm-new-password"
               type="password"
@@ -266,7 +269,9 @@ function PasswordChangeCard() {
           )}
 
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Changing...' : 'Change Password'}
+            {isSubmitting
+              ? t('profile.changingPassword')
+              : t('profile.changePassword')}
           </Button>
         </form>
       </CardContent>

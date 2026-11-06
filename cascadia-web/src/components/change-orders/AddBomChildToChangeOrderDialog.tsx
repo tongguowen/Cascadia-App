@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Info, Link2, Search } from 'lucide-react'
 import { formatRevision } from '@cascadia/commons/types/lifecycle'
@@ -61,6 +62,8 @@ export function AddBomChildToChangeOrderDialog({
   currentDesignCode,
   onSuccess,
 }: AddBomChildToChangeOrderDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError } = useErrorHandler()
   const [designScope, setDesignScope] = useState<DesignScope>('current')
   const [searchQuery, setSearchQuery] = useState('')
@@ -118,7 +121,7 @@ export function AddBomChildToChangeOrderDialog({
       onSuccess()
       onOpenChange(false)
     } catch (error) {
-      handleError(error, { title: 'Failed to add BOM relationship' })
+      handleError(error, { title: tp('changeOrders.addBomChildFailedTitle') })
     } finally {
       setLoading(false)
     }
@@ -133,12 +136,13 @@ export function AddBomChildToChangeOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto auto-hide-scroll">
         <DialogHeader>
-          <DialogTitle>Add BOM Child</DialogTitle>
+          <DialogTitle>{tc('dialogs.addBomChildToChangeOrder.title')}</DialogTitle>
           <DialogDescription>
-            Add a child part to{' '}
-            <span className="font-medium">{parentItemNumber}</span> in{' '}
-            <span className="font-medium">{currentDesignCode}</span> through
-            this ECO
+            <Trans
+              i18nKey="dialogs.addBomChildToChangeOrder.description"
+              values={{ parentItemNumber, currentDesignCode }}
+              components={{ strong: <span className="font-medium" /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -160,7 +164,9 @@ export function AddBomChildToChangeOrderDialog({
 
           {/* Source Selector */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">Source</Label>
+            <Label className="text-sm font-medium mb-2 block">
+              {tc('fields.source')}
+            </Label>
             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
               {scopeOptions.map((option) => (
                 <button
@@ -182,12 +188,12 @@ export function AddBomChildToChangeOrderDialog({
 
           {/* Search Input */}
           <div>
-            <Label>Search Parts</Label>
+            <Label>{tc('dialogs.addPartToStructure.searchPartsLabel')}</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 type="text"
-                placeholder="Search by part number or name..."
+                placeholder={tc('placeholders.searchPartNumberOrName')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -274,7 +280,7 @@ export function AddBomChildToChangeOrderDialog({
           {selectedItem && (
             <div className="grid grid-cols-2 gap-4 pt-2 border-t">
               <div>
-                <Label>Quantity</Label>
+                <Label>{tc('fields.quantity')}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -294,13 +300,13 @@ export function AddBomChildToChangeOrderDialog({
                 )}
               </div>
               <div>
-                <Label>Find Number</Label>
+                <Label>{tc('fields.findNumber')}</Label>
                 <Input
                   type="number"
                   min="1"
                   value={findNumber}
                   onChange={(e) => setFindNumber(e.target.value)}
-                  placeholder="Optional"
+                  placeholder={tc('placeholders.optional')}
                 />
               </div>
             </div>

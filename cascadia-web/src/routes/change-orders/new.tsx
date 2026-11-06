@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import type { ChangeOrder } from '@cascadia/commons/items/types/change-order'
 import { ChangeOrderDetail } from '@/components/change-orders/ChangeOrderDetail'
@@ -13,6 +14,8 @@ export const Route = createFileRoute('/change-orders/new')({
 })
 
 function NewChangeOrderPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -61,7 +64,7 @@ function NewChangeOrderPage() {
         params: { id: createdId },
       })
     } catch (error) {
-      handleError(error, { title: 'Failed to create change order' })
+      handleError(error, { title: tp('changeOrders.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)

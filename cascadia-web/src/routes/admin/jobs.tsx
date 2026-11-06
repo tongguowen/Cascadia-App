@@ -2,8 +2,9 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Activity,
   Eye,
@@ -71,7 +72,10 @@ const logLevelColors: Record<string, string> = {
 }
 
 function JobsPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
+  const jobTitle = t('admin.jobs.title')
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -97,34 +101,35 @@ function JobsPage() {
       await apiFetch(`/api/v1/admin/jobs/${job.id}/retry`, { method: 'POST' })
       await invalidate('jobs')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to retry job')
+      alert(err instanceof Error ? err.message : t('admin.jobs.retryFailed'))
     } finally {
       setActionLoading(null)
     }
   }
 
   const handleCancel = async (job: Job) => {
-    if (!confirm('Are you sure you want to cancel this job?')) return
+    if (!confirm(t('admin.jobs.cancelConfirm'))) return
 
     setActionLoading(job.id)
     try {
       await apiFetch(`/api/v1/admin/jobs/${job.id}/cancel`, { method: 'POST' })
       await invalidate('jobs')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel job')
+      alert(err instanceof Error ? err.message : t('admin.jobs.cancelFailed'))
     } finally {
       setActionLoading(null)
     }
   }
 
-  const columns: Array<DataGridColumn<Job>> = [
+  const columns: Array<DataGridColumn<Job>> = useMemo(
+    () => [
     {
       id: 'type',
-      header: 'Type',
+      header: t('admin.jobs.colType'),
       accessorKey: 'type',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter by type...',
+      filterPlaceholder: t('admin.jobs.filterTypePlaceholder'),
       cell: ({ getValue }) => (
         <span className="font-mono text-sm text-slate-700 dark:text-slate-200">
           {getValue() as string}
@@ -133,17 +138,17 @@ function JobsPage() {
     },
     {
       id: 'status',
-      header: 'Status',
+      header: tc('columns.status'),
       accessorKey: 'status',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Queued', value: 'queued' },
-        { label: 'Running', value: 'running' },
-        { label: 'Completed', value: 'completed' },
-        { label: 'Failed', value: 'failed' },
-        { label: 'Cancelled', value: 'cancelled' },
+        { label: t('admin.jobs.statusPending'), value: 'pending' },
+        { label: t('admin.jobs.statusQueued'), value: 'queued' },
+        { label: t('admin.jobs.statusRunning'), value: 'running' },
+        { label: t('admin.jobs.statusCompleted'), value: 'completed' },
+        { label: t('admin.jobs.statusFailed'), value: 'failed' },
+        { label: t('admin.jobs.statusCancelled'), value: 'cancelled' },
       ],
       cell: ({ getValue }) => {
         const status = getValue() as JobStatus
@@ -152,15 +157,15 @@ function JobsPage() {
     },
     {
       id: 'priority',
-      header: 'Priority',
+      header: tc('columns.priority'),
       accessorKey: 'priority',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Low', value: 'low' },
-        { label: 'Normal', value: 'normal' },
-        { label: 'High', value: 'high' },
-        { label: 'Critical', value: 'critical' },
+        { label: t('admin.jobs.priorityLow'), value: 'low' },
+        { label: t('admin.jobs.priorityNormal'), value: 'normal' },
+        { label: t('admin.jobs.priorityHigh'), value: 'high' },
+        { label: t('admin.jobs.priorityCritical'), value: 'critical' },
       ],
       cell: ({ getValue }) => {
         const priority = getValue() as JobPriority
@@ -169,7 +174,7 @@ function JobsPage() {
     },
     {
       id: 'progress',
-      header: 'Progress',
+      header: t('admin.jobs.colProgress'),
       accessorKey: 'progress',
       cell: ({ row }) => {
         const progress = row.original.progress
@@ -208,7 +213,7 @@ function JobsPage() {
     },
     {
       id: 'attempts',
-      header: 'Attempts',
+      header: t('admin.jobs.colAttempts'),
       accessorFn: (row) => `${row.attempts}/${row.maxAttempts}`,
       cell: ({ row }) => (
         <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -218,7 +223,7 @@ function JobsPage() {
     },
     {
       id: 'createdAt',
-      header: 'Created',
+      header: tc('columns.created'),
       accessorKey: 'createdAt',
       enableSorting: true,
       cell: ({ getValue }) => {
@@ -232,7 +237,7 @@ function JobsPage() {
     },
     {
       id: 'error',
-      header: 'Error',
+      header: t('admin.jobs.colError'),
       accessorKey: 'error',
       cell: ({ getValue }) => {
         const errorValue = getValue() as string | null
@@ -247,7 +252,9 @@ function JobsPage() {
         )
       },
     },
-  ]
+  ],
+    [t, tc],
+  )
 
   const renderRowActions = useCallback(
     (row: Row<Job>) => {
@@ -270,20 +277,20 @@ function JobsPage() {
               ) : (
                 <MoreVertical className="h-4 w-4" />
               )}
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{tc('actions.openMenu')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setSelectedJob(job)}>
               <Eye className="mr-2 h-4 w-4" />
-              View Details
+              {tc('actions.viewDetails')}
             </DropdownMenuItem>
             {canRetry && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleRetry(job)}>
                   <RotateCcw className="mr-2 h-4 w-4" />
-                  Retry Job
+                  {t('admin.jobs.retryJob')}
                 </DropdownMenuItem>
               </>
             )}
@@ -295,7 +302,7 @@ function JobsPage() {
                   className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
                 >
                   <XCircle className="mr-2 h-4 w-4" />
-                  Cancel Job
+                  {t('admin.jobs.cancelJob')}
                 </DropdownMenuItem>
               </>
             )}
@@ -303,7 +310,7 @@ function JobsPage() {
         </DropdownMenu>
       )
     },
-    [actionLoading],
+    [actionLoading, t, tc],
   )
 
   // Calculate stats
@@ -322,7 +329,7 @@ function JobsPage() {
         <div className="flex items-center gap-2 mb-6">
           <Activity size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Background Jobs
+            {jobTitle}
           </h1>
         </div>
         <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
@@ -338,7 +345,7 @@ function JobsPage() {
         <div className="flex items-center gap-2">
           <Activity size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Background Jobs
+            {jobTitle}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -350,7 +357,8 @@ function JobsPage() {
             <RefreshCw
               className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`}
             />
-            {autoRefresh ? 'Auto-refresh On' : 'Auto-refresh Off'}
+            {t('admin.jobs.autoRefresh')}
+            {autoRefresh ? ' ✓' : ''}
           </Button>
           <Button
             onClick={() => void refetch()}
@@ -361,7 +369,7 @@ function JobsPage() {
             <RefreshCw
               className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`}
             />
-            Refresh
+            {t('admin.jobs.refresh')}
           </Button>
         </div>
       </div>
@@ -373,7 +381,7 @@ function JobsPage() {
             {stats.total}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Total Jobs
+            {t('admin.jobs.total')}
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-300 dark:border-slate-700">
@@ -381,7 +389,7 @@ function JobsPage() {
             {stats.pending}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Pending
+            {t('admin.jobs.pending')}
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-300 dark:border-slate-700">
@@ -389,7 +397,7 @@ function JobsPage() {
             {stats.queued}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Queued
+            {t('admin.jobs.queued')}
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-300 dark:border-slate-700">
@@ -397,7 +405,7 @@ function JobsPage() {
             {stats.running}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Running
+            {t('admin.jobs.running')}
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-300 dark:border-slate-700">
@@ -405,7 +413,7 @@ function JobsPage() {
             {stats.completed}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Completed
+            {t('admin.jobs.completed')}
           </div>
         </div>
         <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-300 dark:border-slate-700">
@@ -413,7 +421,7 @@ function JobsPage() {
             {stats.failed}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400">
-            Failed
+            {t('admin.jobs.failed')}
           </div>
         </div>
       </div>
@@ -426,9 +434,11 @@ function JobsPage() {
           getRowId={(row) => row.id}
           enableRowActions
           renderRowActions={renderRowActions}
-          emptyMessage={isFetching ? 'Loading jobs...' : 'No jobs found'}
+          emptyMessage={
+            isFetching ? t('admin.jobs.emptyLoading') : t('admin.jobs.emptyNone')
+          }
           emptyDescription={
-            isFetching ? '' : 'Background jobs will appear here when submitted'
+            isFetching ? '' : t('admin.jobs.emptyDescription')
           }
           exportFilename="jobs"
         />
@@ -440,7 +450,7 @@ function JobsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
-              Job Details
+              {t('admin.jobs.detailTitle')}
             </DialogTitle>
           </DialogHeader>
 
@@ -450,7 +460,7 @@ function JobsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Type
+                    {tc('columns.type')}
                   </div>
                   <div className="font-mono text-sm text-slate-900 dark:text-slate-100">
                     {selectedJob.type}
@@ -458,7 +468,7 @@ function JobsPage() {
                 </div>
                 <div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Status
+                    {tc('columns.status')}
                   </div>
                   <Badge variant={statusVariants[selectedJob.status]}>
                     {selectedJob.status}
@@ -466,7 +476,7 @@ function JobsPage() {
                 </div>
                 <div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Priority
+                    {tc('columns.priority')}
                   </div>
                   <Badge variant={priorityVariants[selectedJob.priority]}>
                     {selectedJob.priority}
@@ -474,7 +484,7 @@ function JobsPage() {
                 </div>
                 <div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Attempts
+                    {t('admin.jobs.colAttempts')}
                   </div>
                   <div className="text-slate-900 dark:text-slate-100">
                     {selectedJob.attempts} / {selectedJob.maxAttempts}
@@ -482,7 +492,7 @@ function JobsPage() {
                 </div>
                 <div>
                   <div className="text-sm text-slate-500 dark:text-slate-400">
-                    Created
+                    {tc('columns.created')}
                   </div>
                   <div className="text-slate-900 dark:text-slate-100">
                     {new Date(selectedJob.createdAt).toLocaleString()}
@@ -491,7 +501,7 @@ function JobsPage() {
                 {selectedJob.completedAt && (
                   <div>
                     <div className="text-sm text-slate-500 dark:text-slate-400">
-                      Completed
+                      {t('admin.jobs.detailCompleted')}
                     </div>
                     <div className="text-slate-900 dark:text-slate-100">
                       {new Date(selectedJob.completedAt).toLocaleString()}
@@ -504,7 +514,7 @@ function JobsPage() {
               {selectedJob.error && (
                 <div>
                   <div className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">
-                    Error
+                    {t('admin.jobs.colError')}
                   </div>
                   <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded p-3 text-sm text-red-700 dark:text-red-300 font-mono whitespace-pre-wrap">
                     {selectedJob.error}
@@ -515,7 +525,7 @@ function JobsPage() {
               {/* Payload */}
               <div>
                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Payload
+                  {t('admin.jobs.detailPayload')}
                 </div>
                 <pre className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-3 text-xs text-slate-700 dark:text-slate-300 overflow-x-auto max-h-48">
                   {JSON.stringify(selectedJob.payload, null, 2)}
@@ -526,7 +536,7 @@ function JobsPage() {
               {selectedJob.result && (
                 <div>
                   <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Result
+                    {tc('columns.result')}
                   </div>
                   <pre className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-3 text-xs text-slate-700 dark:text-slate-300 overflow-x-auto max-h-48">
                     {JSON.stringify(selectedJob.result, null, 2)}
@@ -537,12 +547,16 @@ function JobsPage() {
               {/* Logs */}
               <div>
                 <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Logs
+                  {t('admin.jobs.detailLogs')}
                 </div>
                 {loadingLogs ? (
-                  <div className="text-sm text-slate-500">Loading logs...</div>
+                  <div className="text-sm text-slate-500">
+                    {t('admin.jobs.loadingLogs')}
+                  </div>
                 ) : jobLogs.length === 0 ? (
-                  <div className="text-sm text-slate-500">No logs recorded</div>
+                  <div className="text-sm text-slate-500">
+                    {t('admin.jobs.noLogs')}
+                  </div>
                 ) : (
                   <div className="bg-slate-900 dark:bg-slate-950 rounded p-3 text-xs font-mono max-h-48 overflow-y-auto space-y-1">
                     {jobLogs.map((log) => (

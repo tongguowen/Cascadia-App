@@ -4,6 +4,7 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import { forwardRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import type {
   ComponentPropsWithoutRef,
   ElementRef,
@@ -35,6 +36,18 @@ const DialogOverlay = forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+function DialogCloseLabel() {
+  const { t } = useTranslation('common')
+  return <span className="sr-only">{t('actions.close')}</span>
+}
+
+/**
+ * Centering must NOT use `transform: translate(-50%, -50%)`.
+ * Zoom/slide enter animations also set `transform`, which replaces the
+ * centering translate and leaves the dialog stuck off-screen (top-left /
+ * clipped footer). `inset-0` + `margin: auto` + `height: fit-content`
+ * centers without transform, so fade-only animation is safe.
+ */
 const DialogContent = forwardRef<
   ElementRef<typeof DialogPrimitive.Content>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -44,8 +57,8 @@ const DialogContent = forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-300 bg-white p-6 shadow-lg duration-200',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+        'fixed inset-0 z-50 m-auto flex h-fit max-h-[min(88vh,760px)] w-full max-w-lg flex-col gap-4 overflow-hidden border border-slate-300 bg-white p-6 shadow-lg duration-200 sm:rounded-lg',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         'dark:border-slate-800 dark:bg-slate-950',
         className,
       )}
@@ -54,7 +67,7 @@ const DialogContent = forwardRef<
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-slate-100 data-[state=open]:text-slate-500 dark:ring-offset-slate-950 dark:focus:ring-cyan-300 dark:data-[state=open]:bg-slate-800 dark:data-[state=open]:text-slate-400">
         <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
+        <DialogCloseLabel />
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
@@ -67,7 +80,7 @@ const DialogHeader = ({
 }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col space-y-1.5 text-center sm:text-left',
+      'flex shrink-0 flex-col space-y-1.5 text-center sm:text-left',
       className,
     )}
     {...props}
@@ -81,7 +94,7 @@ const DialogFooter = ({
 }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
+      'flex shrink-0 flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
       className,
     )}
     {...props}

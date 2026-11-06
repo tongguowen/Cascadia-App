@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { ITEM_TYPE_DEFINITIONS } from '@cascadia/commons/items/item-type-definitions'
 import type { LucideIcon } from 'lucide-react'
+import { translateItemTypeLabel } from '@/i18n'
 
 /**
  * Detail-page base path per item type. Every registered type has a `$id`
@@ -89,10 +90,19 @@ export function getItemTypeIcon(itemType: string): LucideIcon {
 
 /** Display label for an item type (falls back to the raw type name). */
 export function getItemTypeLabel(itemType: string): string {
-  return ITEM_TYPE_DEFINITIONS[itemType]?.label ?? itemType
+  const raw = ITEM_TYPE_DEFINITIONS[itemType]?.label ?? itemType
+  return translateItemTypeLabel(raw)
 }
 
 /** Filter-dropdown options covering every registered item type. */
+export function getItemTypeOptions(): Array<{ label: string; value: string }> {
+  return Object.values(ITEM_TYPE_DEFINITIONS).map((def) => ({
+    label: translateItemTypeLabel(def.label),
+    value: def.name,
+  }))
+}
+
+/** @deprecated Prefer getItemTypeOptions() so labels follow the active locale. */
 export const ITEM_TYPE_OPTIONS: Array<{ label: string; value: string }> =
   Object.values(ITEM_TYPE_DEFINITIONS).map((def) => ({
     label: def.label,

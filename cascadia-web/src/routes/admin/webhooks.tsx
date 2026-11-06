@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Plus, RefreshCw, Webhook } from 'lucide-react'
@@ -49,6 +50,7 @@ const DISPATCHER_STALE_MS = 5 * 60 * 1000
  * fetch-then-invalidate pair.
  */
 function WebhooksPage() {
+  const { t } = useTranslation('pages')
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
 
@@ -162,25 +164,22 @@ function WebhooksPage() {
 
   const confirmRotate = (subscription: WebhookSubscription) =>
     confirm({
-      title: `Rotate the secret for ${subscription.name}?`,
-      description:
-        'The current secret stops working immediately. Every delivery signed ' +
-        'with it will fail verification until the receiver has the new one, ' +
-        'and the new secret is shown only once.',
-      actionLabel: 'Rotate the secret',
+      title: t('admin.webhooks.confirm.rotateTitle', {
+        name: subscription.name,
+      }),
+      description: t('admin.webhooks.confirm.rotateDescription'),
+      actionLabel: t('admin.webhooks.confirm.rotateAction'),
       variant: 'destructive',
       onConfirm: () => rotate.mutate(subscription.id),
     })
 
   const confirmDelete = (subscription: WebhookSubscription) =>
     confirm({
-      title: `Delete ${subscription.name}?`,
-      description:
-        'The subscription stops matching events immediately and its signing ' +
-        'secret becomes unusable. Deliveries still queued are expired rather ' +
-        'than sent. Its ' +
-        'delivery history stays readable until retention prunes it.',
-      actionLabel: 'Delete the subscription',
+      title: t('admin.webhooks.confirm.deleteTitle', {
+        name: subscription.name,
+      }),
+      description: t('admin.webhooks.confirm.deleteDescription'),
+      actionLabel: t('admin.webhooks.confirm.deleteAction'),
       variant: 'destructive',
       onConfirm: () => remove.mutate(subscription.id),
     })
@@ -212,7 +211,7 @@ function WebhooksPage() {
         <div className="flex items-center gap-2">
           <Webhook size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Webhooks
+            {t('admin.webhooks.title')}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -225,7 +224,7 @@ function WebhooksPage() {
             <RefreshCw
               className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
             />
-            Refresh
+            {t('admin.webhooks.refresh')}
           </Button>
           <Button
             size="sm"
@@ -236,7 +235,7 @@ function WebhooksPage() {
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            New subscription
+            {t('admin.webhooks.newSubscription')}
           </Button>
         </div>
       </div>

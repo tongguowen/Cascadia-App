@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Plus, Trash2, User, Users, X } from 'lucide-react'
 import type {
@@ -37,16 +38,27 @@ interface InstanceStatePropertiesPanelProps {
   changeOrderId: string
 }
 
-const colorOptions = [
-  { value: 'gray', label: 'Gray', class: 'bg-slate-400' },
-  { value: 'blue', label: 'Blue', class: 'bg-blue-400' },
-  { value: 'green', label: 'Green', class: 'bg-green-400' },
-  { value: 'yellow', label: 'Yellow', class: 'bg-yellow-400' },
-  { value: 'orange', label: 'Orange', class: 'bg-orange-400' },
-  { value: 'red', label: 'Red', class: 'bg-red-400' },
-  { value: 'purple', label: 'Purple', class: 'bg-purple-400' },
-  { value: 'cyan', label: 'Cyan', class: 'bg-cyan-400' },
-]
+const COLOR_VALUES = [
+  'gray',
+  'blue',
+  'green',
+  'yellow',
+  'orange',
+  'red',
+  'purple',
+  'cyan',
+] as const
+
+const COLOR_CLASSES: Record<(typeof COLOR_VALUES)[number], string> = {
+  gray: 'bg-slate-400',
+  blue: 'bg-blue-400',
+  green: 'bg-green-400',
+  yellow: 'bg-yellow-400',
+  orange: 'bg-orange-400',
+  red: 'bg-red-400',
+  purple: 'bg-purple-400',
+  cyan: 'bg-cyan-400',
+}
 
 export function InstanceStatePropertiesPanel({
   state,
@@ -56,6 +68,17 @@ export function InstanceStatePropertiesPanel({
   readOnly = false,
   changeOrderId,
 }: InstanceStatePropertiesPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const colorOptions = useMemo(
+    () =>
+      COLOR_VALUES.map((value) => ({
+        value,
+        label: tp(`changeOrders.workflowEditor.stateColors.${value}`),
+        class: COLOR_CLASSES[value],
+      })),
+    [tp],
+  )
   const handleChange = (updates: Partial<InstanceState>) => {
     onUpdate({ ...state, ...updates })
   }
@@ -65,7 +88,9 @@ export function InstanceStatePropertiesPanel({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-base">State Properties</CardTitle>
+            <CardTitle className="text-base">
+              {tc('sections.stateProperties')}
+            </CardTitle>
             {isCurrent && (
               <Badge variant="default" className="text-xs">
                 Current
@@ -87,7 +112,7 @@ export function InstanceStatePropertiesPanel({
         {/* State ID (readonly) */}
         <div className="space-y-1.5">
           <Label htmlFor="stateId" className="text-xs">
-            State ID
+            {tc('fields.stateId')}
           </Label>
           <Input
             id="stateId"
@@ -100,21 +125,21 @@ export function InstanceStatePropertiesPanel({
         {/* State Name */}
         <div className="space-y-1.5">
           <Label htmlFor="stateName" className="text-xs">
-            Name
+            {tc('fields.name')}
           </Label>
           <Input
             id="stateName"
             value={state.name}
             onChange={(e) => handleChange({ name: e.target.value })}
             className="h-8 text-sm"
-            placeholder="e.g., Eng Review, Quality Review"
+            placeholder={tp('changeOrders.workflowEditor.stateNamePlaceholder')}
             disabled={readOnly || state.isInitial || state.isFinal}
           />
         </div>
 
         {/* Color */}
         <div className="space-y-1.5">
-          <Label className="text-xs">Color</Label>
+          <Label className="text-xs">{tc('fields.color')}</Label>
           <Select
             value={state.color || 'gray'}
             onValueChange={(value) => handleChange({ color: value })}
@@ -139,14 +164,16 @@ export function InstanceStatePropertiesPanel({
         {/* Instructions */}
         <div className="space-y-1.5">
           <Label htmlFor="stateInstructions" className="text-xs">
-            Instructions
+            {tc('fields.instructions')}
           </Label>
           <textarea
             id="stateInstructions"
             value={state.instructions || ''}
             onChange={(e) => handleChange({ instructions: e.target.value })}
             className="w-full h-20 px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none disabled:opacity-50"
-            placeholder="Instructions for reviewers at this step..."
+            placeholder={tp(
+              'changeOrders.workflowEditor.reviewerInstructionsPlaceholder',
+            )}
             disabled={readOnly}
           />
         </div>
@@ -154,7 +181,7 @@ export function InstanceStatePropertiesPanel({
         {/* Final state toggle (only for non-initial states) */}
         {!state.isInitial && !readOnly && (
           <div className="space-y-2">
-            <Label className="text-xs">State Type</Label>
+            <Label className="text-xs">{tc('fields.stateType')}</Label>
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
                 <input
@@ -179,7 +206,7 @@ export function InstanceStatePropertiesPanel({
             </div>
             {state.isFinal && (
               <div className="space-y-1.5">
-                <Label className="text-xs">On Completion</Label>
+                <Label className="text-xs">{tc('fields.onCompletion')}</Label>
                 <Select
                   value={state.finalKind ?? ''}
                   onValueChange={(value) =>
@@ -189,7 +216,9 @@ export function InstanceStatePropertiesPanel({
                   }
                 >
                   <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Choose release or cancel…" />
+                    <SelectValue
+                      placeholder={tp('lifecycles.statePanel.chooseReleaseOrCancel')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="release">
@@ -242,6 +271,9 @@ function InstanceStateApproversSection({
   stateId: string
   readOnly: boolean
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const we = (key: string) => tp(`changeOrders.workflowEditor.${key}`)
   const [saving, setSaving] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newApproverType, setNewApproverType] = useState<'user' | 'role'>(
@@ -315,7 +347,7 @@ function InstanceStateApproversSection({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold">Approvers</Label>
+        <Label className="text-xs font-semibold">{tc('fields.approvers')}</Label>
         {!readOnly && (
           <Button
             type="button"
@@ -326,24 +358,19 @@ function InstanceStateApproversSection({
             disabled={saving}
           >
             <Plus className="h-3 w-3 mr-1" />
-            Add
+            {tc('stateApprovers.add')}
           </Button>
         )}
       </div>
-      <p className="text-xs text-slate-500">
-        Each required approver must approve before the workflow can leave this
-        state.
-      </p>
+      <p className="text-xs text-slate-500">{we('approversHint')}</p>
 
       {loading ? (
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <Loader2 className="h-3 w-3 animate-spin" />
-          Loading approvers...
+          {we('loadingApprovers')}
         </div>
       ) : approvers.length === 0 && !showAddForm ? (
-        <p className="text-xs text-slate-500 italic">
-          No approvers configured for this state
-        </p>
+        <p className="text-xs text-slate-500 italic">{we('noApprovers')}</p>
       ) : (
         <div className="space-y-1">
           {approvers.map((approver) => (
@@ -389,15 +416,19 @@ function InstanceStateApproversSection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="role">Role</SelectItem>
+              <SelectItem value="user">
+                {tc('enum.approverKind.user')}
+              </SelectItem>
+              <SelectItem value="role">{tc('fields.role')}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={newApproverId} onValueChange={setNewApproverId}>
             <SelectTrigger className="h-7 text-xs">
               <SelectValue
                 placeholder={
-                  newApproverType === 'user' ? 'Select user' : 'Select role'
+                  newApproverType === 'user'
+                    ? we('selectUser')
+                    : we('selectRole')
                 }
               />
             </SelectTrigger>
@@ -427,7 +458,7 @@ function InstanceStateApproversSection({
             ) : (
               <Plus className="h-3 w-3 mr-1" />
             )}
-            Add Approver
+            {we('addApprover')}
           </Button>
         </div>
       )}

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import type { Part } from '@cascadia/commons/items/types/part'
 import { DigitalThreadNavigator } from '@/components/thread'
 import { PartRelationshipsPanel } from '@/components/items/PartRelationshipsPanel'
@@ -25,12 +26,14 @@ export function PartRelationshipsTab({
   branchId?: string
   isEditing: boolean
 }) {
+  const { t: tc } = useTranslation('common')
+
   if (!part.id) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
           <p className="text-slate-500 dark:text-slate-400">
-            Save the part first to manage relationships
+            {tc('messages.saveItemFirstRelationships')}
           </p>
         </CardContent>
       </Card>

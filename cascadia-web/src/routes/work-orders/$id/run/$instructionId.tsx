@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -53,7 +54,11 @@ function ExecutionDataField({
   /** True until the server has a run to record entries against. */
   disabled: boolean
 }) {
-  const fieldLabel = block.fieldLabel || 'Data Field'
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const runT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workOrders.run.${key}`, options)
+  const fieldLabel = block.fieldLabel || runT('dataFieldDefault')
   // The checkbox branch already had one; these are the same id, shared so the
   // numeric and text inputs get a real label association and the pass/fail
   // button pair gets a group name.
@@ -100,18 +105,21 @@ function ExecutionDataField({
               block.fieldValidation?.min != null &&
               block.fieldValidation.max != null
                 ? `${block.fieldValidation.min} – ${block.fieldValidation.max}`
-                : 'Enter value...'
+                : tc('placeholders.enterValue')
             }
           />
           {block.fieldValidation?.min != null &&
             block.fieldValidation.max != null && (
               <p className="text-sm text-slate-500">
-                Range: {block.fieldValidation.min} – {block.fieldValidation.max}
+                {runT('rangeLabel', {
+                  min: block.fieldValidation.min,
+                  max: block.fieldValidation.max,
+                })}
               </p>
             )}
           {isOutOfRange && (
             <p className="text-sm text-red-500 font-medium">
-              Value is out of range
+              {runT('outOfRange')}
             </p>
           )}
         </div>
@@ -204,7 +212,7 @@ function ExecutionDataField({
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             className="w-full px-4 py-3 text-xl border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50"
-            placeholder="Enter value..."
+            placeholder={tc('placeholders.enterValue')}
           />
         </div>
       )
@@ -296,6 +304,9 @@ function ExecutionStepBlockRenderer({
 }
 
 function RunInstructionPage() {
+  const { t: tp } = useTranslation('pages')
+  const runT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workOrders.run.${key}`, options)
   const { id: workOrderId, instructionId } = Route.useParams()
   const { data: instruction } = useQuery(
     workOrderInstructionQuery(workOrderId, instructionId),
@@ -452,18 +463,20 @@ function InstructionRunner({
       <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
         <div className="max-w-md text-center text-white px-6">
           <AlertTriangle className="h-10 w-10 mx-auto mb-4 text-amber-400" />
-          <h1 className="text-2xl font-bold mb-2">Could not start this run</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            {runT('couldNotStartTitle')}
+          </h1>
           <p className="text-slate-400 mb-2">{run.startError.message}</p>
           <p className="text-slate-500 text-sm mb-8">
-            Nothing you enter would be recorded until the run starts.
+            {runT('couldNotStartHint')}
           </p>
           <div className="flex justify-center gap-3">
             <Button onClick={run.retryStart} disabled={run.isStarting}>
-              {run.isStarting ? 'Retrying...' : 'Retry'}
+              {run.isStarting ? runT('retrying') : runT('retry')}
             </Button>
             <Button onClick={() => void exitToWorkOrder()} variant="outline">
               <X className="h-4 w-4 mr-2" />
-              Exit
+              {runT('exit')}
             </Button>
           </div>
         </div>
@@ -475,13 +488,11 @@ function InstructionRunner({
     return (
       <div className="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center">
         <div className="text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">No Steps Available</h1>
-          <p className="text-slate-400 mb-8">
-            This instruction's snapshot has no steps to execute.
-          </p>
+          <h1 className="text-2xl font-bold mb-4">{runT('noStepsTitle')}</h1>
+          <p className="text-slate-400 mb-8">{runT('noStepsDescription')}</p>
           <Button onClick={() => void exitToWorkOrder()} variant="outline">
             <X className="h-4 w-4 mr-2" />
-            Exit
+            {runT('exit')}
           </Button>
         </div>
       </div>
@@ -509,7 +520,7 @@ function InstructionRunner({
                 {instruction.title}
               </h1>
               <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300 font-medium">
-                EXECUTING
+                {runT('executingBadge')}
               </span>
               {unitLabel && (
                 <span className="text-xs px-2 py-0.5 rounded bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300 font-mono">
@@ -530,15 +541,11 @@ function InstructionRunner({
               className="flex items-center gap-1.5 px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-medium"
             >
               <AlertTriangle className="h-4 w-4" />
-              Changes not saved
+              {runT('changesNotSaved')}
             </span>
           )}
           <div className="flex items-center gap-2">
-            <span className="font-medium text-slate-900 dark:text-white">
-              Step {currentStepNumber}
-            </span>
-            <span>of</span>
-            <span>{totalSteps}</span>
+            <span>{runT('stepOf', { current: currentStepNumber, total: totalSteps })}</span>
           </div>
         </div>
       </header>
@@ -558,7 +565,9 @@ function InstructionRunner({
             <div className="flex flex-col items-center justify-center min-h-[50vh]">
               <div className="text-center">
                 <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                  Operation {sortedOps.indexOf(currentItem.operation) + 1}
+                  {runT('operationLabel', {
+                    index: sortedOps.indexOf(currentItem.operation) + 1,
+                  })}
                 </span>
                 <h2 className="text-4xl font-bold text-slate-900 dark:text-white mt-2">
                   {currentItem.operation.title}
@@ -586,7 +595,8 @@ function InstructionRunner({
                     {currentStepNumber}
                   </span>
                   <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {currentItem.step.title || `Step ${currentStepNumber}`}
+                    {currentItem.step.title ||
+                      runT('stepLabel', { number: currentStepNumber })}
                   </h2>
                 </div>
               </div>
@@ -606,7 +616,7 @@ function InstructionRunner({
                 )}
                 {currentItem.step.content.blocks.length === 0 && (
                   <p className="text-xl text-slate-500 dark:text-slate-400 text-center py-8">
-                    No content for this step.
+                    {runT('noStepContent')}
                   </p>
                 )}
               </div>
@@ -625,7 +635,7 @@ function InstructionRunner({
           className="min-w-[150px]"
         >
           <ChevronLeft className="h-5 w-5 mr-2" />
-          Previous
+          {runT('previous')}
         </Button>
 
         <div className="hidden md:flex items-center gap-2">
@@ -656,7 +666,7 @@ function InstructionRunner({
             className="min-w-[150px] bg-emerald-600 hover:bg-emerald-700"
           >
             <CheckCircle className="h-5 w-5 mr-2" />
-            {run.completing ? 'Completing...' : 'Complete'}
+            {run.completing ? runT('completing') : runT('complete')}
           </Button>
         ) : (
           <Button
@@ -665,7 +675,7 @@ function InstructionRunner({
             onClick={goToNextStep}
             className="min-w-[150px]"
           >
-            Next
+            {runT('next')}
             <ChevronRight className="h-5 w-5 ml-2" />
           </Button>
         )}
@@ -676,26 +686,25 @@ function InstructionRunner({
         <div className="fixed inset-0 z-60 bg-black/50 flex items-center justify-center">
           <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md mx-4 shadow-xl">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              Exit Run?
+              {runT('exitConfirmTitle')}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-              Pause keeps this run in progress so you can resume it later.
-              Abandon closes it out as an incomplete record.
+              {runT('exitConfirmDescription')}
             </p>
             <div className="flex justify-end gap-3">
               <Button
                 variant="outline"
                 onClick={() => setShowExitConfirm(false)}
               >
-                Keep Working
+                {runT('keepWorking')}
               </Button>
               <Button variant="outline" onClick={() => void run.pause()}>
                 <LogOut className="h-4 w-4 mr-2" />
-                Pause
+                {runT('pause')}
               </Button>
               <Button variant="destructive" onClick={() => void run.abandon()}>
                 <X className="h-4 w-4 mr-2" />
-                Abandon
+                {runT('abandon')}
               </Button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { NO_REVISION_MARKER } from '@cascadia/commons/types/lifecycle'
 import type { RevisionScheme } from '@cascadia/commons/types/lifecycle'
 import {
@@ -63,6 +64,8 @@ export function RevisionSchemeSelector({
   label = 'Revision Scheme',
   allowNone = true,
 }: RevisionSchemeSelectorProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const schemeType = getSchemeType(value)
   const prefix = getPrefix(value)
   const startAt = getStartAt(value)
@@ -117,24 +120,34 @@ export function RevisionSchemeSelector({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="alpha">Alpha (A, B, C)</SelectItem>
-          <SelectItem value="numeric">Numeric (1, 2, 3)</SelectItem>
-          <SelectItem value="prefixed-numeric">Prefixed-Numeric</SelectItem>
-          {allowNone && <SelectItem value="none">None</SelectItem>}
+          <SelectItem value="alpha">
+            {tc('enum.revisionSchemeType.alpha')}
+          </SelectItem>
+          <SelectItem value="numeric">
+            {tc('enum.revisionSchemeType.numeric')}
+          </SelectItem>
+          <SelectItem value="prefixed-numeric">
+            {tc('enum.revisionSchemeType.prefixed-numeric')}
+          </SelectItem>
+          {allowNone && (
+            <SelectItem value="none">
+              {tc('enum.revisionSchemeType.none')}
+            </SelectItem>
+          )}
         </SelectContent>
       </Select>
 
       {schemeType === 'prefixed-numeric' && (
         <div className="space-y-1.5">
           <Label htmlFor="revPrefix" className="text-xs">
-            Prefix
+            {tc('fields.prefix')}
           </Label>
           <Input
             id="revPrefix"
             value={prefix}
             onChange={(e) => handlePrefixChange(e.target.value)}
             className="h-8 text-sm"
-            placeholder="e.g., X, P, REV"
+            placeholder={tp('lifecycles.revisionScheme.prefixPlaceholder')}
           />
         </div>
       )}
@@ -142,7 +155,7 @@ export function RevisionSchemeSelector({
       {(schemeType === 'numeric' || schemeType === 'prefixed-numeric') && (
         <div className="space-y-1.5">
           <Label htmlFor="revStartAt" className="text-xs">
-            Start at
+            {tc('fields.startAt')}
           </Label>
           <Input
             id="revStartAt"

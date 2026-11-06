@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
 import type { ChangeOrder } from '@cascadia/commons/items/types/change-order'
@@ -85,6 +86,8 @@ export const Route = createFileRoute('/change-orders/')({
 })
 
 function ChangeOrdersListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -112,10 +115,12 @@ function ChangeOrdersListPage() {
     if (!changeOrder.id) return
 
     confirm({
-      title: 'Delete Change Order',
-      description: `Are you sure you want to delete ${changeOrder.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('changeOrders.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: changeOrder.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -124,12 +129,14 @@ function ChangeOrdersListPage() {
           })
 
           showSuccess(
-            'Change order deleted',
-            `${changeOrder.itemNumber} has been deleted`,
+            t('changeOrders.deletedTitle'),
+            tc('dialog.deletedMessage', {
+              identifier: changeOrder.itemNumber,
+            }),
           )
           await invalidate('change-orders')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete change order' })
+          handleError(error, { title: t('changeOrders.deleteFailed') })
         }
       },
     })
@@ -141,16 +148,16 @@ function ChangeOrdersListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Change Orders
+            {t('changeOrders.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage engineering change orders and impact assessments
+            {t('changeOrders.subtitle')}
           </p>
         </div>
         <Link to="/change-orders/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Change Order
+            {t('changeOrders.create')}
           </Button>
         </Link>
       </div>
@@ -160,16 +167,15 @@ function ChangeOrdersListPage() {
         itemType="ChangeOrder"
         filters={filters}
         total={total}
-        totalLabel="Total Change Orders"
+        totalLabel={t('changeOrders.total')}
       />
 
       {/* Change Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Change Orders</CardTitle>
+          <CardTitle>{t('changeOrders.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'change order' : 'change orders'} in the
-            system
+            {t('changeOrders.tableDescription', { count: total })}
           </CardDescription>
         </CardHeader>
         <CardContent>

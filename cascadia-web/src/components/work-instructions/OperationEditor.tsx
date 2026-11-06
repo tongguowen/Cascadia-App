@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronUp, Clock, FolderOpen, Trash2 } from 'lucide-react'
 import { StepEditor } from './StepEditor'
 import type {
@@ -58,6 +59,9 @@ export function OperationEditor({
   onSuccess,
   isLoading,
 }: OperationEditorProps) {
+  const { t: tp } = useTranslation('pages')
+  const opT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.operations.${key}`, options)
   const invalidate = useInvalidateResources()
 
   // Disclosure state, not content: which operations are open and which one is
@@ -86,7 +90,7 @@ export function OperationEditor({
         data: { operation: WorkInstructionOperation }
       }>(`/api/v1/work-instructions/${workInstructionId}/operations`, {
         method: 'POST',
-        body: JSON.stringify({ title: 'New Operation' }),
+        body: JSON.stringify({ title: opT('newOperationTitle') }),
       })
       await invalidate('work-instructions')
       // The id is the server's, so opening the card and dropping into its
@@ -128,7 +132,7 @@ export function OperationEditor({
       // `work-instructions` reaches both the detail query that carries the
       // steps and the operations sub-query.
       await invalidate('work-instructions')
-      onSuccess?.('Operation deleted')
+      onSuccess?.(opT('deletedToast'))
     } catch (error) {
       onError?.(error as Error)
     }
@@ -205,12 +209,12 @@ export function OperationEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-          Operations & Steps
+          {opT('header')}
         </h3>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleAddOperation}>
             <FolderOpen className="h-4 w-4 mr-2" />
-            Add Operation
+            {opT('addOperation')}
           </Button>
         </div>
       </div>
@@ -254,7 +258,7 @@ export function OperationEditor({
                 >
                   <div className="flex items-center gap-3">
                     <Badge variant="secondary" className="shrink-0">
-                      Op {opIndex + 1}
+                      {opT('opBadge', { index: opIndex + 1 })}
                     </Badge>
                     {isEditing ? (
                       <OperationInlineEditor
@@ -283,8 +287,7 @@ export function OperationEditor({
                           </span>
                         )}
                         <Badge variant="outline" className="ml-auto">
-                          {opSteps.length} step
-                          {opSteps.length !== 1 ? 's' : ''}
+                          {opT('stepCount', { count: opSteps.length })}
                         </Badge>
                       </div>
                     )}
@@ -351,11 +354,9 @@ export function OperationEditor({
         <Card className="border-l-4 border-l-slate-300 dark:border-l-slate-600">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
-              <Badge variant="outline">Unassigned Steps</Badge>
+              <Badge variant="outline">{opT('unassignedTitle')}</Badge>
               <span className="text-sm text-slate-500">
-                {unassignedSteps.length} step
-                {unassignedSteps.length !== 1 ? 's' : ''} not assigned to any
-                operation
+                {opT('unassignedHint', { count: unassignedSteps.length })}
               </span>
             </div>
           </CardHeader>
@@ -381,14 +382,11 @@ export function OperationEditor({
         <Card>
           <CardContent className="py-12 text-center">
             <FolderOpen className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-            <p className="text-slate-500 mb-4">
-              No operations or steps yet. Add an operation to organize your
-              steps, or add steps directly.
-            </p>
+            <p className="text-slate-500 mb-4">{opT('emptyTitle')}</p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={handleAddOperation}>
                 <FolderOpen className="h-4 w-4 mr-2" />
-                Add Operation
+                {opT('addOperation')}
               </Button>
             </div>
           </CardContent>
@@ -408,6 +406,7 @@ function OperationInlineEditor({
   onSave: (data: Partial<WorkInstructionOperation>) => void
   onCancel: () => void
 }) {
+  const { t: tc } = useTranslation('common')
   const [title, setTitle] = useState(operation.title)
   const [description, setDescription] = useState(operation.description || '')
   const [estimatedTime, setEstimatedTime] = useState(
@@ -419,7 +418,7 @@ function OperationInlineEditor({
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Operation title"
+        placeholder={tc('placeholders.operationTitle')}
         className="font-medium"
         autoFocus
         onKeyDown={(e) => {
@@ -438,7 +437,7 @@ function OperationInlineEditor({
       <Textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description (optional)"
+        placeholder={tc('placeholders.descriptionOptional')}
         rows={2}
       />
       <div className="flex items-center gap-2">
@@ -446,7 +445,7 @@ function OperationInlineEditor({
           type="number"
           value={estimatedTime}
           onChange={(e) => setEstimatedTime(e.target.value)}
-          placeholder="Est. time (min)"
+          placeholder={tc('placeholders.estTimeMin')}
           className="w-40"
         />
         <Button
@@ -461,10 +460,10 @@ function OperationInlineEditor({
             })
           }
         >
-          Save
+          {tc('actions.save')}
         </Button>
         <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
+          {tc('actions.cancel')}
         </Button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import type { Tool } from '@cascadia/commons/items/types/tool'
 import { ToolDetail } from '@/components/tools/ToolDetail'
@@ -13,6 +14,8 @@ export const Route = createFileRoute('/tools/new')({
 })
 
 function NewToolPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -32,7 +35,7 @@ function NewToolPage() {
       )
       navigate({ to: '/tools/$id', params: { id: result.data.item.id! } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create tool' })
+      handleError(error, { title: tp('tools.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)

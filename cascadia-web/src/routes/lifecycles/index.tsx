@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { GitBranch, Loader2, Plus, RotateCcw, Workflow } from 'lucide-react'
 import { resolveLifecycleType } from '@cascadia/commons/lifecycles/normalize'
@@ -32,6 +33,8 @@ export const Route = createFileRoute('/lifecycles/')({
 })
 
 function LifecyclesListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -55,10 +58,10 @@ function LifecyclesListPage() {
 
   const handleDelete = (lifecycle: LifecycleDefinition) => {
     confirm({
-      title: 'Delete Lifecycle',
-      description: `Are you sure you want to delete "${lifecycle.name}"? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('lifecycles.deleteTitle'),
+      description: t('lifecycles.deleteDescription', { name: lifecycle.name }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -68,7 +71,7 @@ function LifecyclesListPage() {
 
           await invalidate('lifecycles')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete lifecycle' })
+          handleError(error, { title: tc('dialog.failedDelete') })
         }
       },
     })
@@ -80,7 +83,7 @@ function LifecyclesListPage() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
           <span className="ml-2 text-slate-600 dark:text-slate-400">
-            Loading lifecycles...
+            {t('lifecycles.loading')}
           </span>
         </div>
       </PageContainer>
@@ -93,16 +96,16 @@ function LifecyclesListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Lifecycles
+            {t('lifecycles.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Unified lifecycle management for all item types
+            {t('lifecycles.subtitle')}
           </p>
         </div>
         <Link to="/lifecycles/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Lifecycle
+            {t('lifecycles.create')}
           </Button>
         </Link>
       </div>
@@ -111,7 +114,7 @@ function LifecyclesListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total</CardDescription>
+            <CardDescription>{t('lifecycles.total')}</CardDescription>
             <CardTitle className="text-3xl">{lifecycles.length}</CardTitle>
           </CardHeader>
         </Card>
@@ -120,7 +123,7 @@ function LifecyclesListPage() {
             <CardDescription>
               <div className="flex items-center gap-1">
                 <Badge variant="outline" className="text-xs">
-                  Free
+                  {t('lifecycles.free')}
                 </Badge>
               </div>
             </CardDescription>
@@ -135,7 +138,7 @@ function LifecyclesListPage() {
                   variant="outline"
                   className="text-xs bg-amber-50 dark:bg-amber-950"
                 >
-                  Driven
+                  {t('lifecycles.driven')}
                 </Badge>
               </div>
             </CardDescription>
@@ -152,7 +155,7 @@ function LifecyclesListPage() {
                   variant="outline"
                   className="text-xs bg-cyan-50 dark:bg-cyan-950"
                 >
-                  Driving
+                  {t('lifecycles.driving')}
                 </Badge>
               </div>
             </CardDescription>
@@ -169,15 +172,13 @@ function LifecyclesListPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Workflow className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              <CardTitle>Driving Lifecycles</CardTitle>
+              <CardTitle>{t('lifecycles.drivingTitle')}</CardTitle>
               <Badge variant="outline" className="bg-cyan-50 dark:bg-cyan-950">
-                ECO Workflows
+                {t('lifecycles.drivingBadge')}
               </Badge>
             </div>
             <CardDescription>
-              Change order approval workflows. Completing one with a release
-              applies the Driven lifecycles&apos; change-action mappings to the
-              affected items.
+              {t('lifecycles.drivingDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -195,17 +196,16 @@ function LifecyclesListPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <GitBranch className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              <CardTitle>Driven Lifecycles</CardTitle>
+              <CardTitle>{t('lifecycles.drivenTitle')}</CardTitle>
               <Badge
                 variant="outline"
                 className="bg-amber-50 dark:bg-amber-950"
               >
-                ECO-Controlled
+                {t('lifecycles.drivenBadge')}
               </Badge>
             </div>
             <CardDescription>
-              Lifecycles for Parts, Documents, and Requirements. Items can only
-              transition through ECO actions.
+              {t('lifecycles.drivenDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -223,12 +223,11 @@ function LifecyclesListPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-              <CardTitle>Free Lifecycles</CardTitle>
-              <Badge variant="outline">Self-Controlled</Badge>
+              <CardTitle>{t('lifecycles.freeTitle')}</CardTitle>
+              <Badge variant="outline">{t('lifecycles.freeBadge')}</Badge>
             </div>
             <CardDescription>
-              Self-controlled lifecycles for Programs, Projects, and Designs.
-              Users can manually transition items between states.
+              {t('lifecycles.freeDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -244,9 +243,9 @@ function LifecyclesListPage() {
       {lifecycles.length === 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>No Lifecycles</CardTitle>
+            <CardTitle>{t('lifecycles.emptyTitle')}</CardTitle>
             <CardDescription>
-              Create your first lifecycle to get started.
+              {t('lifecycles.emptyDescription')}
             </CardDescription>
           </CardHeader>
         </Card>

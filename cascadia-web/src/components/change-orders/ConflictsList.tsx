@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertCircle,
@@ -100,14 +101,33 @@ function FieldConflictsTable({
   if (conflicts.length === 0) return null
 
   return (
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const valueLabels = {
+    empty: tc('dialogs.mergeConflict.emptyValue'),
+    yes: tc('dialogs.mergeConflict.yes'),
+    no: tc('dialogs.mergeConflict.no'),
+  }
+
+  if (conflicts.length === 0) return null
+
+  return (
     <div className="mt-3 border rounded-lg overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-slate-100 dark:bg-slate-800">
           <tr>
-            <th className="px-3 py-2 text-left font-medium">Field</th>
-            <th className="px-3 py-2 text-left font-medium">Base</th>
-            <th className="px-3 py-2 text-left font-medium">Ours</th>
-            <th className="px-3 py-2 text-left font-medium">Theirs</th>
+            <th className="px-3 py-2 text-left font-medium">
+              {tp('changeOrders.conflictsList.fieldColumn')}
+            </th>
+            <th className="px-3 py-2 text-left font-medium">
+              {tp('changeOrders.conflictsList.baseColumn')}
+            </th>
+            <th className="px-3 py-2 text-left font-medium">
+              {tp('changeOrders.conflictsList.oursColumn')}
+            </th>
+            <th className="px-3 py-2 text-left font-medium">
+              {tp('changeOrders.conflictsList.theirsColumn')}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -117,16 +137,13 @@ function FieldConflictsTable({
                 {formatFieldName(fc.fieldPath || fc.fieldName)}
               </td>
               <td className="px-3 py-2 text-slate-500 dark:text-slate-400">
-                {formatValue(fc.baseValue)}
+                {formatValue(fc.baseValue, valueLabels)}
               </td>
               <td className="px-3 py-2 text-blue-600 dark:text-blue-400">
-                {formatValue(fc.ourValue)}
+                {formatValue(fc.ourValue, valueLabels)}
               </td>
               <td className="px-3 py-2 text-orange-600 dark:text-orange-400">
-                {formatValue(fc.theirValue)}
-              </td>
-            </tr>
-          ))}
+                {formatValue(fc.theirValue, valueLabels)}
         </tbody>
       </table>
     </div>
@@ -146,6 +163,7 @@ function ConflictCard({
   // Determine if reviewed and valid upfront for initial collapse state
   const isReviewedAndValid = conflict.isReviewed && !conflict.needsReReview
 
+  const { t: tp } = useTranslation('pages')
   // Card is collapsed by default for reviewed conflicts
   const [collapsed, setCollapsed] = useState(isReviewedAndValid)
   const [fieldExpanded, setFieldExpanded] = useState(false)
@@ -258,6 +276,9 @@ function ConflictCard({
                 Blocking
               </Badge>
             )}
+                {tp('changeOrders.conflictsList.blocking')}
+              </Badge>
+            )}
             {/* Review status badges */}
             {isReviewedAndValid && (
               <Badge
@@ -265,7 +286,7 @@ function ConflictCard({
                 className="border-green-500 text-green-600 dark:text-green-400"
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                Reviewed
+                {tp('changeOrders.conflictsList.reviewed')}
               </Badge>
             )}
             {conflict.needsReReview && (
@@ -274,10 +295,7 @@ function ConflictCard({
                 className="border-orange-500 text-orange-600 dark:text-orange-400"
               >
                 <RotateCcw className="h-3 w-3 mr-1" />
-                Needs Re-Review
-              </Badge>
-            )}
-          </div>
+                {tp('changeOrders.conflictsList.needsReReview')}
         </div>
       </CardHeader>
       {!collapsed && (
@@ -294,16 +312,24 @@ function ConflictCard({
                 Reviewed by {conflict.review.reviewerName || 'Unknown'} on{' '}
                 {new Date(conflict.review.reviewedAt).toLocaleDateString()}
                 {conflict.review.notes && (
-                  <span className="italic"> - "{conflict.review.notes}"</span>
-                )}
+                {tp('changeOrders.conflictsList.reviewedBy', {
+                  name:
+                    conflict.review.reviewerName ||
+                    tp('changeOrders.conflictsList.unknownReviewer'),
+                  date: new Date(conflict.review.reviewedAt).toLocaleDateString(),
+                })}
               </p>
               {conflict.reviewHistory?.slice(1).map((review) => (
                 <p key={review.id} className="opacity-75">
                   Previously reviewed by {review.reviewerName || 'Unknown'} on{' '}
                   {new Date(review.reviewedAt).toLocaleDateString()}
                   {review.notes && (
-                    <span className="italic"> - "{review.notes}"</span>
-                  )}
+                  {tp('changeOrders.conflictsList.previouslyReviewedBy', {
+                    name:
+                      review.reviewerName ||
+                      tp('changeOrders.conflictsList.unknownReviewer'),
+                    date: new Date(review.reviewedAt).toLocaleDateString(),
+                  })}
                 </p>
               ))}
             </div>
@@ -316,22 +342,39 @@ function ConflictCard({
                 <p className="text-slate-500 text-xs uppercase">Base</p>
                 <p className="font-medium">Rev {conflict.baseRevision}</p>
               </div>
+                <p className="text-slate-500 text-xs uppercase">
+                  {tp('changeOrders.conflictsList.baseRevision')}
+                </p>
+                <p className="font-medium">
+                  {tp('changeOrders.conflictsList.revPrefix', {
+                    revision: conflict.baseRevision,
+                  })}
+                </p>
+              </div>
             )}
             <div>
               <p className="text-slate-500 text-xs uppercase">
-                Ours ({conflict.ourBranchName})
+                {tp('changeOrders.conflictsList.oursRevision', {
+                  branch: conflict.ourBranchName,
+                })}
               </p>
               <p className="font-medium text-blue-600 dark:text-blue-400">
-                Rev {conflict.ourRevision}
+                {tp('changeOrders.conflictsList.revPrefix', {
+                  revision: conflict.ourRevision,
+                })}
               </p>
             </div>
             {conflict.theirRevision && (
               <div>
                 <p className="text-slate-500 text-xs uppercase">
-                  Theirs ({conflict.theirBranchName})
+                  {tp('changeOrders.conflictsList.theirsRevision', {
+                    branch: conflict.theirBranchName,
+                  })}
                 </p>
                 <p className="font-medium text-orange-600 dark:text-orange-400">
-                  Rev {conflict.theirRevision}
+                  {tp('changeOrders.conflictsList.revPrefix', {
+                    revision: conflict.theirRevision,
+                  })}
                 </p>
               </div>
             )}
@@ -352,11 +395,9 @@ function ConflictCard({
                 ) : (
                   <ChevronDown className="h-4 w-4" />
                 )}
-                {conflict.fieldConflicts.length} field conflict
-                {conflict.fieldConflicts.length !== 1 ? 's' : ''}
-              </button>
-
-              {fieldExpanded && (
+                {tp('changeOrders.conflictsList.fieldConflicts', {
+                  count: conflict.fieldConflicts.length,
+                })}
                 <FieldConflictsTable conflicts={conflict.fieldConflicts} />
               )}
             </>
@@ -376,6 +417,11 @@ function ConflictCard({
                   {resolving ? 'Pulling...' : 'Pull latest changes from Main'}
                 </Button>
               )}
+                  {resolving
+                    ? tp('changeOrders.conflictsList.pulling')
+                    : tp('changeOrders.conflictsList.pullFromMain')}
+                </Button>
+              )}
             {conflict.theirEcoNumber && conflict.theirEcoId && (
               <Link
                 to="/change-orders/$id"
@@ -383,7 +429,9 @@ function ConflictCard({
               >
                 <Button size="sm" variant="outline">
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  View {conflict.theirEcoNumber}
+                  {tp('changeOrders.conflictsList.viewEco', {
+                    ecoNumber: conflict.theirEcoNumber,
+                  })}
                 </Button>
               </Link>
             )}
@@ -396,7 +444,9 @@ function ConflictCard({
                 disabled={markingReviewed}
               >
                 <Eye className="h-4 w-4 mr-1" />
-                {markingReviewed ? 'Marking...' : 'Mark as Reviewed'}
+                {markingReviewed
+                  ? tp('changeOrders.conflictsList.marking')
+                  : tp('changeOrders.conflictsList.markReviewed')}
               </Button>
             )}
             {/* Unmark reviewed button */}
@@ -409,10 +459,9 @@ function ConflictCard({
                 className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               >
                 <X className="h-4 w-4 mr-1" />
-                {markingReviewed ? 'Removing...' : 'Remove Review'}
-              </Button>
-            )}
-          </div>
+                {markingReviewed
+                  ? tp('changeOrders.conflictsList.removing')
+                  : tp('changeOrders.conflictsList.removeReview')}
         </CardContent>
       )}
     </Card>
@@ -448,6 +497,8 @@ export function ConflictsList({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [isResolving, setIsResolving] = useState(false)
 
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const {
     data: result,
@@ -460,7 +511,7 @@ export function ConflictsList({
   const error = isError ? 'Failed to check for conflicts' : null
 
   const handleResolve = async () => {
-    await invalidate('change-orders')
+  const error = isError ? tp('changeOrders.conflictsList.checkFailed') : null
     onResolve?.()
   }
 
@@ -506,7 +557,9 @@ export function ConflictsList({
         <span className="ml-3 text-slate-500">Checking for conflicts...</span>
       </div>
     )
-  }
+        <span className="ml-3 text-slate-500">
+          {tp('changeOrders.conflictsList.checking')}
+        </span>
 
   if (error) {
     return (
@@ -525,7 +578,7 @@ export function ConflictsList({
             Retry
           </Button>
         </CardContent>
-      </Card>
+            {tc('actions.tryAgain')}
     )
   }
 
@@ -539,9 +592,11 @@ export function ConflictsList({
               <p className="font-medium">No conflicts detected</p>
               <p className="text-sm text-green-600/80 dark:text-green-400/80">
                 This ECO is ready to be released.
+              <p className="font-medium">
+                {tp('changeOrders.conflictsList.noConflictsTitle')}
               </p>
-            </div>
-          </div>
+              <p className="text-sm text-green-600/80 dark:text-green-400/80">
+                {tp('changeOrders.conflictsList.noConflictsDescription')}
         </CardContent>
       </Card>
     )
@@ -569,20 +624,28 @@ export function ConflictsList({
                 {result.summary.total} conflict
                 {result.summary.total !== 1 ? 's' : ''} detected
               </p>
+                {tp('changeOrders.conflictsList.conflictsDetected', {
+                  count: result.summary.total,
+                })}
+              </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 {result.summary.errors > 0 &&
-                  `${result.summary.errors} blocking`}
+                  tp('changeOrders.conflictsList.blockingCount', {
+                    count: result.summary.errors,
+                  })}
                 {result.summary.errors > 0 &&
                   result.summary.warnings > 0 &&
                   ', '}
                 {result.summary.warnings > 0 && (
                   <>
-                    {result.summary.warnings} warning
-                    {result.summary.warnings !== 1 ? 's' : ''}
+                    {tp('changeOrders.conflictsList.warningCount', {
+                      count: result.summary.warnings,
+                    })}
                     {result.summary.reviewedWarnings > 0 && (
                       <span className="text-green-600 dark:text-green-400">
-                        {' '}
-                        ({result.summary.reviewedWarnings} reviewed)
+                        {tp('changeOrders.conflictsList.reviewedCount', {
+                          count: result.summary.reviewedWarnings,
+                        })}
                       </span>
                     )}
                   </>
@@ -595,10 +658,7 @@ export function ConflictsList({
                 size="sm"
                 onClick={() => setDialogOpen(true)}
               >
-                Resolve before releasing
-              </Button>
-            )}
-          </div>
+                {tp('changeOrders.conflictsList.resolveBeforeRelease')}
         </CardContent>
       </Card>
 
@@ -624,16 +684,18 @@ export function ConflictsList({
           Refresh
         </Button>
       </div>
+          {tp('changeOrders.conflictsList.refresh')}
+        </Button>
+      </div>
 
       {/* Merge Conflict Resolution Dialog */}
       <MergeConflictDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         conflicts={blockingConflicts.map(transformToMergeConflict)}
-        changeOrderNumber={changeOrderNumber || 'this change order'}
-        onResolve={handleResolveConflicts}
-        isResolving={isResolving}
-      />
+        changeOrderNumber={
+          changeOrderNumber || tp('changeOrders.conflictsList.thisChangeOrder')
+        }
     </div>
   )
 }

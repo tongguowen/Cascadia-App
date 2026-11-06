@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Background,
@@ -92,6 +93,9 @@ export function GraphNavigator({
   defaultDepth = 2,
 }: GraphNavigatorProps) {
   const { theme } = useTheme()
+  const { t: tc } = useTranslation('common')
+  const graphT = (key: string, options?: Record<string, unknown>) =>
+    tc(`graphs.${key}`, options)
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [depth, setDepth] = useState(defaultDepth)
   const [direction, setDirection] = useState<DirectionMode>('all')
@@ -264,7 +268,7 @@ export function GraphNavigator({
             ) : (
               <ChevronRight className="h-5 w-5" />
             )}
-            <span>Relationship Graph</span>
+            <span>{graphT('relationshipGraphTitle')}</span>
           </button>
           {isExpanded && (
             <div className="flex items-center gap-3 flex-wrap">
@@ -280,9 +284,9 @@ export function GraphNavigator({
                   disabled={loading}
                   className="text-sm rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
-                  <option value="all">All relationships</option>
-                  <option value="outgoing">Uses (outgoing)</option>
-                  <option value="incoming">Where-used (incoming)</option>
+                  <option value="all">{graphT('filterAllRelationships')}</option>
+                  <option value="outgoing">{graphT('filterOutgoing')}</option>
+                  <option value="incoming">{graphT('filterIncoming')}</option>
                 </select>
               </div>
               <div className="flex items-center gap-2">
@@ -383,7 +387,7 @@ export function GraphNavigator({
           {loading && nodes.length === 0 && (
             <div className="flex items-center justify-center py-12 text-slate-500">
               <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-              Loading graph...
+              {graphT('loadingRelationship')}
             </div>
           )}
 
@@ -401,8 +405,11 @@ export function GraphNavigator({
 
           {nodes.length > 0 && (
             <FullscreenGraphWrapper
-              title="Relationship Graph"
-              subtitle={`${nodes.length} item${nodes.length !== 1 ? 's' : ''}, ${edges.length} relationship${edges.length !== 1 ? 's' : ''}`}
+              title={graphT('relationshipGraphTitle')}
+              subtitle={graphT('itemsAndRelationshipsSubtitle', {
+                itemCount: nodes.length,
+                relCount: edges.length,
+              })}
               inlineHeight="600px"
               headerControls={
                 <Button
@@ -436,20 +443,20 @@ export function GraphNavigator({
                       <div className="mt-2 flex flex-wrap gap-4 text-xs">
                         <div className="flex items-center gap-1">
                           <span className="inline-block w-4 h-3 border-2 border-dashed border-blue-500 rounded" />
-                          <span>Definition</span>
+                          <span>{graphT('legendDefinition')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="inline-block w-4 h-3 border-2 border-dashed border-purple-500 rounded" />
-                          <span>Usage</span>
+                          <span>{graphT('legendUsage')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="inline-block w-6 h-0 border-t-2 border-dashed border-purple-500" />
                           <span className="text-purple-500">→</span>
-                          <span>Definition used by usage</span>
+                          <span>{graphT('legendDefinitionUsedByUsage')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="inline-block w-4 h-3 ring-2 ring-offset-1 ring-amber-400 rounded" />
-                          <span>Cross-design</span>
+                          <span>{graphT('legendCrossDesign')}</span>
                         </div>
                       </div>
                     )}

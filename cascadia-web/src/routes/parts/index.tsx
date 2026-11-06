@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -93,6 +94,8 @@ export const Route = createFileRoute('/parts/')({
 })
 
 function PartsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -131,10 +134,12 @@ function PartsListPage() {
     if (!part.id) return
 
     confirm({
-      title: 'Delete Part',
-      description: `Are you sure you want to delete ${part.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('parts.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: part.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -142,10 +147,13 @@ function PartsListPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Part deleted', `${part.itemNumber} has been deleted`)
+          showSuccess(
+            t('parts.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: part.itemNumber }),
+          )
           await invalidate('parts')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete part' })
+          handleError(error, { title: t('parts.deleteFailed') })
         }
       },
     })
@@ -173,7 +181,7 @@ function PartsListPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Parts
+            {t('parts.title')}
           </h1>
           {selectedDesignId && (
             <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -200,7 +208,7 @@ function PartsListPage() {
               data-testid="create-part-button"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Part
+              {t('parts.create')}
             </Button>
           </Link>
         </div>
@@ -211,18 +219,18 @@ function PartsListPage() {
         itemType="Part"
         filters={filters}
         total={total}
-        totalLabel="Total Parts"
+        totalLabel={t('parts.total')}
       />
 
       {/* Parts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Parts</CardTitle>
+          <CardTitle>{t('parts.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'part' : 'parts'} in the system
+            {t('parts.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

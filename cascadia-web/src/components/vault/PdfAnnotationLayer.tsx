@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MessageSquare, Trash2 } from 'lucide-react'
 import { MIN_DRAG_EXTENT } from '@cascadia/commons/vault/annotations'
 import type {
@@ -210,6 +211,7 @@ function AnnotationShape({
   onSelect: (annotation: FileAnnotation) => void
   onDelete: (annotation: FileAnnotation) => void
 }) {
+  const { t: tc } = useTranslation('common')
   const { geometry, color } = annotation
   const title = annotation.contents
     ? `${annotation.authorName ?? 'Unknown'}: ${annotation.contents}`
@@ -286,7 +288,7 @@ function AnnotationShape({
         {deletable && (
           <button
             type="button"
-            title="Delete markup"
+            title={tc('tooltips.deleteMarkup')}
             onClick={() => onDelete(annotation)}
             className="absolute -right-2 -top-2 hidden h-4 w-4 items-center justify-center rounded-full bg-red-600 text-white group-hover:flex"
           >

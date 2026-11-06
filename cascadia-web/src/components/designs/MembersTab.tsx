@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import {
   ExternalLink,
@@ -64,6 +65,7 @@ export function MembersTab({
   programId,
   readOnly = false,
 }: MembersTabProps) {
+  const { t: tc } = useTranslation('common')
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const [members, setMembers] = useState<Array<MemberDesign>>([])
@@ -93,6 +95,7 @@ export function MembersTab({
   const handleRemoveMember = (memberId: string, memberCode: string) => {
     confirm({
       title: 'Remove from Family',
+      title: tc('confirm.removeFromFamily'),
       description: `Are you sure you want to remove ${memberCode} from the ${designCode} family? The design will become standalone but will not be deleted.`,
       actionLabel: 'Remove',
       cancelLabel: 'Cancel',
@@ -107,8 +110,7 @@ export function MembersTab({
           )
           await fetchMembers()
         } catch (error) {
-          handleError(error, { title: 'Failed to remove member' })
-        }
+          handleError(error, { title: tp('designs.membersTab.removeFailedTitle') })
       },
     })
   }
@@ -138,16 +140,15 @@ export function MembersTab({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Member Designs</CardTitle>
+              <CardTitle>{tp('designs.membersTab.title')}</CardTitle>
               <CardDescription>
-                {members.length} design{members.length !== 1 ? 's' : ''} in this
-                family
-              </CardDescription>
+                {tp('designs.membersTab.description', { count: members.length })}
             </div>
             {!readOnly && (
               <Button onClick={() => setAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Member
-              </Button>
+                {tp('designs.membersTab.addMember')}
             )}
           </div>
         </CardHeader>
@@ -179,9 +180,9 @@ export function MembersTab({
                 <TableRow>
                   <TableHead>Code</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Latest Baseline</TableHead>
+                  <TableHead>{tc('columns.name')}</TableHead>
+                  <TableHead className="text-right">{tc('columns.items')}</TableHead>
+                  <TableHead>{tc('columns.status')}</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>

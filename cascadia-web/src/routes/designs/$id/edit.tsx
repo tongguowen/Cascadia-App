@@ -4,6 +4,7 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import type { CreateDesignInput } from '@cascadia/commons/types/design'
 import { PageContainer } from '@/components/layout'
@@ -35,6 +36,8 @@ export const Route = createFileRoute('/designs/$id/edit')({
 })
 
 function EditDesignPage() {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { id } = Route.useParams()
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
@@ -52,8 +55,8 @@ function EditDesignPage() {
       })
 
       showSuccess(
-        'Design updated',
-        `${data.code} has been updated successfully`,
+        tp('designs.editPage.updatedTitle'),
+        tp('designs.editPage.updatedDescription', { code: data.code }),
       )
 
       await invalidate('designs')
@@ -61,7 +64,7 @@ function EditDesignPage() {
       // Navigate back to the design detail page
       navigate({ to: '/designs/$id', params: { id } })
     } catch (error) {
-      handleError(error, { title: 'Failed to update design' })
+      handleError(error, { title: tp('designs.editPage.updateFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -84,10 +87,10 @@ function EditDesignPage() {
         </Link>
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Edit Design
+            {tp('designs.editPage.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Update details for {design.code}
+            {tp('designs.editPage.subtitle', { code: design.code })}
           </p>
         </div>
       </div>
@@ -95,10 +98,8 @@ function EditDesignPage() {
       {/* Form Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Design Details</CardTitle>
-          <CardDescription>
-            All fields marked with * are required.
-          </CardDescription>
+          <CardTitle>{tp('designs.form.detailsTitle')}</CardTitle>
+          <CardDescription>{tc('labels.requiredFieldsHint')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DesignForm

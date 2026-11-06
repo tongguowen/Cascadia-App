@@ -3,6 +3,7 @@
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Save } from 'lucide-react'
 import type {
   LifecycleDefinition,
@@ -36,45 +37,49 @@ export const Route = createFileRoute('/lifecycles/new')({
 
 function NewLifecyclePage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [lifecycleType, setLifecycleType] = useState<LifecycleType>('Free')
   const [drivers, setDrivers] = useState<Array<string>>([])
 
-  const [definition, setDefinition] = useState<Partial<LifecycleDefinition>>({
-    name: '',
-    workflowType: 'strict',
-    description: '',
-    states: [
-      {
-        id: 'Draft',
-        name: 'Draft',
-        color: 'gray',
-        isInitial: true,
-        isFinal: false,
-        description: 'Item is being created or edited',
-      },
-      {
-        id: 'Released',
-        name: 'Released',
-        color: 'green',
-        isInitial: false,
-        isFinal: false,
-        description: 'Item is released for use',
-      },
-      {
-        id: 'Obsolete',
-        name: 'Obsolete',
-        color: 'red',
-        isInitial: false,
-        isFinal: true,
-        description: 'Item is no longer used',
-      },
-    ],
-    transitions: [],
-    isActive: true,
-  })
+  const [definition, setDefinition] = useState<Partial<LifecycleDefinition>>(
+    () => ({
+      name: '',
+      workflowType: 'strict',
+      description: '',
+      states: [
+        {
+          id: 'Draft',
+          name: 'Draft',
+          color: 'gray',
+          isInitial: true,
+          isFinal: false,
+          description: t('lifecycles.form.defaultStates.draftDescription'),
+        },
+        {
+          id: 'Released',
+          name: 'Released',
+          color: 'green',
+          isInitial: false,
+          isFinal: false,
+          description: t('lifecycles.form.defaultStates.releasedDescription'),
+        },
+        {
+          id: 'Obsolete',
+          name: 'Obsolete',
+          color: 'red',
+          isInitial: false,
+          isFinal: true,
+          description: t('lifecycles.form.defaultStates.obsoleteDescription'),
+        },
+      ],
+      transitions: [],
+      isActive: true,
+    }),
+  )
 
   const handleChange = (updates: Partial<LifecycleDefinition>) => {
     setDefinition(updates)
@@ -93,8 +98,8 @@ function NewLifecyclePage() {
 
   const handleSave = async () => {
     if (!definition.name?.trim()) {
-      handleError(new Error('Please enter a name for the lifecycle'), {
-        title: 'Validation Error',
+      handleError(new Error(t('lifecycles.form.nameRequired')), {
+        title: t('lifecycles.form.validationTitle'),
       })
       return
     }
@@ -115,15 +120,15 @@ function NewLifecyclePage() {
       })
 
       showSuccess(
-        'Lifecycle created',
-        'Lifecycle has been created successfully',
+        t('lifecycles.form.createdTitle'),
+        t('lifecycles.form.createdDescription'),
       )
       navigate({
         to: '/lifecycles/$id',
         params: { id: result.data.workflow.id },
       })
     } catch (error) {
-      handleError(error, { title: 'Failed to create lifecycle' })
+      handleError(error, { title: t('lifecycles.form.createFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -145,16 +150,18 @@ function NewLifecyclePage() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  Create New Lifecycle
+                  {t('lifecycles.form.createTitle')}
                 </h1>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Define states and transitions for item lifecycle management
+                  {t('lifecycles.form.createSubtitle')}
                 </p>
               </div>
             </div>
             <Button onClick={handleSave} disabled={isSubmitting}>
               <Save className="h-4 w-4 mr-2" />
-              {isSubmitting ? 'Saving...' : 'Save Lifecycle'}
+              {isSubmitting
+                ? tc('actions.saving')
+                : t('lifecycles.form.saveLifecycle')}
             </Button>
           </div>
         </div>
@@ -165,7 +172,9 @@ function NewLifecyclePage() {
           <div className="w-96 border-r bg-white dark:bg-slate-950 overflow-y-auto p-4 space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Lifecycle Type</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.lifecycleType')}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <LifecycleTypeSelector
@@ -177,12 +186,14 @@ function NewLifecyclePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Basic Information</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.basicInformation')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-xs">
-                    Name *
+                    {tc('fields.name')} *
                   </Label>
                   <Input
                     id="name"
@@ -193,13 +204,13 @@ function NewLifecyclePage() {
                         name: e.target.value,
                       }))
                     }
-                    placeholder="e.g., Part Lifecycle, ECO Workflow"
+                    placeholder={t('lifecycles.form.namePlaceholder')}
                     className="h-8 text-sm"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Mode</Label>
+                  <Label className="text-xs">{tc('fields.mode')}</Label>
                   <Select
                     value={definition.workflowType}
                     onValueChange={(value: WorkflowType) =>
@@ -213,15 +224,19 @@ function NewLifecyclePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="strict">Strict</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="strict">
+                        {t('lifecycles.form.modeStrict')}
+                      </SelectItem>
+                      <SelectItem value="flexible">
+                        {t('lifecycles.form.modeFlexible')}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="description" className="text-xs">
-                    Description
+                    {tc('fields.description')}
                   </Label>
                   <textarea
                     id="description"
@@ -233,7 +248,7 @@ function NewLifecyclePage() {
                       }))
                     }
                     className="w-full h-20 px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
-                    placeholder="What types of items will use this lifecycle?"
+                    placeholder={t('lifecycles.form.descriptionPlaceholder')}
                   />
                 </div>
 
@@ -251,7 +266,7 @@ function NewLifecyclePage() {
                     className="rounded"
                   />
                   <Label htmlFor="isActive" className="text-sm">
-                    Active
+                    {t('lifecycles.table.active')}
                   </Label>
                 </div>
               </CardContent>
@@ -260,7 +275,9 @@ function NewLifecyclePage() {
             {lifecycleType !== 'Driving' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Revision Scheme</CardTitle>
+                  <CardTitle className="text-sm">
+                    {t('lifecycles.form.revisionScheme')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <RevisionSchemeSelector
@@ -271,11 +288,11 @@ function NewLifecyclePage() {
                         revisionScheme,
                       }))
                     }
-                    label="Default scheme"
+                    label={t('lifecycles.form.defaultScheme')}
                     allowNone={lifecycleType !== 'Driven'}
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Used by every state unless its phase defines an override.
+                    {t('lifecycles.form.revisionSchemeHelp')}
                   </p>
                 </CardContent>
               </Card>
@@ -285,7 +302,9 @@ function NewLifecyclePage() {
             {lifecycleType === 'Driven' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">ECO Drivers</CardTitle>
+                  <CardTitle className="text-sm">
+                    {t('lifecycles.form.ecoDrivers')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <DriverSelector
@@ -298,12 +317,14 @@ function NewLifecyclePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Statistics</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.statistics')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    States
+                    {t('lifecycles.table.states')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.length || 0}
@@ -311,7 +332,7 @@ function NewLifecyclePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Transitions
+                    {t('lifecycles.form.transitions')}
                   </span>
                   <span className="font-medium">
                     {definition.transitions?.length || 0}
@@ -319,16 +340,16 @@ function NewLifecyclePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Initial State
+                    {t('lifecycles.form.initialState')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.find((s) => s.isInitial)?.name ||
-                      'None'}
+                      t('lifecycles.form.none')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Final States
+                    {t('lifecycles.form.finalStates')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.filter((s) => s.isFinal).length || 0}
@@ -339,39 +360,40 @@ function NewLifecyclePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">About Lifecycle Types</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.aboutLifecycleTypes')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-xs text-slate-600 dark:text-slate-400 space-y-2">
                 {lifecycleType === 'Free' && (
                   <>
                     <p>
-                      <strong>Free:</strong> Self-controlled lifecycles where
-                      users manually transition items between states.
+                      <strong>{t('lifecycles.form.freeAboutLead')}:</strong>{' '}
+                      {t('lifecycles.form.freeAboutText')}
                     </p>
-                    <p>Use for: Programs, Projects, Designs</p>
+                    <p>{t('lifecycles.form.freeUseFor')}</p>
                   </>
                 )}
                 {lifecycleType === 'Driven' && (
                   <>
                     <p>
-                      <strong>Driven:</strong> ECO-controlled lifecycles that
-                      define valid states. Items transition only through ECOs.
+                      <strong>{t('lifecycles.form.drivenAboutLead')}:</strong>{' '}
+                      {t('lifecycles.form.drivenAboutText')}
                     </p>
-                    <p>Use for: Parts, Documents, Requirements</p>
+                    <p>{t('lifecycles.form.drivenUseFor')}</p>
                     <p>
-                      <strong>Note:</strong> Define states only - transitions
-                      are handled by the Driving lifecycle (ECO workflow).
+                      <strong>{t('lifecycles.form.drivenNoteLead')}:</strong>{' '}
+                      {t('lifecycles.form.drivenNoteText')}
                     </p>
                   </>
                 )}
                 {lifecycleType === 'Driving' && (
                   <>
                     <p>
-                      <strong>Driving:</strong> ECO workflow that controls
-                      Driven lifecycles. Can include Transition Driven Item
-                      actions.
+                      <strong>{t('lifecycles.form.drivingAboutLead')}:</strong>{' '}
+                      {t('lifecycles.form.drivingAboutText')}
                     </p>
-                    <p>Use for: Change Orders (ECO, XCO, MCO)</p>
+                    <p>{t('lifecycles.form.drivingUseFor')}</p>
                   </>
                 )}
               </CardContent>
@@ -382,11 +404,13 @@ function NewLifecyclePage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {lifecycleType !== 'Driving' && (
               <div className="p-4 border-b bg-white dark:bg-slate-950">
-                <h2 className="text-lg font-semibold">States</h2>
+                <h2 className="text-lg font-semibold">
+                  {t('lifecycles.form.statesTitle')}
+                </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   {lifecycleType === 'Driven'
-                    ? 'Define the valid states for this lifecycle. ECOs will transition items between these states.'
-                    : 'Define the valid states for this lifecycle. Users can freely transition items between states.'}
+                    ? t('lifecycles.form.statesHelpDriven')
+                    : t('lifecycles.form.statesHelpFree')}
                 </p>
               </div>
             )}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Ban, RotateCcw, Search } from 'lucide-react'
 import type { CADSelectionState } from './useCADSelectionState'
 import {
@@ -38,6 +39,7 @@ export function CADNodeLinkDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const [search, setSearch] = useState('')
+  const { t: tp } = useTranslation('pages')
   const node = selection.selectedNode
 
   const matches = useMemo(() => {
@@ -62,10 +64,17 @@ export function CADNodeLinkDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Link model part</DialogTitle>
+          <DialogTitle>{tc('dialogs.linkModelPart.title')}</DialogTitle>
           <DialogDescription>
-            <span className="font-mono text-xs">{node.name}</span> in this
-            assembly&apos;s model. Choose the part it represents.
-          </DialogDescription>
+            <Trans
+              i18nKey="dialogs.linkModelPart.description"
+              values={{ nodeName: node.name }}
+              components={{
+                mono: (
+                  <span className="font-mono text-xs" />
+                ),
+              }}
+            />
         </DialogHeader>
 
         <div className="relative">
@@ -75,7 +84,7 @@ export function CADNodeLinkDialog({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter by part number or name"
-            className="pl-8"
+            placeholder={tp('parts.detail.cadNodeLink.filterPlaceholder')}
           />
         </div>
 
@@ -141,6 +150,7 @@ export function CADNodeLinkDialog({
                 close()
               }}
               title="Record that this is not a BOM part, and stop matching it"
+              title={tp('parts.detail.cadNodeLink.notBomPartTitle')}
             >
               <Ban className="h-4 w-4 mr-2" />
               Not a BOM part
@@ -154,8 +164,7 @@ export function CADNodeLinkDialog({
                   selection.unlinkSelected()
                   close()
                 }}
-                title="Forget this decision and match by name again"
-              >
+                title={tp('parts.detail.cadNodeLink.resetAutomaticTitle')}
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Reset to automatic
               </Button>
@@ -163,7 +172,7 @@ export function CADNodeLinkDialog({
           </div>
           <Button variant="ghost" size="sm" onClick={close}>
             Cancel
-          </Button>
+            {tc('actions.cancel')}
         </DialogFooter>
       </DialogContent>
     </Dialog>

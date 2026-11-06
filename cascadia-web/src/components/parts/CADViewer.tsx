@@ -23,6 +23,7 @@ import {
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { AlertTriangle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { BACKGROUND_PRESETS } from './CADViewerTypes'
 import { CADModel } from './CADModel'
 import type {
@@ -202,6 +203,7 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
     },
     ref,
   ) {
+    const { t: tc } = useTranslation('common')
     const [slotA, setSlotA] = useState<SlotState>(LOADING_SLOT)
     const [slotB, setSlotB] = useState<SlotState>(IDLE_SLOT)
     const [hoveredNodeKey, setHoveredNodeKey] = useState<string | null>(null)
@@ -326,7 +328,10 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
       setSlot(slot, {
         status: 'failed',
         bounds: null,
-        message: `Failed to load ${layer.fileType.toUpperCase()} file: ${err.message}`,
+        message: tc('cadViewer.failedToLoadFileType', {
+          fileType: layer.fileType.toUpperCase(),
+          message: err.message,
+        }),
       })
       // One callback per failure: a comparison layer failing is a comparison
       // problem even when it is side A, and reporting it as both produces two
@@ -343,7 +348,7 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
         <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-800 rounded-lg">
           <div className="text-center p-8">
             <p className="text-red-500 dark:text-red-400 font-medium mb-2">
-              Error Loading Model
+              {tc('cadViewer.errorLoadingModel')}
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {slotA.message}
@@ -407,7 +412,9 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Loading {fileType.toUpperCase()} model...
+                {tc('cadViewer.loadingModel', {
+                  fileType: fileType.toUpperCase(),
+                })}
               </p>
             </div>
           </div>
@@ -426,7 +433,7 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
               <div className="text-center px-4">
                 <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-2" />
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  3D preview unavailable
+                  {tc('cadViewer.previewUnavailable')}
                 </p>
               </div>
             </div>
@@ -583,7 +590,7 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
                   </p>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                     {slotState(layer.slot).status === 'failed'
-                      ? 'Failed to load'
+                      ? tc('cadViewer.failedToLoad')
                       : layer.fileName}
                   </p>
                 </div>
@@ -607,7 +614,15 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Loading {pendingLayers.map((l) => l.slot).join(' and ')}…
+              {tc('cadViewer.loadingCompareSlots', {
+                slots:
+                  pendingLayers.length === 2
+                    ? tc('cadViewer.compareSlotsJoiner', {
+                        first: pendingLayers[0]?.slot ?? '',
+                        second: pendingLayers[1]?.slot ?? '',
+                      })
+                    : pendingLayers.map((l) => l.slot).join(', '),
+              })}
             </p>
           </div>
         )}
@@ -617,8 +632,10 @@ export const CADViewer = forwardRef<CADViewerHandle, CADViewerProps>(
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
               <p className="text-xs font-medium text-red-500 dark:text-red-400">
                 {failedLayers.length === 1
-                  ? `Side ${failedLayers[0]?.slot} failed to load`
-                  : 'Both models failed to load'}
+                  ? tc('cadViewer.sideFailedToLoad', {
+                      slot: failedLayers[0]?.slot ?? '',
+                    })
+                  : tc('cadViewer.bothModelsFailed')}
               </p>
             </div>
           )}

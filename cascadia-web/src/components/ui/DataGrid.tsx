@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   flexRender,
   getCoreRowModel,
@@ -350,8 +351,8 @@ export function DataGrid<T>({
   getRowUrl,
   renderContextMenuItems,
   // Empty state
-  emptyMessage = 'No data found',
-  emptyDescription = 'Try adjusting your search or filters',
+  emptyMessage,
+  emptyDescription,
   // Styling
   className,
   // Export
@@ -364,6 +365,7 @@ export function DataGrid<T>({
   defaultPageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
 }: DataGridProps<T>) {
+  const { t } = useTranslation('common')
   // Internal state (for uncontrolled mode) - initialized with defaults
   const [internalSorting, setInternalSorting] =
     useState<SortingState>(defaultSorting)
@@ -642,7 +644,7 @@ export function DataGrid<T>({
     if (enableRowActions && renderRowActions) {
       cols.push({
         id: '_actions',
-        header: 'Actions',
+        header: t('grid.actions'),
         cell: ({ row }) => renderRowActions(row),
         enableSorting: false,
         meta: { align: 'right' as const },
@@ -661,6 +663,7 @@ export function DataGrid<T>({
     updateColumnFilter,
     openFilters,
     setFilterOpen,
+    t,
   ])
 
   // Calculate page count for server-side pagination
@@ -819,17 +822,17 @@ export function DataGrid<T>({
                 aria-hidden="true"
               />
               <Input
-                placeholder="Search..."
+                placeholder={t('grid.searchPlaceholder')}
                 value={localSearchValue}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="h-7 pl-7 pr-7 text-xs"
-                aria-label="Search table"
+                aria-label={t('grid.searchAria')}
               />
               {localSearchValue && (
                 <button
                   onClick={handleClearSearch}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-400"
-                  aria-label="Clear search"
+                  aria-label={t('grid.clearSearchAria')}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -846,7 +849,7 @@ export function DataGrid<T>({
               className="h-7 px-2 text-xs text-slate-500"
             >
               <X className="h-3 w-3 mr-1" />
-              Clear
+              {t('grid.clearFilters')}
             </Button>
           )}
 
@@ -862,7 +865,7 @@ export function DataGrid<T>({
               className="h-7 px-2 text-xs text-slate-600 dark:text-slate-400"
             >
               <Download className="h-3 w-3 mr-1" />
-              Export
+              {t('grid.export')}
             </Button>
           )}
         </div>
@@ -905,9 +908,11 @@ export function DataGrid<T>({
                   className="h-12 text-center"
                 >
                   <div className="flex flex-col items-center justify-center text-slate-500">
-                    <p className="text-xs font-medium">{emptyMessage}</p>
+                    <p className="text-xs font-medium">
+                      {emptyMessage ?? t('grid.empty')}
+                    </p>
                     <p className="text-[11px] text-slate-400">
-                      {emptyDescription}
+                      {emptyDescription ?? t('grid.emptyHint')}
                     </p>
                   </div>
                 </TableCell>
@@ -967,7 +972,7 @@ export function DataGrid<T>({
                             onClick={() => handleOpenInNewTab(rowUrl)}
                           >
                             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                            Open in new tab
+                            {t('grid.openInNewTab')}
                           </ContextMenuItem>
                         )}
                         {rowUrl && renderContextMenuItems && (
@@ -991,7 +996,7 @@ export function DataGrid<T>({
         <div className="flex items-center justify-between text-[11px] text-slate-500">
           <div className="flex items-center gap-1">
             {isLoading ? (
-              <span className="text-slate-400">Loading...</span>
+              <span className="text-slate-400">{t('grid.loading')}</span>
             ) : (
               <span>
                 {(serverSidePagination && totalRows !== undefined
@@ -1009,7 +1014,7 @@ export function DataGrid<T>({
                     ? totalRows
                     : table.getFilteredRowModel().rows.length,
                 )}{' '}
-                of{' '}
+                {t('grid.of')}{' '}
                 {serverSidePagination && totalRows !== undefined
                   ? totalRows
                   : table.getFilteredRowModel().rows.length}

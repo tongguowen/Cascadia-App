@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { AlertTriangle, GitBranch, Loader2, Lock, Plus } from 'lucide-react'
 import { BRANCH_TYPES } from '@cascadia/commons/versioning/branch-types'
@@ -66,6 +67,7 @@ export function CheckoutDialog({
   onCheckoutComplete,
 }: CheckoutDialogProps) {
   const { handleError, showSuccess } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [selectedBranchId, setSelectedBranchId] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -133,8 +135,11 @@ export function CheckoutDialog({
 
       const branch = branches.find((b) => b.id === selectedBranchId)
       showSuccess(
-        'Item checked out',
-        `${itemNumber} has been checked out to ${branch?.name || 'branch'}`,
+        tc('dialogs.checkout.successTitle'),
+        tc('dialogs.checkout.successDescription', {
+          itemNumber,
+          branchName: branch?.name ?? tc('dialogs.checkout.unknownBranch'),
+        }),
       )
 
       await invalidate('branch-items')
@@ -144,7 +149,7 @@ export function CheckoutDialog({
         result.data.branchItem.currentItemId ?? undefined,
       )
     } catch (error) {
-      handleError(error, { title: 'Failed to check out item' })
+      handleError(error, { title: tc('dialogs.checkout.failedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -152,9 +157,9 @@ export function CheckoutDialog({
 
   // Get display for selected branch
   const getSelectedBranchDisplay = () => {
-    if (!selectedBranchId) return 'Select a branch'
+    if (!selectedBranchId) return tc('dialogs.checkout.selectBranch')
     const branch = branches.find((b) => b.id === selectedBranchId)
-    return branch?.name || 'Unknown branch'
+    return branch?.name || tc('dialogs.checkout.unknownBranch')
   }
 
   // Handle workspace creation and automatic checkout
@@ -176,8 +181,11 @@ export function CheckoutDialog({
       })
 
       showSuccess(
-        'Workspace created and item checked out',
-        `${itemNumber} has been checked out to ${workspaceName}`,
+        tc('dialogs.checkout.workspaceSuccessTitle'),
+        tc('dialogs.checkout.workspaceSuccessDescription', {
+          itemNumber,
+          workspaceName,
+        }),
       )
 
       await invalidate('workspaces', 'branch-items')
@@ -187,7 +195,7 @@ export function CheckoutDialog({
         result.data.branchItem.currentItemId ?? undefined,
       )
     } catch (error) {
-      handleError(error, { title: 'Failed to check out item' })
+      handleError(error, { title: tc('dialogs.checkout.failedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -199,12 +207,14 @@ export function CheckoutDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5" />
-            Check Out Item
+            {tc('dialogs.checkout.title')}
           </DialogTitle>
           <DialogDescription>
-            Check out <strong>{itemNumber}</strong> to an ECO or workspace
-            branch for editing. On an ECO branch, the item is added to that
-            change order automatically.
+            <Trans
+              i18nKey="dialogs.checkout.description"
+              values={{ itemNumber }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -212,14 +222,16 @@ export function CheckoutDialog({
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-              <span className="ml-2 text-slate-500">Loading branches...</span>
+              <span className="ml-2 text-slate-500">
+                {tc('dialogs.checkout.loadingBranches')}
+              </span>
             </div>
           ) : (
             <>
               {/* Checkout options */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Checkout to:
+                  {tc('dialogs.checkout.checkoutTo')}
                 </label>
 
                 {/* Option: Existing ECO */}
@@ -238,7 +250,7 @@ export function CheckoutDialog({
                         ECO
                       </Badge>
                       <span className="font-medium text-sm text-slate-900 dark:text-slate-100">
-                        Existing Change Order
+                        {tc('dialogs.checkout.existingChangeOrder')}
                       </span>
                     </div>
                     {checkoutOption === 'existing' && (
@@ -250,13 +262,19 @@ export function CheckoutDialog({
                           className="w-full mt-2"
                           data-testid="checkout-eco-branch-select"
                         >
-                          <SelectValue placeholder="Select change-order branch">
+                          <SelectValue
+                            placeholder={tc(
+                              'dialogs.checkout.selectChangeOrderBranch',
+                            )}
+                          >
                             {getSelectedBranchDisplay()}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectLabel>Active change orders</SelectLabel>
+                            <SelectLabel>
+                              {tc('dialogs.checkout.activeChangeOrders')}
+                            </SelectLabel>
                             {changeOrderBranches.map((branch) => {
                               const status = branchStatuses.get(branch.id)
                               return (
@@ -273,7 +291,7 @@ export function CheckoutDialog({
                                         className="text-xs px-1 py-0"
                                       >
                                         <Lock className="w-3 h-3 mr-1" />
-                                        Locked
+                                        {tc('dialogs.checkout.locked')}
                                       </Badge>
                                     )}
                                   </div>
@@ -302,11 +320,11 @@ export function CheckoutDialog({
                         WS
                       </Badge>
                       <span className="font-medium text-sm text-slate-900 dark:text-slate-100">
-                        My Workspace
+                        {tc('dialogs.checkout.myWorkspace')}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Personal sandbox for drafting changes
+                      {tc('dialogs.checkout.workspaceHint')}
                     </p>
                     {checkoutOption === 'workspace' &&
                       workspaceBranches.length > 0 && (
@@ -315,13 +333,17 @@ export function CheckoutDialog({
                           onValueChange={setSelectedBranchId}
                         >
                           <SelectTrigger className="w-full mt-2">
-                            <SelectValue placeholder="Select workspace">
+                            <SelectValue
+                              placeholder={tc('dialogs.checkout.selectWorkspace')}
+                            >
                               {getSelectedBranchDisplay()}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectLabel>Workspaces</SelectLabel>
+                              <SelectLabel>
+                                {tc('dialogs.checkout.workspaces')}
+                              </SelectLabel>
                               {workspaceBranches.map((branch) => {
                                 const status = branchStatuses.get(branch.id)
                                 return (
@@ -334,7 +356,7 @@ export function CheckoutDialog({
                                           className="text-xs px-1 py-0"
                                         >
                                           <Lock className="w-3 h-3 mr-1" />
-                                          Locked
+                                          {tc('dialogs.checkout.locked')}
                                         </Badge>
                                       )}
                                     </div>
@@ -363,11 +385,11 @@ export function CheckoutDialog({
                   <div className="flex items-center gap-2">
                     <Plus className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                     <span className="font-medium text-sm text-slate-900 dark:text-slate-100">
-                      Create New Workspace
+                      {tc('dialogs.checkout.createNewWorkspace')}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Start a new private workspace for this design
+                    {tc('dialogs.checkout.createWorkspaceHint')}
                   </p>
                 </div>
 
@@ -378,16 +400,19 @@ export function CheckoutDialog({
                       <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
                         <p className="font-medium text-amber-800 dark:text-amber-200">
-                          Already checked out
+                          {tc('dialogs.checkout.alreadyCheckedOut')}
                         </p>
                         <p className="text-amber-700 dark:text-amber-300 mt-1">
-                          This item is already checked out on this branch by{' '}
-                          <strong>
-                            {selectedBranchStatus.checkedOutBy?.name ||
-                              selectedBranchStatus.checkedOutBy?.email ||
-                              'another user'}
-                          </strong>
-                          . Proceeding will override the existing checkout.
+                          <Trans
+                            i18nKey="dialogs.checkout.overrideCheckout"
+                            values={{
+                              user:
+                                selectedBranchStatus.checkedOutBy?.name ||
+                                selectedBranchStatus.checkedOutBy?.email ||
+                                tc('dialogs.checkout.anotherUser'),
+                            }}
+                            components={{ strong: <strong /> }}
+                          />
                         </p>
                       </div>
                     </div>
@@ -399,9 +424,7 @@ export function CheckoutDialog({
                   workspaceBranches.length === 0 && (
                     <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <p className="text-sm text-amber-800 dark:text-amber-200">
-                        No active ECO or workspace branches available for this
-                        design. Create a Change Order first, then check out
-                        items to it.
+                        {tc('dialogs.checkout.noBranchesAvailable')}
                       </p>
                     </div>
                   )}
@@ -412,7 +435,7 @@ export function CheckoutDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             data-testid="checkout-confirm"
@@ -427,12 +450,12 @@ export function CheckoutDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Checking out...
+                {tc('actions.checkingOut')}
               </>
             ) : (
               <>
                 <GitBranch className="h-4 w-4 mr-2" />
-                Check Out
+                {tc('actions.checkOut')}
               </>
             )}
           </Button>

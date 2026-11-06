@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ChevronDown, Search } from 'lucide-react'
 import type { BreadcrumbDropdownProps } from './breadcrumb-types'
 import {
@@ -24,6 +25,7 @@ export function BreadcrumbDropdown({
   onSelect,
   placeholder,
 }: BreadcrumbDropdownProps) {
+  const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [expandedRegular, setExpandedRegular] = useState(false)
@@ -134,7 +136,7 @@ export function BreadcrumbDropdown({
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search..."
+            placeholder={t('grid.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 text-sm bg-transparent outline-none placeholder:text-slate-400 text-slate-900 dark:text-slate-100"

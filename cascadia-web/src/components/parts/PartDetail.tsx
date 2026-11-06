@@ -4,6 +4,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Edit,
@@ -27,7 +28,12 @@ import { ImpactAnalysisDialog } from '@/components/impact'
 import { Slot } from '@/ui/slot-registry'
 import { ItemHistoryTab } from '@/components/items/ItemHistoryTab'
 import { PhaseBadge } from '@/components/items/PhaseBadge'
-import { ImageGallery, useItemImages } from '@/components/vault'
+import {
+  FileList,
+  FileUploadZone,
+  ImageGallery,
+  useItemImages,
+} from '@/components/vault'
 import { WorkInstructionsForPartPanel } from '@/components/work-instructions'
 import { CheckoutDialog } from '@/components/items/CheckoutDialog'
 import { resolveItemBranchActions } from '@/components/items/itemBranchActions'
@@ -189,6 +195,8 @@ export function PartDetail({
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess, showInfo } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
 
   // Determine if this is create mode
   const isCreateMode = !initialPart?.id
@@ -409,6 +417,16 @@ export function PartDetail({
     branch: contextBranch,
   })
   const { needsCheckout, editButtonLabel } = branchActions
+  const editActionLabel =
+    editButtonLabel === 'Revise'
+      ? tc('actions.revise')
+      : editButtonLabel === 'Edit on Branch'
+        ? tc('actions.editOnBranch')
+        : tc('actions.edit')
+  const deleteActionLabel =
+    branchActions.deleteButtonLabel === 'Remove from ECO'
+      ? tc('actions.removeFromEco')
+      : tc('actions.delete')
   // The server-side edit lock behind the Edit button. The hook reads where the
   // lock lives off `editContext`, so protected main resolves to no lock
   // branch at all and the Edit button opens the CheckoutDialog.
@@ -442,7 +460,7 @@ export function PartDetail({
       try {
         await editLock.acquire()
       } catch (error) {
-        handleError(error, { title: 'Cannot edit item' })
+        handleError(error, { title: tc('errors.cannotEditItem') })
         return
       }
     }
@@ -517,8 +535,8 @@ export function PartDetail({
     confirm({
       title: branchActions.deleteTitle,
       description: branchActions.deleteDescription,
-      actionLabel: branchActions.deleteButtonLabel,
-      cancelLabel: 'Cancel',
+      actionLabel: deleteActionLabel,
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         await onDelete(branchActions.deleteIntent)
@@ -590,8 +608,8 @@ export function PartDetail({
               <div className="flex items-center gap-3">
                 <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                   {isCreateMode
-                    ? 'Create New Part'
-                    : currentPart.itemNumber || 'New Part'}
+                    ? tp('parts.form.createTitle')
+                    : currentPart.itemNumber || tp('parts.form.newItemFallback')}
                 </h1>
                 {!isCreateMode && isLoadingVersion && (
                   <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
@@ -621,7 +639,7 @@ export function PartDetail({
                   <Badge
                     variant="outline"
                     className="text-sm text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-700"
-                    title="This part has option families; its BOM lines can carry option conditions"
+                    title={tp('parts.detail.cadNodeLink.optionFamiliesTitle')}
                   >
                     Configurable
                   </Badge>
@@ -630,7 +648,7 @@ export function PartDetail({
                   <Badge
                     variant="outline"
                     className="text-sm font-mono"
-                    title="Product family and independently revisioned variant"
+                    title={tp('parts.detail.cadNodeLink.productFamilyTitle')}
                   >
                     {currentPart.productFamilyCode} / {currentPart.variantCode}
                   </Badge>
@@ -649,8 +667,8 @@ export function PartDetail({
               </div>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
                 {isCreateMode
-                  ? 'Enter the details for the new part'
-                  : `Revision ${currentPart.revision} • ${currentPart.name || 'Unnamed'}`}
+                  ? tp('parts.form.createSubtitle')
+                  : tp('parts.detail.revisionSubtitle', { revision: currentPart.revision, name: currentPart.name || tc('labels.unnamed') })}
               </p>
             </div>
           </div>
@@ -665,7 +683,7 @@ export function PartDetail({
                     disabled={isSubmitting}
                   >
                     <X className="h-4 w-4 mr-2" />
-                    Cancel
+                    {tc('actions.cancel')}
                   </Button>
                   <Button
                     onClick={handleSave}
@@ -677,10 +695,10 @@ export function PartDetail({
                   >
                     <Save className="h-4 w-4 mr-2" />
                     {isSubmitting
-                      ? 'Saving...'
+                      ? tc('actions.saving')
                       : isCreateMode
-                        ? 'Create Part'
-                        : 'Save Changes'}
+                        ? tp('parts.create')
+                        : tc('actions.saveChanges')}
                   </Button>
                 </>
               ) : (
@@ -691,7 +709,7 @@ export function PartDetail({
                       onClick={() => setIsImpactDialogOpen(true)}
                     >
                       <Search className="h-4 w-4 mr-2" />
-                      Impact Analysis
+                      {tc('actions.impactAnalysis')}
                     </Button>
                   )}
                   {/* Edit button with tooltip when disabled */}
@@ -713,7 +731,7 @@ export function PartDetail({
                               ) : (
                                 <Edit className="h-4 w-4 mr-2" />
                               )}
-                              {editButtonLabel}
+                              {editActionLabel}
                             </Button>
                           </span>
                         </TooltipTrigger>
@@ -736,7 +754,7 @@ export function PartDetail({
                       ) : (
                         <Edit className="h-4 w-4 mr-2" />
                       )}
-                      {editButtonLabel}
+                      {editActionLabel}
                     </Button>
                   )}
                   {onDelete && (
@@ -749,7 +767,7 @@ export function PartDetail({
                       }
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      {branchActions.deleteButtonLabel}
+                      {deleteActionLabel}
                     </Button>
                   )}
                   {!isCreateMode && (
@@ -791,22 +809,26 @@ export function PartDetail({
           <TabsList
             className={`grid w-full ${tabGridCols(isCreateMode, hasGallery, hasVariants)}`}
           >
-            <TabsTrigger value="details">Details</TabsTrigger>
-            {hasGallery && <TabsTrigger value="gallery">Gallery</TabsTrigger>}
-            <TabsTrigger value="relationships">Relationships</TabsTrigger>
+            <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+            {hasGallery && (
+              <TabsTrigger value="gallery">{tc('tabs.gallery')}</TabsTrigger>
+            )}
+            <TabsTrigger value="relationships">
+              {tc('tabs.relationships')}
+            </TabsTrigger>
             {hasVariants && (
-              <TabsTrigger value="variants">Variants</TabsTrigger>
+              <TabsTrigger value="variants">{tc('tabs.variants')}</TabsTrigger>
             )}
             {!isCreateMode && (
-              <TabsTrigger value="sources">Sources</TabsTrigger>
+              <TabsTrigger value="sources">{tc('tabs.sources')}</TabsTrigger>
             )}
             {!isCreateMode && (
               <TabsTrigger value="work-instructions">
-                Work Instructions
+                {tc('tabs.workInstructions')}
               </TabsTrigger>
             )}
             {!isCreateMode && (
-              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
             )}
           </TabsList>
 
@@ -818,47 +840,47 @@ export function PartDetail({
                 {/* Overview Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Overview</CardTitle>
+                    <CardTitle>{tc('sections.overview')}</CardTitle>
                     <CardDescription>
-                      General information about this part
+                      {tp('parts.detail.overviewDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <ViewEditText
-                        label="Item Number"
+                        label={tc('fields.itemNumber')}
                         value={
                           isEditing ? part.itemNumber : currentPart.itemNumber
                         }
                         onChange={(v) => updateField('itemNumber', v)}
                         isEditing={isEditing && isCreateMode} // Only editable when creating
-                        placeholder="PART-001"
+                        placeholder={tp('parts.detail.itemNumberPlaceholder')}
                         required
                         data-testid="part-item-number"
                       />
                       <ViewEditText
-                        label="Revision"
+                        label={tc('fields.revision')}
                         value={isEditing ? part.revision : currentPart.revision}
                         onChange={(v) => updateField('revision', v)}
                         isEditing={false} // Revision is system-managed
                       />
                       <ViewEditText
-                        label="Name"
+                        label={tc('fields.name')}
                         value={isEditing ? part.name : currentPart.name}
                         onChange={(v) => updateField('name', v)}
                         isEditing={isEditing}
-                        placeholder="Part name"
+                        placeholder={tp('parts.detail.namePlaceholder')}
                         required
                         data-testid="part-name"
                       />
                       <ViewEditTextarea
-                        label="Description"
+                        label={tc('fields.description')}
                         value={
                           isEditing ? part.description : currentPart.description
                         }
                         onChange={(v) => updateField('description', v)}
                         isEditing={isEditing}
-                        placeholder="Enter a description..."
+                        placeholder={tp('parts.detail.descriptionPlaceholder')}
                         className="md:col-span-2"
                       />
                       {/* Where a new part is going: design, then branch */}
@@ -873,12 +895,61 @@ export function PartDetail({
                             isCreateMode={isCreateMode}
                             selectedBranchId={selectedBranchId}
                             onBranchChange={setSelectedBranchId}
-                            itemLabel="part"
+                            itemLabel={tp('parts.detail.createItemLabel')}
                           />
                         )}
                     </dl>
                   </CardContent>
                 </Card>
+
+                {!isCreateMode && currentPart.id && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{tc('tabs.files')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FileUploadZone
+                        itemId={currentPart.id}
+                        branchId={
+                          context.type === 'branch'
+                            ? context.branchId
+                            : undefined
+                        }
+                        readOnly={!canMutateFiles}
+                        optionModel={currentPart.optionModel}
+                        makes={currentPart.makes}
+                        onUploadComplete={() => {
+                          showSuccess(
+                            'File uploaded',
+                            'File has been uploaded successfully',
+                          )
+                          cadViewer.refreshFiles()
+                          cadViewer.bumpThumbnail()
+                          void invalidate('files')
+                        }}
+                        onUploadError={(error) =>
+                          handleError(error, {
+                            title: tc('errors.uploadFailed'),
+                          })
+                        }
+                      />
+                      <FileList
+                        itemId={currentPart.id}
+                        branchId={
+                          context.type === 'branch'
+                            ? context.branchId
+                            : undefined
+                        }
+                        mainBranchId={mainBranchId}
+                        readOnly={!canMutateFiles}
+                        optionModel={currentPart.optionModel}
+                        makes={currentPart.makes}
+                        onViewCAD={cadViewer.showFile}
+                        onThumbnailChanged={cadViewer.bumpThumbnail}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
 
                 <PartManufacturingCard
                   edited={part}
@@ -907,24 +978,8 @@ export function PartDetail({
                 isCreateMode={isCreateMode}
                 isEditing={isEditing}
                 isSubmitting={isSubmitting}
-                canMutateFiles={canMutateFiles}
                 attributes={attributes}
                 onAttributesChange={setAttributes}
-                context={context}
-                mainBranchId={mainBranchId}
-                cadViewer={cadViewer}
-                onUploaded={() => {
-                  showSuccess(
-                    'File uploaded',
-                    'File has been uploaded successfully',
-                  )
-                  cadViewer.refreshFiles()
-                  cadViewer.bumpThumbnail()
-                  void invalidate('files')
-                }}
-                onUploadError={(error) =>
-                  handleError(error, { title: 'Upload failed' })
-                }
               />
             </div>
           </TabsContent>
@@ -934,10 +989,9 @@ export function PartDetail({
             <TabsContent value="gallery" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Gallery</CardTitle>
+                  <CardTitle>{tc('sections.gallery')}</CardTitle>
                   <CardDescription>
-                    Images attached to this part — click one to view it full
-                    size
+                    {tp('vault.imageGallery.cardDescriptionPart')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -993,7 +1047,7 @@ export function PartDetail({
                 partId={currentPart.id}
                 onError={(error) =>
                   handleError(error, {
-                    title: 'Failed to load work instructions',
+                    title: tp('parts.detail.workInstructionsLoadFailedTitle'),
                   })
                 }
               />

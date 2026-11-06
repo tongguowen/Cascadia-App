@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import { Loader2, Search } from 'lucide-react'
 import { z } from 'zod'
 import type { WorkOrderCreateInput } from '@cascadia/commons/items/types/work-order'
@@ -65,6 +66,8 @@ export function WorkOrderForm({
   onCancel,
   isSubmitting,
 }: WorkOrderFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [partSearch, setPartSearch] = useState('')
   // What the user picked in this form, which wins over the prefilled part.
   // `null` after an explicit Change means "cleared", so the prefilled part
@@ -136,14 +139,14 @@ export function WorkOrderForm({
       {/* Part selection */}
       <div>
         <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">
-          Part
+          {tc('columns.part')}
         </label>
         {selectedPart ? (
           <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded border">
             <span className="font-medium">{selectedPart.itemNumber}</span>
             <span className="text-slate-500">{selectedPart.name}</span>
             <span className="text-xs text-slate-400">
-              Rev {selectedPart.revision}
+              {tc('columns.rev')} {selectedPart.revision}
             </span>
             <Button
               type="button"
@@ -156,7 +159,7 @@ export function WorkOrderForm({
                 form.setFieldValue('partId', null)
               }}
             >
-              Change
+              {tc('labels.change')}
             </Button>
           </div>
         ) : (
@@ -165,7 +168,7 @@ export function WorkOrderForm({
             <Input
               value={partSearch}
               onChange={(e) => setPartSearch(e.target.value)}
-              placeholder="Search for a part..."
+              placeholder={tp('workOrders.form.searchPart')}
               className="pl-9"
             />
             {searching && (
@@ -200,9 +203,9 @@ export function WorkOrderForm({
       <form.Field name="programId">
         {(field) => (
           <FormField
-            label="Program"
+            label={tc('fields.program')}
             error={field.state.meta.errors[0]}
-            helpText="Leave unset to inherit the program of the part being built"
+            helpText={tp('workOrders.form.programHelp')}
           >
             <Select
               value={field.state.value || 'none'}
@@ -211,10 +214,12 @@ export function WorkOrderForm({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select program" />
+                <SelectValue placeholder={tc('labels.selectProgram')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Inherit from part</SelectItem>
+                <SelectItem value="none">
+                  {tp('workOrders.form.inheritFromPart')}
+                </SelectItem>
                 {programs.map((program) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.code} - {program.name}
@@ -230,7 +235,7 @@ export function WorkOrderForm({
         {/* Quantity */}
         <form.Field name="quantity">
           {(field) => (
-            <FormField label="Quantity" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.quantity')} error={field.state.meta.errors[0]}>
               <Input
                 type="number"
                 min={1}
@@ -248,7 +253,7 @@ export function WorkOrderForm({
         {/* Priority */}
         <form.Field name="priority">
           {(field) => (
-            <FormField label="Priority" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.priority')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(v) =>
@@ -259,10 +264,18 @@ export function WorkOrderForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Normal">Normal</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Urgent">Urgent</SelectItem>
+                  <SelectItem value="Low">
+                    {tp('workOrders.form.priorityLow')}
+                  </SelectItem>
+                  <SelectItem value="Normal">
+                    {tp('workOrders.form.priorityNormal')}
+                  </SelectItem>
+                  <SelectItem value="High">
+                    {tp('workOrders.form.priorityHigh')}
+                  </SelectItem>
+                  <SelectItem value="Urgent">
+                    {tp('workOrders.form.priorityUrgent')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -272,7 +285,7 @@ export function WorkOrderForm({
         {/* Due Date */}
         <form.Field name="dueDate">
           {(field) => (
-            <FormField label="Due Date" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.dueDate')} error={field.state.meta.errors[0]}>
               <Input
                 type="date"
                 name={field.name}
@@ -288,7 +301,7 @@ export function WorkOrderForm({
         <form.Field name="customerOrder">
           {(field) => (
             <FormField
-              label="Customer Order"
+              label={tp('workOrders.form.customerOrder')}
               error={field.state.meta.errors[0]}
             >
               <Input
@@ -296,7 +309,7 @@ export function WorkOrderForm({
                 value={field.state.value || ''}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Optional reference number"
+                placeholder={tp('workOrders.form.customerOrderPlaceholder')}
               />
             </FormField>
           )}
@@ -319,11 +332,10 @@ export function WorkOrderForm({
                 htmlFor="requiresSignOff"
                 className="text-sm font-medium text-slate-700 dark:text-slate-300"
               >
-                Requires Sign-off
+                {tp('workOrders.form.requiresSignOff')}
               </label>
               <p className="text-xs text-slate-500">
-                Completed executions will require supervisor approval before
-                being finalized
+                {tp('workOrders.form.requiresSignOffHelp')}
               </p>
             </div>
           </div>
@@ -333,13 +345,13 @@ export function WorkOrderForm({
       {/* Notes */}
       <form.Field name="notes">
         {(field) => (
-          <FormField label="Notes" error={field.state.meta.errors[0]}>
+          <FormField label={tc('fields.notes')} error={field.state.meta.errors[0]}>
             <Textarea
               name={field.name}
               value={field.state.value || ''}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
-              placeholder="Additional notes or instructions..."
+              placeholder={tp('workOrders.form.notesPlaceholder')}
               rows={3}
             />
           </FormField>
@@ -350,14 +362,16 @@ export function WorkOrderForm({
       <div className="flex justify-end gap-3 pt-4 border-t">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
           ) : null}
-          {defaultValues?.partId ? 'Update Work Order' : 'Create Work Order'}
+          {defaultValues?.partId
+            ? tp('workOrders.form.updateSubmit')
+            : tp('workOrders.form.createSubmit')}
         </Button>
       </div>
     </form>

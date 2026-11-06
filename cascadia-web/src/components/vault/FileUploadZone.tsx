@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FileIcon, ImageIcon, Upload, X } from 'lucide-react'
 import { FileApplicabilityPicker } from './FileApplicabilityPicker'
 import type { ChangeEvent, DragEvent } from 'react'
@@ -71,6 +72,8 @@ export function FileUploadZone({
   optionModel,
   makes,
 }: FileUploadZoneProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [isDragging, setIsDragging] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<Array<FileWithPreview>>([])
   const [uploading, setUploading] = useState(false)
@@ -218,11 +221,17 @@ export function FileUploadZone({
   }
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
+    if (bytes === 0) return tc('fileSize.zero')
     const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const sizes = tc('fileSize.byteUnits', {
+      returnObjects: true,
+    }) as Array<string>
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+    return (
+      Math.round((bytes / Math.pow(k, i)) * 100) / 100 +
+      ' ' +
+      (sizes[i] ?? sizes[sizes.length - 1])
+    )
   }
 
   // The uploader has no read-only action. Keeping it out of the tree also
@@ -247,10 +256,12 @@ export function FileUploadZone({
       >
         <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
         <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-          Drop files here or click to browse
+          {tp('vault.uploadZone.dropHint')}
         </p>
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-          Maximum file size: {formatFileSize(maxSizeBytes)}
+          {tp('vault.uploadZone.maxSize', {
+            size: formatFileSize(maxSizeBytes),
+          })}
         </p>
         <input
           ref={fileInputRef}
@@ -266,7 +277,7 @@ export function FileUploadZone({
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          Select Files
+          {tp('vault.uploadZone.selectFiles')}
         </Button>
       </div>
 
@@ -274,7 +285,9 @@ export function FileUploadZone({
       {selectedFiles.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-medium text-slate-900 dark:text-white">
-            Selected Files ({selectedFiles.length})
+            {tp('vault.uploadZone.selectedFiles', {
+              count: selectedFiles.length,
+            })}
           </h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {selectedFiles.map((fileWithPreview) => (
@@ -299,7 +312,7 @@ export function FileUploadZone({
                     {formatFileSize(fileWithPreview.file.size)}
                     {fileWithPreview.id === thumbnailId && (
                       <span className="ml-2 text-blue-600 dark:text-blue-400">
-                        Will be used as thumbnail
+                        {tp('vault.uploadZone.willBeThumbnail')}
                       </span>
                     )}
                   </p>
@@ -329,8 +342,8 @@ export function FileUploadZone({
                       aria-pressed={fileWithPreview.id === thumbnailId}
                       title={
                         fileWithPreview.id === thumbnailId
-                          ? 'Do not use as thumbnail'
-                          : 'Use as thumbnail'
+                          ? tp('vault.uploadZone.doNotUseAsThumbnail')
+                          : tp('vault.uploadZone.useAsThumbnail')
                       }
                     >
                       <ImageIcon className="w-4 h-4" />
@@ -342,7 +355,7 @@ export function FileUploadZone({
                   size="icon"
                   onClick={() => removeFile(fileWithPreview.id)}
                   disabled={uploading}
-                  title="Remove"
+                  title={tp('vault.uploadZone.remove')}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -366,12 +379,14 @@ export function FileUploadZone({
               }}
               disabled={uploading}
             >
-              Clear All
+              {tc('actions.clearAll')}
             </Button>
             <Button type="button" onClick={handleUpload} disabled={uploading}>
               {uploading
-                ? 'Uploading...'
-                : `Upload ${selectedFiles.length} File${selectedFiles.length > 1 ? 's' : ''}`}
+                ? tp('vault.uploadZone.uploading')
+                : tp('vault.uploadZone.upload', {
+                    count: selectedFiles.length,
+                  })}
             </Button>
           </div>
         </div>

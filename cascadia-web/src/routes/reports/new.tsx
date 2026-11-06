@@ -3,6 +3,7 @@
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import type { ReportCreateInput } from '@cascadia/commons/reports/types'
 import { PageContainer } from '@/components/layout'
@@ -17,6 +18,8 @@ export const Route = createFileRoute('/reports/new')({
 
 function NewReportPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -36,7 +39,7 @@ function NewReportPage() {
       const { report } = await response.json()
       navigate({ to: '/reports/$id/view', params: { id: report.id } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create report' })
+      handleError(error, { title: t('reports.form.createFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -52,14 +55,14 @@ function NewReportPage() {
           onClick={() => navigate({ to: '/reports' })}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {tc('actions.back')}
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Create New Report
+            {t('reports.form.createTitle')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Configure your report settings, columns, filters, and sorting
+            {t('reports.form.createSubtitle')}
           </p>
         </div>
       </div>

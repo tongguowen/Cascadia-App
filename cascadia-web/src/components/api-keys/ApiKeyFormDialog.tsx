@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle } from 'lucide-react'
 import {
@@ -52,6 +53,10 @@ export function ApiKeyFormDialog({
   onCreated,
   onSaved,
 }: ApiKeyFormDialogProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const tf = (key: string, options?: Record<string, unknown>) =>
+    t(`admin.apiKeys.form.${key}`, options)
   const { data: policyData } = useQuery(apiKeyPolicyQuery())
   const policy = policyData?.policy
 
@@ -102,7 +107,7 @@ export function ApiKeyFormDialog({
       }
     } catch (err) {
       setErrorMessage(
-        err instanceof ApiError ? err.message : 'Failed to save API key',
+        err instanceof ApiError ? err.message : tf('saveFailed'),
       )
     } finally {
       setSaving(false)
@@ -124,29 +129,27 @@ export function ApiKeyFormDialog({
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editing ? 'Edit API key' : 'Create API key'}
+            {editing ? tf('editTitle') : tf('createTitle')}
           </DialogTitle>
           <DialogDescription>
-            {editing
-              ? 'Scope changes take effect on the next request. The secret is unchanged — use Rotate to replace it.'
-              : 'The key acts as its owner. Scope it to the narrowest set of permissions and roles the client actually needs.'}
+            {editing ? tf('editDescription') : tf('createDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="key-name">Name</Label>
+            <Label htmlFor="key-name">{tc('fields.name')}</Label>
             <Input
               id="key-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="CI pipeline, CAD connector, …"
+              placeholder={tf('namePlaceholder')}
             />
           </div>
 
           {!editing && (
             <div className="space-y-2">
-              <Label htmlFor="key-expiry">Expires in (days)</Label>
+              <Label htmlFor="key-expiry">{tf('expiresInDays')}</Label>
               <Input
                 id="key-expiry"
                 type="number"
@@ -155,18 +158,22 @@ export function ApiKeyFormDialog({
                 onChange={(e) => setExpiresInDays(e.target.value)}
                 placeholder={
                   policy?.defaultExpirationDays == null
-                    ? 'Policy default'
-                    : `Policy default: ${String(policy.defaultExpirationDays)}`
+                    ? tf('policyDefault')
+                    : tf('policyDefaultWithDays', {
+                        days: policy.defaultExpirationDays,
+                      })
                 }
               />
               <p className="text-xs text-muted-foreground">
                 {effectiveLifetime === null
                   ? policy?.requireExpiration
-                    ? 'The policy requires an expiry — enter one.'
-                    : 'This key will not expire.'
-                  : `Expires in ${String(effectiveLifetime)} days.`}
+                    ? tf('requireExpiry')
+                    : tf('noExpiry')
+                  : tf('expiresInDaysSummary', {
+                      days: effectiveLifetime,
+                    })}
                 {policy?.maxExpirationDays != null &&
-                  ` Maximum allowed: ${String(policy.maxExpirationDays)} days.`}
+                  tf('maxExpiration', { days: policy.maxExpirationDays })}
               </p>
             </div>
           )}
@@ -189,13 +196,17 @@ export function ApiKeyFormDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={saving || name.trim().length === 0}
           >
-            {saving ? 'Saving…' : editing ? 'Save changes' : 'Create key'}
+            {saving
+              ? tc('actions.saving')
+              : editing
+                ? tf('saveChanges')
+                : tf('createKey')}
           </Button>
         </DialogFooter>
       </DialogContent>

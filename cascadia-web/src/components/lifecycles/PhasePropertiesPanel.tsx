@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { RevisionSchemeSelector } from './RevisionSchemeSelector'
 import type {
   LifecyclePhaseConfig,
@@ -46,6 +47,8 @@ export function PhasePropertiesPanel({
   onDelete,
   onClose,
 }: PhasePropertiesPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const handleChange = (updates: Partial<LifecyclePhaseConfig>) => {
     onUpdate({ ...phase, ...updates })
   }
@@ -54,7 +57,9 @@ export function PhasePropertiesPanel({
     <Card className="w-80 shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Phase Properties</CardTitle>
+          <CardTitle className="text-base">
+            {tc('sections.phaseProperties')}
+          </CardTitle>
           <Button
             type="button"
             variant="ghost"
@@ -70,20 +75,20 @@ export function PhasePropertiesPanel({
         {/* Phase Name */}
         <div className="space-y-1.5">
           <Label htmlFor="phaseName" className="text-xs">
-            Name
+            {tc('fields.name')}
           </Label>
           <Input
             id="phaseName"
             value={phase.name}
             onChange={(e) => handleChange({ name: e.target.value })}
             className="h-8 text-sm"
-            placeholder="e.g., Prototype, Production"
+            placeholder={tp('lifecycles.phasePanel.namePlaceholder')}
           />
         </div>
 
         {/* Color */}
         <div className="space-y-1.5">
-          <Label className="text-xs">Color</Label>
+          <Label className="text-xs">{tc('fields.color')}</Label>
           <Select
             value={phase.color || 'gray'}
             onValueChange={(value) => handleChange({ color: value })}
@@ -107,7 +112,7 @@ export function PhasePropertiesPanel({
         {/* Order */}
         <div className="space-y-1.5">
           <Label htmlFor="phaseOrder" className="text-xs">
-            Order
+            {tc('fields.order')}
           </Label>
           <Input
             id="phaseOrder"

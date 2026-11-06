@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Box } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -68,6 +69,7 @@ export function DesignModelViewer({
   scopeLabel,
   headerControls,
 }: DesignModelViewerProps) {
+  const { t: tp } = useTranslation('pages')
   const { handleError } = useErrorHandler()
 
   const { data: structure } = useQuery(
@@ -109,7 +111,7 @@ export function DesignModelViewer({
       ? `${selectedPart.itemNumber}${
           selectedPart.name ? ` — ${selectedPart.name}` : ''
         }`
-      : 'Top-level parts of this design',
+      : tp('designs.modelViewer.topLevelPartsFallback'),
     selectedFile?.fileName,
   ]
     .filter(Boolean)
@@ -124,7 +126,7 @@ export function DesignModelViewer({
           <div>
             <div className="flex items-center gap-2">
               <Box className="h-5 w-5 text-slate-400" />
-              <CardTitle>3D Model</CardTitle>
+              <CardTitle>{tp('designs.modelViewer.title')}</CardTitle>
             </div>
             <CardDescription>{description}</CardDescription>
           </div>
@@ -137,7 +139,7 @@ export function DesignModelViewer({
               >
                 <SelectTrigger
                   className="w-[240px] h-8 text-xs"
-                  aria-label="Top-level part"
+                  aria-label={tp('designs.modelViewer.topLevelPartAria')}
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -173,8 +175,10 @@ export function DesignModelViewer({
             <Box className="h-8 w-8 text-slate-300 dark:text-slate-600" />
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {selectedPart
-                ? `No viewable 3D model is attached to ${selectedPart.itemNumber}.`
-                : 'This design has no top-level parts to display.'}
+                ? tp('designs.modelViewer.noModelAttached', {
+                    itemNumber: selectedPart.itemNumber,
+                  })
+                : tp('designs.modelViewer.noTopLevelParts')}
             </p>
           </div>
         )}

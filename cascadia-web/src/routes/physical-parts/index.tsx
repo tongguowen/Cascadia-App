@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Package, Plus } from 'lucide-react'
 import {
@@ -26,6 +27,7 @@ import {
 import { PageContainer } from '@/components/layout'
 import { physicalPartListQuery, useInvalidateResources } from '@/query'
 import { RegisterPhysicalPartDialog } from '@/components/physical-parts/RegisterPhysicalPartDialog'
+import { translatePhysicalPartState } from '@/i18n'
 
 export const Route = createFileRoute('/physical-parts/')({
   component: PhysicalPartsPage,
@@ -46,6 +48,7 @@ const FALLBACK_STATE_COLOR =
   'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
 
 function PhysicalPartsPage() {
+  const { t } = useTranslation('pages')
   const invalidate = useInvalidateResources()
   const [q, setQ] = useState('')
   const [kind, setKind] = useState<'all' | 'unit' | 'lot'>('all')
@@ -60,11 +63,11 @@ function PhysicalPartsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-900 dark:text-white">
           <Package className="h-6 w-6" />
-          <h1 className="text-2xl font-semibold">Physical Parts</h1>
+          <h1 className="text-2xl font-semibold">{t('physicalParts.title')}</h1>
         </div>
         <Button onClick={() => setRegisterOpen(true)}>
           <Plus className="mr-1 h-4 w-4" />
-          Register
+          {t('physicalParts.create')}
         </Button>
       </div>
 
@@ -72,7 +75,7 @@ function PhysicalPartsPage() {
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search serial, lot, or number…"
+          placeholder={t('physicalParts.searchPlaceholder')}
           className="max-w-sm"
         />
         <Select
@@ -83,9 +86,9 @@ function PhysicalPartsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All kinds</SelectItem>
-            <SelectItem value="unit">Units</SelectItem>
-            <SelectItem value="lot">Lots</SelectItem>
+            <SelectItem value="all">{t('physicalParts.allKinds')}</SelectItem>
+            <SelectItem value="unit">{t('physicalParts.units')}</SelectItem>
+            <SelectItem value="lot">{t('physicalParts.lots')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -94,22 +97,21 @@ function PhysicalPartsPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <p className="p-6 text-sm text-slate-500 dark:text-slate-400">
-              Loading…
+              {t('physicalParts.loading')}
             </p>
           ) : rows.length === 0 ? (
             <p className="p-6 text-sm text-slate-500 dark:text-slate-400">
-              No physical parts yet. Register a serialized unit or a lot to
-              start tracking real hardware.
+              {t('physicalParts.empty')}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Number</TableHead>
-                  <TableHead>Kind</TableHead>
-                  <TableHead>Serial / Lot</TableHead>
-                  <TableHead>Part</TableHead>
-                  <TableHead>State</TableHead>
+                  <TableHead>{t('physicalParts.number')}</TableHead>
+                  <TableHead>{t('physicalParts.kind')}</TableHead>
+                  <TableHead>{t('physicalParts.serialLot')}</TableHead>
+                  <TableHead>{t('physicalParts.part')}</TableHead>
+                  <TableHead>{t('physicalParts.state')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -126,7 +128,9 @@ function PhysicalPartsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {row.instanceKind === 'unit' ? 'Unit' : 'Lot'}
+                        {row.instanceKind === 'unit'
+                          ? t('physicalParts.unit')
+                          : t('physicalParts.lot')}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-mono">
@@ -146,7 +150,7 @@ function PhysicalPartsPage() {
                           STATE_COLORS[row.state] ?? FALLBACK_STATE_COLOR
                         }
                       >
-                        {row.state}
+                        {translatePhysicalPartState(row.state)}
                       </Badge>
                     </TableCell>
                   </TableRow>

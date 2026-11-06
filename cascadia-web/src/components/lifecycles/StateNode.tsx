@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Handle, Position } from '@xyflow/react'
 import { Circle, Edit2, Flag, Play, Trash2 } from 'lucide-react'
 import type { Node, NodeProps } from '@xyflow/react'
@@ -92,6 +93,7 @@ function getColorClasses(color?: string) {
 }
 
 function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
+  const { t: tc } = useTranslation('common')
   const { state, isCurrent, onEdit, onDelete, hideHandles } = data
   const colors = getColorClasses(state.color)
 
@@ -133,7 +135,7 @@ function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
             {state.isInitial && (
               <span
                 className="text-green-600 dark:text-green-400"
-                title="Initial State"
+                title={tc('tooltips.initialState')}
               >
                 <Play className="h-3 w-3" />
               </span>
@@ -141,7 +143,7 @@ function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
             {state.isFinal && (
               <span
                 className="text-red-600 dark:text-red-400"
-                title="Final State"
+                title={tc('tooltips.finalState')}
               >
                 <Flag className="h-3 w-3" />
               </span>
@@ -153,7 +155,7 @@ function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
               <Badge
                 variant="default"
                 className="px-1.5 py-0 text-[10px]"
-                title="The state this item is in now"
+                title={tc('tooltips.currentState')}
               >
                 Current
               </Badge>
@@ -170,7 +172,7 @@ function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
                   onEdit(state)
                 }}
                 className="p-1 rounded hover:bg-white/50 dark:hover:bg-black/20 text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-400"
-                title="Edit state"
+                title={tc('tooltips.editState')}
               >
                 <Edit2 className="h-3 w-3" />
               </button>
@@ -183,7 +185,7 @@ function StateNodeComponent({ data, selected }: NodeProps<StateNodeType>) {
                   onDelete(state.id)
                 }}
                 className="p-1 rounded hover:bg-white/50 dark:hover:bg-black/20 text-slate-500 hover:text-red-600 dark:hover:text-red-400"
-                title="Delete state"
+                title={tc('tooltips.deleteState')}
               >
                 <Trash2 className="h-3 w-3" />
               </button>

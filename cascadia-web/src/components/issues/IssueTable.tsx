@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import type { Issue } from '@cascadia/commons/items/types/issue'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface IssueTableProps {
   items: Array<Issue>
@@ -82,20 +84,21 @@ export function IssueTable({
 }: IssueTableProps) {
   // State filter options and badges come from the Issue lifecycle's
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
   const { data: lifecycle } = useLifecyclePhases('Issue')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<Issue>> = [
     {
       id: 'itemNumber',
-      header: 'Issue #',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -111,11 +114,11 @@ export function IssueTable({
     },
     {
       id: 'name',
-      header: 'Title',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => {
         const value = getValue() as string
         return (
@@ -127,7 +130,7 @@ export function IssueTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -138,59 +141,71 @@ export function IssueTable({
     },
     {
       id: 'severity',
-      header: 'Severity',
+      header: t('columns.severity'),
       accessorKey: 'severity',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Critical', value: 'Critical' },
-        { label: 'High', value: 'High' },
-        { label: 'Medium', value: 'Medium' },
-        { label: 'Low', value: 'Low' },
+        { label: t('enum.severity.Critical'), value: 'Critical' },
+        { label: t('enum.severity.High'), value: 'High' },
+        { label: t('enum.severity.Medium'), value: 'Medium' },
+        { label: t('enum.severity.Low'), value: 'Low' },
       ],
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         if (!value) return '-'
-        return <Badge variant={severityVariant(value)}>{value}</Badge>
+        return (
+          <Badge variant={severityVariant(value)}>
+            {t(`enum.severity.${value}`, { defaultValue: value })}
+          </Badge>
+        )
       },
     },
     {
       id: 'priority',
-      header: 'Priority',
+      header: t('columns.priority'),
       accessorKey: 'priority',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Critical', value: 'Critical' },
-        { label: 'High', value: 'High' },
-        { label: 'Medium', value: 'Medium' },
-        { label: 'Low', value: 'Low' },
+        { label: t('enum.priority.Critical'), value: 'Critical' },
+        { label: t('enum.priority.High'), value: 'High' },
+        { label: t('enum.priority.Medium'), value: 'Medium' },
+        { label: t('enum.priority.Low'), value: 'Low' },
       ],
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         if (!value) return '-'
-        return <Badge variant={priorityVariant(value)}>{value}</Badge>
+        return (
+          <Badge variant={priorityVariant(value)}>
+            {t(`enum.priority.${value}`, { defaultValue: value })}
+          </Badge>
+        )
       },
     },
     {
       id: 'category',
-      header: 'Category',
+      header: t('columns.category'),
       accessorKey: 'category',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Design', value: 'Design' },
-        { label: 'Manufacturing', value: 'Manufacturing' },
-        { label: 'Quality', value: 'Quality' },
-        { label: 'Customer', value: 'Customer' },
-        { label: 'Safety', value: 'Safety' },
-        { label: 'Other', value: 'Other' },
+        { label: t('enum.issueCategory.Design'), value: 'Design' },
+        { label: t('enum.issueCategory.Manufacturing'), value: 'Manufacturing' },
+        { label: t('enum.issueCategory.Quality'), value: 'Quality' },
+        { label: t('enum.issueCategory.Customer'), value: 'Customer' },
+        { label: t('enum.issueCategory.Safety'), value: 'Safety' },
+        { label: t('enum.issueCategory.Other'), value: 'Other' },
       ],
-      cell: ({ getValue }) => (getValue() as string) || '-',
+      cell: ({ getValue }) => {
+        const value = getValue() as string | undefined
+        if (!value) return '-'
+        return t(`enum.issueCategory.${value}`, { defaultValue: value })
+      },
     },
     {
       id: 'createdAt',
-      header: 'Created',
+      header: t('columns.created'),
       accessorKey: 'createdAt',
       enableSorting: true,
       cell: ({ getValue }) =>
@@ -208,7 +223,7 @@ export function IssueTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -216,14 +231,14 @@ export function IssueTable({
             <DropdownMenuItem asChild>
               <Link to="/issues/$id" params={{ id: issue.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(issue)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -234,7 +249,7 @@ export function IssueTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -254,7 +269,7 @@ export function IssueTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(issue)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -265,7 +280,7 @@ export function IssueTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

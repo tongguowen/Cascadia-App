@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Info } from 'lucide-react'
 import { MakesEditor } from './MakesEditor'
@@ -48,6 +49,7 @@ export function PartVariantsTab({
   branchId?: string
   isEditing: boolean
 }) {
+  const { t: tp } = useTranslation('pages')
   const { alert } = useAlertDialog()
   const partId = part.id!
 
@@ -114,7 +116,7 @@ export function PartVariantsTab({
     onSuccess: () => setDirty(false),
     onError: (error: Error) =>
       alert({
-        title: 'Failed to save variant data',
+        title: tp('variants.saveFailedTitle'),
         description: error.message,
         variant: 'destructive',
       }),
@@ -130,11 +132,9 @@ export function PartVariantsTab({
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle>Product family</CardTitle>
+                <CardTitle>{tp('parts.variantsTab.productFamily')}</CardTitle>
                 <CardDescription>
-                  Groups independently revisioned Part variants. For example,
-                  family P3001 contains variants V1, V2 and V3; this Part keeps
-                  its own item number, files and lifecycle.
+                  {tp('parts.variantsTab.productFamilyDescription')}
                 </CardDescription>
               </div>
               {isEditing && (
@@ -167,7 +167,7 @@ export function PartVariantsTab({
             </div>
             <div>
               <label className="text-xs text-slate-500 dark:text-slate-400">
-                Variant code
+                {tp('parts.variantsTab.variantCode')}
               </label>
               <Input
                 className="mt-1 flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 text-sm font-mono shadow-sm dark:border-slate-700"
@@ -185,11 +185,9 @@ export function PartVariantsTab({
 
         <Card>
           <CardHeader>
-            <CardTitle>Configure</CardTitle>
+            <CardTitle>{tp('parts.variantsTab.configure')}</CardTitle>
             <CardDescription>
-              Pick a value per family to see the BOM a configuration resolves
-              to. Save the selections as a make, or derive a Manufacturing
-              design from them.
+              {tp('parts.variantsTab.configureDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -237,10 +235,9 @@ export function PartVariantsTab({
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle>Option model</CardTitle>
+                <CardTitle>{tp('parts.variantsTab.optionModel')}</CardTitle>
                 <CardDescription>
-                  The families a configuration selects from, and the constraints
-                  between them. BOM lines reference these.
+                  {tp('parts.variantsTab.optionModelDescription')}
                 </CardDescription>
               </div>
               {isEditing && (
@@ -269,11 +266,9 @@ export function PartVariantsTab({
 
         <Card>
           <CardHeader>
-            <CardTitle>Executions (MK)</CardTitle>
+            <CardTitle>{tp('parts.variantsTab.executions')}</CardTitle>
             <CardDescription>
-              Named configurations of this exact Part revision. Executions do
-              not revise independently; the full designation is composed as item
-              number + revision + MK code.
+              {tp('parts.variantsTab.executionsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -297,7 +292,7 @@ export function PartVariantsTab({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              Checks
+              {tp('parts.variantsTab.checks')}
               {lint.data && (
                 <Badge
                   variant={
@@ -309,23 +304,29 @@ export function PartVariantsTab({
                   }
                 >
                   {errors.length > 0
-                    ? `${errors.length} error${errors.length === 1 ? '' : 's'}`
+                    ? tp('parts.variantsTab.errorCount', {
+                        count: errors.length,
+                      })
                     : warnings.length > 0
-                      ? `${warnings.length} warning${warnings.length === 1 ? '' : 's'}`
-                      : 'clean'}
+                      ? tp('parts.variantsTab.warningCount', {
+                          count: warnings.length,
+                        })
+                      : tp('parts.variantsTab.clean')}
                 </Badge>
               )}
             </CardTitle>
             <CardDescription>
-              Whether the model, the makes and the BOM lines agree.
+              {tp('parts.variantsTab.checksDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {lint.isPending ? (
-              <p className="text-sm text-slate-500">Checking…</p>
+              <p className="text-sm text-slate-500">
+                {tp('parts.variantsTab.checking')}
+              </p>
             ) : (lint.data ?? []).length === 0 ? (
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Nothing to report.
+                {tp('parts.variantsTab.nothingToReport')}
               </p>
             ) : (
               <ul className="space-y-2">

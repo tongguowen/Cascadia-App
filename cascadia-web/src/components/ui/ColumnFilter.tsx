@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Filter, X } from 'lucide-react'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -211,16 +212,19 @@ export function SelectFilterContent({
   options: Array<{ label: string; value: string }>
   placeholder?: string
 }) {
+  const { t: tc } = useTranslation('common')
   return (
     <Select
       value={value || '__all__'}
       onValueChange={(v) => onChange(v === '__all__' ? '' : v)}
     >
       <SelectTrigger className="h-8 text-sm">
-        <SelectValue placeholder={placeholder || 'Select...'} />
+        <SelectValue
+          placeholder={placeholder || tc('placeholders.selectGeneric')}
+        />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="__all__">All</SelectItem>
+        <SelectItem value="__all__">{tc('filters.all')}</SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
@@ -277,6 +281,7 @@ export function RangeFilterContent({
   onChange: (value: RangeFilterValue) => void
   onClose: () => void
 }) {
+  const { t: tc } = useTranslation('common')
   const [localMin, setLocalMin] = useState(value.min?.toString() || '')
   const [localMax, setLocalMax] = useState(value.max?.toString() || '')
 
@@ -300,7 +305,7 @@ export function RangeFilterContent({
           type="number"
           value={localMin}
           onChange={(e) => setLocalMin(e.target.value)}
-          placeholder="No min"
+          placeholder={tc('placeholders.noMin')}
           className="h-8 text-sm"
         />
       </div>
@@ -310,12 +315,12 @@ export function RangeFilterContent({
           type="number"
           value={localMax}
           onChange={(e) => setLocalMax(e.target.value)}
-          placeholder="No max"
+          placeholder={tc('placeholders.noMax')}
           className="h-8 text-sm"
         />
       </div>
       <Button size="sm" className="w-full h-8 text-xs" onClick={handleApply}>
-        Apply
+        {tc('actions.apply')}
       </Button>
     </div>
   )

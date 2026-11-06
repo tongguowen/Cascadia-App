@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Check, CheckCheck, Clock, X } from 'lucide-react'
 import type { WorkInstructionChangeAlert } from '@cascadia/commons/items/types/work-instruction'
@@ -29,8 +30,18 @@ export function ChangeAlertPanel({
   onError,
   onSuccess,
 }: ChangeAlertPanelProps) {
+  const { t: tp } = useTranslation('pages')
+  const alertT = (key: string, options?: Record<string, unknown>) =>
+    tp(`workInstructions.alerts.${key}`, options)
   const [filter, setFilter] = useState<string | null>(null)
   const invalidate = useInvalidateResources()
+
+  const filterOptions: Array<{ value: string | null; label: string }> = [
+    { value: null, label: alertT('filterAll') },
+    { value: 'pending', label: alertT('filterPending') },
+    { value: 'acknowledged', label: alertT('filterAcknowledged') },
+    { value: 'dismissed', label: alertT('filterDismissed') },
+  ]
 
   const { data, isPending: loading } = useQuery(
     workInstructionAlertsQuery<WorkInstructionChangeAlert>(
@@ -54,7 +65,9 @@ export function ChangeAlertPanel({
       // work instruction.
       await invalidate('work-instructions')
       onSuccess?.(
-        `Alert ${action === 'acknowledge' ? 'acknowledged' : 'dismissed'}`,
+        action === 'acknowledge'
+          ? alertT('toastAcknowledged')
+          : alertT('toastDismissed'),
       )
     } catch (error) {
       onError?.(error as Error)
@@ -69,26 +82,14 @@ export function ChangeAlertPanel({
       )
       await invalidate('work-instructions')
       const acknowledged = result.data?.acknowledged ?? 0
-      onSuccess?.(
-        `${acknowledged} alert${acknowledged !== 1 ? 's' : ''} acknowledged`,
-      )
+      onSuccess?.(alertT('toastBulk', { count: acknowledged }))
     } catch (error) {
       onError?.(error as Error)
     }
   }
 
-  const getChangeTypeLabel = (type: string) => {
-    switch (type) {
-      case 'part_modified':
-        return 'Part Modified'
-      case 'part_obsoleted':
-        return 'Part Obsoleted'
-      case 'parametric_stale':
-        return 'Parametric Stale'
-      default:
-        return type
-    }
-  }
+  const getChangeTypeLabel = (type: string) =>
+    alertT(`changeType.${type}`, { defaultValue: type })
 
   const getChangeTypeBadge = (type: string) => {
     switch (type) {
@@ -123,49 +124,53 @@ export function ChangeAlertPanel({
           <div>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Change Alerts
+              {alertT('title')}
               {counts.pending > 0 && (
-                <Badge variant="warning">{counts.pending} pending</Badge>
+                <Badge variant="warning">
+                  {alertT('pendingBadge', { count: counts.pending })}
+                </Badge>
               )}
             </CardTitle>
-            <CardDescription>
-              Notifications when linked parts are modified by ECOs
-            </CardDescription>
+            <CardDescription>{alertT('description')}</CardDescription>
           </div>
           {counts.pending > 0 && (
             <Button variant="outline" size="sm" onClick={handleBulkAcknowledge}>
               <CheckCheck className="h-4 w-4 mr-2" />
-              Acknowledge All
+              {alertT('acknowledgeAll')}
             </Button>
           )}
         </div>
 
         {/* Filter tabs */}
         <div className="flex gap-2 mt-4">
-          {[null, 'pending', 'acknowledged', 'dismissed'].map((f) => (
+          {filterOptions.map(({ value, label }) => (
             <button
-              key={f || 'all'}
+              key={value ?? 'all'}
               className={cn(
                 'text-xs px-3 py-1 rounded-full transition-colors',
-                filter === f
+                filter === value
                   ? 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 dark:bg-slate-800 dark:text-slate-400',
               )}
-              onClick={() => setFilter(f)}
+              onClick={() => setFilter(value)}
             >
-              {f ? f.charAt(0).toUpperCase() + f.slice(1) : 'All'}
+              {label}
             </button>
           ))}
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-slate-500 text-center py-4">Loading alerts...</p>
+          <p className="text-slate-500 text-center py-4">{alertT('loading')}</p>
         ) : alerts.length === 0 ? (
           <p className="text-slate-500 text-center py-8">
             {filter
-              ? `No ${filter} alerts.`
-              : 'No change alerts for this work instruction.'}
+              ? alertT('emptyFilter', {
+                  status:
+                    filterOptions.find((o) => o.value === filter)?.label ??
+                    filter,
+                })
+              : alertT('emptyAll')}
           </p>
         ) : (
           <div className="space-y-3">
@@ -198,12 +203,14 @@ export function ChangeAlertPanel({
                   </div>
                   {alert.changedFields && alert.changedFields.length > 0 && (
                     <p className="text-xs text-slate-500 mb-1">
-                      Changed: {alert.changedFields.join(', ')}
+                      {alertT('changedFields', {
+                        fields: alert.changedFields.join(', '),
+                      })}
                     </p>
                   )}
                   {alert.eco && (
                     <p className="text-xs text-slate-400">
-                      ECO: {alert.eco.itemNumber}
+                      {alertT('ecoLine', { itemNumber: alert.eco.itemNumber })}
                       {alert.eco.name ? ` - ${alert.eco.name}` : ''}
                     </p>
                   )}
@@ -222,7 +229,7 @@ export function ChangeAlertPanel({
                       onClick={() => handleAction(alert.id, 'acknowledge')}
                     >
                       <Check className="h-3 w-3 mr-1" />
-                      Ack
+                      {alertT('ack')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -231,7 +238,7 @@ export function ChangeAlertPanel({
                       onClick={() => handleAction(alert.id, 'dismiss')}
                     >
                       <X className="h-3 w-3 mr-1" />
-                      Dismiss
+                      {alertT('dismiss')}
                     </Button>
                   </div>
                 )}

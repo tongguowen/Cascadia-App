@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   CheckCircle2,
   GitBranch,
@@ -41,7 +42,9 @@ export function ImportProgressStep({
   bomRelationships,
   onComplete,
 }: ImportProgressStepProps) {
+  const { t: tp } = useTranslation('pages')
   const config = getImportConfig(itemType)
+  const itemsLower = config.pluralLabel.toLowerCase()
   const [status, setStatus] = useState<ImportStatus>('idle')
   const [progress, setProgress] = useState(0)
   const [result, setResult] = useState<BomImportResult | null>(null)
@@ -186,7 +189,11 @@ export function ImportProgressStep({
     },
     onError: (err: unknown) => {
       setStatus('error')
-      setError(err instanceof Error ? err.message : 'Import failed')
+      setError(
+        err instanceof Error
+          ? err.message
+          : tp('import.progress.importFailedGeneric'),
+      )
     },
   })
 
@@ -210,15 +217,18 @@ export function ImportProgressStep({
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-12 w-12 text-cyan-600 dark:text-cyan-400 animate-spin mb-6" />
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-          Importing {config.pluralLabel.toLowerCase()}...
+          {tp('import.progress.importing', { items: itemsLower })}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-          Creating {validRows.length} {itemLabel} in the system
+          {tp('import.progress.creating', {
+            count: validRows.length,
+            itemLabel,
+          })}
           {hasBomRelationships && (
             <span>
-              {' '}
-              and {bomRelationships.length} BOM relationship
-              {bomRelationships.length > 1 ? 's' : ''}
+              {tp('import.progress.bomRelationships', {
+                count: bomRelationships.length,
+              })}
             </span>
           )}
         </p>
@@ -235,7 +245,7 @@ export function ImportProgressStep({
       <div className="flex flex-col items-center justify-center py-12">
         <XCircle className="h-12 w-12 text-red-500 mb-6" />
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-          Import failed
+          {tp('import.progress.failed')}
         </h3>
         <p className="text-sm text-red-600 dark:text-red-400 max-w-md text-center">
           {error}
@@ -265,15 +275,18 @@ export function ImportProgressStep({
             <PartyPopper className="h-6 w-6 text-amber-500 absolute -top-1 -right-1 animate-bounce" />
           </div>
           <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            Import complete!
+            {tp('import.progress.complete')}
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-6">
-            Successfully created {result.successCount} {successLabel}
+            {tp('import.progress.successCreated', {
+              count: result.successCount,
+              itemLabel: successLabel,
+            })}
             {result.relationshipsCreated > 0 && (
               <span>
-                {' '}
-                and {result.relationshipsCreated} BOM relationship
-                {result.relationshipsCreated > 1 ? 's' : ''}
+                {tp('import.progress.bomCreated', {
+                  count: result.relationshipsCreated,
+                })}
               </span>
             )}
           </p>
@@ -282,16 +295,21 @@ export function ImportProgressStep({
         <>
           <CheckCircle2 className="h-16 w-16 text-amber-500 mb-6" />
           <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            Import completed with some issues
+            {tp('import.progress.completedWithIssues')}
           </h3>
           <p className="text-slate-600 dark:text-slate-400 mb-6">
-            Created {result?.successCount || 0} of {result?.totalRows || 0}{' '}
-            {config.pluralLabel.toLowerCase()}
-            {hasRelationshipResults && (
+            {tp('import.progress.partialCreated', {
+              success: result?.successCount || 0,
+              total: result?.totalRows || 0,
+              items: itemsLower,
+            })}
+            {hasRelationshipResults && result && (
               <span>
-                , {result.relationshipsCreated} of{' '}
-                {result.relationshipsCreated + result.relationshipsFailed}{' '}
-                relationships
+                {tp('import.progress.partialRelationships', {
+                  created: result.relationshipsCreated,
+                  total:
+                    result.relationshipsCreated + result.relationshipsFailed,
+                })}
               </span>
             )}
           </p>
@@ -307,11 +325,13 @@ export function ImportProgressStep({
               <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
               <div>
                 <p className="font-medium text-green-800 dark:text-green-200">
-                  {result.successCount}{' '}
-                  {result.successCount === 1
-                    ? config.singularLabel.toLowerCase()
-                    : config.pluralLabel.toLowerCase()}{' '}
-                  created
+                  {tp('import.progress.createdSummary', {
+                    count: result.successCount,
+                    itemLabel:
+                      result.successCount === 1
+                        ? config.singularLabel.toLowerCase()
+                        : config.pluralLabel.toLowerCase(),
+                  })}
                 </p>
                 {result.createdItems.length > 0 && (
                   <div className="mt-2 max-h-32 overflow-y-auto">
@@ -327,7 +347,9 @@ export function ImportProgressStep({
                       ))}
                       {result.createdItems.length > 10 && (
                         <Badge variant="outline" className="text-xs">
-                          +{result.createdItems.length - 10} more
+                          {tp('import.progress.moreItems', {
+                            count: result.createdItems.length - 10,
+                          })}
                         </Badge>
                       )}
                     </div>
@@ -344,18 +366,26 @@ export function ImportProgressStep({
                 <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                 <div>
                   <p className="font-medium text-red-800 dark:text-red-200">
-                    {result.errorCount} row{result.errorCount > 1 ? 's' : ''}{' '}
-                    failed
+                    {tp('import.progress.rowsFailed', {
+                      count: result.errorCount,
+                    })}
                   </p>
                   <div className="mt-2 max-h-32 overflow-y-auto">
                     <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                       {result.failedRows.slice(0, 5).map((failed) => (
                         <li key={failed.rowNumber}>
-                          Row {failed.rowNumber}: {failed.errors.join(', ')}
+                          {tp('import.progress.rowError', {
+                            row: failed.rowNumber,
+                            errors: failed.errors.join(', '),
+                          })}
                         </li>
                       ))}
                       {result.failedRows.length > 5 && (
-                        <li>...and {result.failedRows.length - 5} more</li>
+                        <li>
+                          {tp('import.progress.andMoreFailed', {
+                            count: result.failedRows.length - 5,
+                          })}
+                        </li>
                       )}
                     </ul>
                   </div>
@@ -370,8 +400,9 @@ export function ImportProgressStep({
               <div className="flex items-center gap-3">
                 <GitBranch className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <p className="font-medium text-blue-800 dark:text-blue-200">
-                  {result.relationshipsCreated} BOM relationship
-                  {result.relationshipsCreated > 1 ? 's' : ''} created
+                  {tp('import.progress.bomCreatedSummary', {
+                    count: result.relationshipsCreated,
+                  })}
                 </p>
               </div>
             </div>
@@ -384,8 +415,9 @@ export function ImportProgressStep({
                 <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
                 <div>
                   <p className="font-medium text-red-800 dark:text-red-200">
-                    {result.relationshipsFailed} BOM relationship
-                    {result.relationshipsFailed > 1 ? 's' : ''} failed
+                    {tp('import.progress.bomFailedSummary', {
+                      count: result.relationshipsFailed,
+                    })}
                   </p>
                   <div className="mt-2 max-h-32 overflow-y-auto">
                     <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
@@ -393,13 +425,18 @@ export function ImportProgressStep({
                         .slice(0, 5)
                         .map((failed, i) => (
                           <li key={i}>
-                            {failed.parentItemNumber} → {failed.childItemNumber}
-                            : {failed.error}
+                            {tp('import.progress.relationshipError', {
+                              parent: failed.parentItemNumber,
+                              child: failed.childItemNumber,
+                              error: failed.error,
+                            })}
                           </li>
                         ))}
                       {result.failedRelationships.length > 5 && (
                         <li>
-                          ...and {result.failedRelationships.length - 5} more
+                          {tp('import.progress.andMoreFailed', {
+                            count: result.failedRelationships.length - 5,
+                          })}
                         </li>
                       )}
                     </ul>

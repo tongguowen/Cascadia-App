@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -98,6 +99,8 @@ export const Route = createFileRoute('/issues/')({
 })
 
 function IssuesListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -133,10 +136,12 @@ function IssuesListPage() {
     if (!issue.id) return
 
     confirm({
-      title: 'Delete Issue',
-      description: `Are you sure you want to delete ${issue.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('issues.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: issue.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -144,10 +149,13 @@ function IssuesListPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Issue deleted', `${issue.itemNumber} has been deleted`)
+          showSuccess(
+            t('issues.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: issue.itemNumber }),
+          )
           await invalidate('issues')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete issue' })
+          handleError(error, { title: t('issues.deleteFailed') })
         }
       },
     })
@@ -176,7 +184,7 @@ function IssuesListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Issues
+              {t('issues.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -185,9 +193,11 @@ function IssuesListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Track and manage quality issues, defects, and problems
+            {t('issues.subtitle')}
             {selectedDesign && (
-              <span className="text-slate-500"> in {selectedDesign.name}</span>
+              <span className="text-slate-500">
+                {tc('context.inDesign', { designName: selectedDesign.name })}
+              </span>
             )}
           </p>
         </div>
@@ -206,7 +216,7 @@ function IssuesListPage() {
           >
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create Issue
+              {t('issues.create')}
             </Button>
           </Link>
         </div>
@@ -217,18 +227,18 @@ function IssuesListPage() {
         itemType="Issue"
         filters={filters}
         total={total}
-        totalLabel="Total Issues"
+        totalLabel={t('issues.total')}
       />
 
       {/* Issues Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Issues</CardTitle>
+          <CardTitle>{t('issues.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'issue' : 'issues'} in the system
+            {t('issues.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, PlayCircle, Trash2 } from 'lucide-react'
 import type { WorkInstruction } from '@cascadia/commons/items/types/work-instruction'
 import type { DataGridColumn } from '@/components/ui'
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface WorkInstructionTableProps {
   items: Array<WorkInstruction>
@@ -48,20 +50,21 @@ export function WorkInstructionTable({
 }: WorkInstructionTableProps) {
   // State filter options and badges come from the WorkInstruction lifecycle's
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
   const { data: lifecycle } = useLifecyclePhases('WorkInstruction')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<WorkInstruction>> = [
     {
       id: 'itemNumber',
-      header: 'WI Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -77,17 +80,17 @@ export function WorkInstructionTable({
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: t('columns.rev'),
       accessorKey: 'revision',
       enableSorting: true,
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => {
         const value = getValue() as string
         return (
@@ -99,7 +102,7 @@ export function WorkInstructionTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -110,26 +113,39 @@ export function WorkInstructionTable({
     },
     {
       id: 'difficulty',
-      header: 'Difficulty',
+      header: t('columns.difficulty'),
       accessorKey: 'difficulty',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Easy', value: 'Easy' },
-        { label: 'Medium', value: 'Medium' },
-        { label: 'Hard', value: 'Hard' },
+        {
+          label: t('enum.workInstructionDifficulty.Easy'),
+          value: 'Easy',
+        },
+        {
+          label: t('enum.workInstructionDifficulty.Medium'),
+          value: 'Medium',
+        },
+        {
+          label: t('enum.workInstructionDifficulty.Hard'),
+          value: 'Hard',
+        },
       ],
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         if (!value) return '-'
         return (
-          <Badge variant={difficultyColors[value] || 'default'}>{value}</Badge>
+          <Badge variant={difficultyColors[value] || 'default'}>
+            {t(`enum.workInstructionDifficulty.${value}`, {
+              defaultValue: value,
+            })}
+          </Badge>
         )
       },
     },
     {
       id: 'estimatedTime',
-      header: 'Est. Time',
+      header: t('columns.estTime'),
       accessorKey: 'estimatedTime',
       enableSorting: true,
       cell: ({ getValue }) => formatTime(getValue() as number | undefined),
@@ -147,7 +163,7 @@ export function WorkInstructionTable({
               className="h-8 w-8 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             >
               <MoreVertical className="h-4 w-4" />
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('actions.openMenu')}</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -159,20 +175,20 @@ export function WorkInstructionTable({
                   className="flex items-center cursor-pointer"
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  View
+                  {t('actions.view')}
                 </Link>
               </DropdownMenuItem>
             )}
             {onPresent && row.original.id && (
               <DropdownMenuItem onClick={() => onPresent(row.original)}>
                 <PlayCircle className="mr-2 h-4 w-4" />
-                Present
+                {t('actions.present')}
               </DropdownMenuItem>
             )}
             {onEdit && (
               <DropdownMenuItem onClick={() => onEdit(row.original)}>
                 <Edit className="mr-2 h-4 w-4" />
-                Edit
+                {t('actions.edit')}
               </DropdownMenuItem>
             )}
             {onDelete && (
@@ -183,7 +199,7 @@ export function WorkInstructionTable({
                   className="text-red-600 dark:text-red-400"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
+                  {t('actions.delete')}
                 </DropdownMenuItem>
               </>
             )}

@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import type { TestCase } from '@cascadia/commons/items/types/testcase'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface TestCaseTableProps {
   testCases: Array<TestCase>
@@ -53,20 +55,21 @@ export function TestCaseTable({
 }: TestCaseTableProps) {
   // State filter options and badges come from the TestCase lifecycle's
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
   const { data: lifecycle } = useLifecyclePhases('TestCase')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<TestCase>> = [
     {
       id: 'itemNumber',
-      header: 'Item Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -82,22 +85,22 @@ export function TestCaseTable({
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: t('columns.rev'),
       accessorKey: 'revision',
       enableSorting: true,
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'testType',
-      header: 'Type',
+      header: t('columns.type'),
       accessorKey: 'testType',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -111,7 +114,7 @@ export function TestCaseTable({
     },
     {
       id: 'executionStatus',
-      header: 'Result',
+      header: t('columns.result'),
       accessorKey: 'executionStatus',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -132,7 +135,7 @@ export function TestCaseTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -153,7 +156,7 @@ export function TestCaseTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -161,14 +164,14 @@ export function TestCaseTable({
             <DropdownMenuItem asChild>
               <Link to="/test-cases/$id" params={{ id: testCase.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(testCase)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -179,7 +182,7 @@ export function TestCaseTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -199,7 +202,7 @@ export function TestCaseTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(testCase)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -210,7 +213,7 @@ export function TestCaseTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Check,
@@ -43,6 +44,8 @@ export function ApprovalStatusPanel({
   changeOrderId,
   changeOrderNumber,
 }: ApprovalStatusPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const invalidate = useInvalidateResources()
   const { data, isLoading } = useQuery(changeOrderApprovalsQuery(changeOrderId))
   // `null` means untouched, so the current state stays open by default.
@@ -82,7 +85,9 @@ export function ApprovalStatusPanel({
         <CardContent className="py-8">
           <div className="flex items-center justify-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-            <span className="text-slate-500">Loading approvals...</span>
+            <span className="text-slate-500">
+              {tp('changeOrders.approval.loadingApprovals')}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -94,7 +99,7 @@ export function ApprovalStatusPanel({
       <Card>
         <CardContent className="py-8">
           <p className="text-center text-slate-500 dark:text-slate-400">
-            No approval information available
+            {tp('changeOrders.approval.noApprovalInfo')}
           </p>
         </CardContent>
       </Card>
@@ -113,9 +118,9 @@ export function ApprovalStatusPanel({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Approvals</CardTitle>
+          <CardTitle>{tc('sections.approvals')}</CardTitle>
           <CardDescription>
-            Review and submit approvals for each workflow state
+            {tp('changeOrders.form.approvalWorkflowDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -195,6 +200,7 @@ function StateApprovalSection({
   onToggle,
   onApprove,
 }: StateApprovalSectionProps) {
+  const { t: tc } = useTranslation('common')
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div
@@ -219,17 +225,17 @@ function StateApprovalSection({
               </span>
               {isCurrentState && (
                 <Badge variant="default" className="text-xs">
-                  Current
+                  {tc('badges.current')}
                 </Badge>
               )}
               {isCompleted && (
                 <Badge variant="success" className="text-xs">
-                  Completed
+                  {tc('badges.completed')}
                 </Badge>
               )}
               {isUpcoming && (
                 <Badge variant="secondary" className="text-xs">
-                  Upcoming
+                  {tc('badges.upcoming')}
                 </Badge>
               )}
             </div>
@@ -258,7 +264,7 @@ function StateApprovalSection({
                 {state.requiredApprovers.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                      Required Approvals
+                      {tc('sections.requiredApprovals')}
                     </h4>
                     {state.requiredApprovers.map((approver, idx) => (
                       <ApproverRow key={idx} approver={approver} />
@@ -270,7 +276,7 @@ function StateApprovalSection({
                 {state.optionalApprovers.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                      Optional Approvals
+                      {tc('sections.optionalApprovals')}
                     </h4>
                     {state.optionalApprovers.map((approver, idx) => (
                       <ApproverRow key={idx} approver={approver} />
@@ -283,7 +289,7 @@ function StateApprovalSection({
                   <div className="pt-2 border-t border-slate-300 dark:border-slate-700">
                     <Button size="sm" onClick={onApprove}>
                       <Check className="h-4 w-4 mr-2" />
-                      Submit Approval
+                      {tc('actions.submitApproval')}
                     </Button>
                   </div>
                 )}
@@ -292,7 +298,7 @@ function StateApprovalSection({
                 {isCurrentState && canApprove?.alreadyVoted && (
                   <div className="pt-2 border-t border-slate-300 dark:border-slate-700">
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      You have already voted:{' '}
+                      {tc('messages.alreadyVoted')}{' '}
                       <Badge
                         variant={
                           canApprove.existingVote === 'approved'

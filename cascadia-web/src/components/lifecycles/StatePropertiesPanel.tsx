@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { StateApproversPanel } from './StateApproversPanel'
 import type { LifecycleState } from '@cascadia/commons/lifecycles/types'
 import type { LifecyclePhaseConfig } from '@cascadia/commons/types/lifecycle'
@@ -48,6 +49,8 @@ export function StatePropertiesPanel({
   workflowDefinitionId,
   phases,
 }: StatePropertiesPanelProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   // Helper to update state and immediately propagate changes
   const handleChange = (updates: Partial<LifecycleState>) => {
     onUpdate({ ...state, ...updates })
@@ -57,7 +60,9 @@ export function StatePropertiesPanel({
     <Card className="w-80 shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">State Properties</CardTitle>
+          <CardTitle className="text-base">
+            {tc('sections.stateProperties')}
+          </CardTitle>
           <Button
             type="button"
             variant="ghost"
@@ -73,7 +78,7 @@ export function StatePropertiesPanel({
         {/* State ID (readonly) */}
         <div className="space-y-1.5">
           <Label htmlFor="stateId" className="text-xs">
-            State ID
+            {tc('fields.stateId')}
           </Label>
           <Input
             id="stateId"
@@ -86,20 +91,20 @@ export function StatePropertiesPanel({
         {/* State Name */}
         <div className="space-y-1.5">
           <Label htmlFor="stateName" className="text-xs">
-            Name
+            {tc('fields.name')}
           </Label>
           <Input
             id="stateName"
             value={state.name}
             onChange={(e) => handleChange({ name: e.target.value })}
             className="h-8 text-sm"
-            placeholder="e.g., Draft, Released"
+            placeholder={tp('lifecycles.statePanel.namePlaceholder')}
           />
         </div>
 
         {/* Color */}
         <div className="space-y-1.5">
-          <Label className="text-xs">Color</Label>
+          <Label className="text-xs">{tc('fields.color')}</Label>
           <Select
             value={state.color || 'gray'}
             onValueChange={(value) => handleChange({ color: value })}
@@ -123,7 +128,7 @@ export function StatePropertiesPanel({
         {/* Phase */}
         {phases && phases.length > 0 && (
           <div className="space-y-1.5">
-            <Label className="text-xs">Phase</Label>
+            <Label className="text-xs">{tc('fields.phase')}</Label>
             <Select
               value={state.phaseId || '__unassigned__'}
               onValueChange={(value) =>
@@ -136,7 +141,9 @@ export function StatePropertiesPanel({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__unassigned__">Unassigned</SelectItem>
+                <SelectItem value="__unassigned__">
+                  {tc('labels.unassigned')}
+                </SelectItem>
                 {phases.map((phase) => (
                   <SelectItem key={phase.id} value={phase.id}>
                     <div className="flex items-center gap-2">
@@ -155,20 +162,20 @@ export function StatePropertiesPanel({
         {/* Description */}
         <div className="space-y-1.5">
           <Label htmlFor="stateDescription" className="text-xs">
-            Description
+            {tc('fields.description')}
           </Label>
           <textarea
             id="stateDescription"
             value={state.description || ''}
             onChange={(e) => handleChange({ description: e.target.value })}
             className="w-full h-20 px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
-            placeholder="What does this state represent?"
+            placeholder={tp('lifecycles.statePanel.descriptionPlaceholder')}
           />
         </div>
 
         {/* State Type Flags */}
         <div className="space-y-2">
-          <Label className="text-xs">State Type</Label>
+          <Label className="text-xs">{tc('fields.stateType')}</Label>
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2">
               <input
@@ -218,7 +225,7 @@ export function StatePropertiesPanel({
             workflows fail closed without it — never inferred from the name. */}
         {state.isFinal && (
           <div className="space-y-1.5">
-            <Label className="text-xs">On Completion</Label>
+            <Label className="text-xs">{tc('fields.onCompletion')}</Label>
             <Select
               value={state.finalKind ?? ''}
               onValueChange={(value) =>
@@ -228,7 +235,9 @@ export function StatePropertiesPanel({
               }
             >
               <SelectTrigger className="h-8 text-sm">
-                <SelectValue placeholder="Choose release or cancel…" />
+                <SelectValue
+                  placeholder={tp('lifecycles.statePanel.chooseReleaseOrCancel')}
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="release">

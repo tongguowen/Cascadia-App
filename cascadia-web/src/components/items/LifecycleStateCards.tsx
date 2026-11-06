@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { ItemFilters } from '@/query'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui'
+import { translateStateName } from '@/i18n'
 import { itemCountsQuery, lifecycleByItemTypeQuery } from '@/query'
 
 interface LifecycleStateCardsProps {
@@ -56,7 +57,7 @@ export function LifecycleStateCards({
       {states.map((state) => (
         <Card key={state.id}>
           <CardHeader className="pb-3">
-            <CardDescription>{state.name}</CardDescription>
+            <CardDescription>{translateStateName(state.name)}</CardDescription>
             <CardTitle className="text-3xl">
               {counts?.[state.id] ?? 0}
             </CardTitle>

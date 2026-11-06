@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { z } from 'zod'
@@ -27,6 +28,8 @@ export const Route = createFileRoute('/issues/new')({
 })
 
 function NewIssuePage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -58,7 +61,7 @@ function NewIssuePage() {
 
       navigate({ to: '/issues/$id', params: { id: result.data.item.id! } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create issue' })
+      handleError(error, { title: tp('issues.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)

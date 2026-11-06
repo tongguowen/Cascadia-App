@@ -16,6 +16,7 @@ import {
   familyNumberingConfig,
   numberingSchemes,
 } from '@cascadia/commons/items/numbering/schemes'
+import i18n from '@/i18n'
 import type {
   NumberSegment,
   SequenceScope,

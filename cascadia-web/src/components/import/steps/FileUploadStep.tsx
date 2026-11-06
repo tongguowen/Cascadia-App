@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertCircle, Download, FileSpreadsheet, Upload, X } from 'lucide-react'
 import {
   ACCEPTED_EXTENSIONS,
@@ -39,7 +40,10 @@ export function FileUploadStep({
   onChange,
   onClear,
 }: FileUploadStepProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const config = getImportConfig(itemType)
+  const itemsLabel = config.pluralLabel.toLowerCase()
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -92,9 +96,7 @@ export function FileUploadStep({
       if (err instanceof ParseError) {
         setError(err.message)
       } else {
-        setError(
-          'Failed to parse file. Please ensure it is a valid Excel or CSV file.',
-        )
+        setError(tp('import.fileUpload.parseFailed'))
       }
     } finally {
       setIsProcessing(false)
@@ -124,27 +126,32 @@ export function FileUploadStep({
         `${config.pluralLabel.toLowerCase()}-import-template.csv`,
       )
     } catch {
-      setError('Failed to download template')
+      setError(tp('import.fileUpload.templateDownloadFailed'))
     }
   }
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes'
+    if (bytes === 0) return tc('fileSize.zero')
     const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const sizes = tc('fileSize.byteUnits', {
+      returnObjects: true,
+    }) as Array<string>
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+    return (
+      Math.round((bytes / Math.pow(k, i)) * 100) / 100 +
+      ' ' +
+      (sizes[i] ?? sizes[sizes.length - 1])
+    )
   }
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Upload your {config.pluralLabel.toLowerCase()} file
+          {tp('import.fileUpload.title', { items: itemsLabel })}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Excel (.xlsx) or CSV files are supported. Maximum {MAX_IMPORT_ROWS}{' '}
-          rows.
+          {tp('import.fileUpload.subtitle', { maxRows: MAX_IMPORT_ROWS })}
         </p>
       </div>
 
@@ -157,7 +164,7 @@ export function FileUploadStep({
           className="text-cyan-600 dark:text-cyan-400"
         >
           <Download className="h-4 w-4 mr-2" />
-          Download Template
+          {tp('import.fileUpload.downloadTemplate')}
         </Button>
       </div>
 
@@ -181,18 +188,20 @@ export function FileUploadStep({
             <>
               <div className="w-12 h-12 mx-auto mb-4 animate-spin rounded-full border-4 border-slate-300 dark:border-slate-700 border-t-cyan-600" />
               <p className="text-lg font-medium text-slate-900 dark:text-white">
-                Processing file...
+                {tp('import.fileUpload.processing')}
               </p>
             </>
           ) : (
             <>
               <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
               <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-                Drop your file here or click to browse
+                {tp('import.fileUpload.dropHint')}
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Supported: {ACCEPTED_EXTENSIONS.join(', ')} | Max size:{' '}
-                {formatFileSize(MAX_FILE_SIZE)}
+                {tp('import.fileUpload.supported', {
+                  extensions: ACCEPTED_EXTENSIONS.join(', '),
+                  maxSize: formatFileSize(MAX_FILE_SIZE),
+                })}
               </p>
             </>
           )}
@@ -218,10 +227,12 @@ export function FileUploadStep({
               <div className="flex items-center gap-3 mt-2">
                 <Badge variant="outline">{value.fileType.toUpperCase()}</Badge>
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  {value.totalRows} rows
+                  {tp('import.fileUpload.rows', { count: value.totalRows })}
                 </span>
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  {value.headers.length} columns
+                  {tp('import.fileUpload.columns', {
+                    count: value.headers.length,
+                  })}
                 </span>
               </div>
             </div>
@@ -240,7 +251,7 @@ export function FileUploadStep({
           {/* Preview of first few rows */}
           <div className="mt-4 overflow-x-auto">
             <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-              Preview (first 3 rows):
+              {tp('import.fileUpload.previewTitle')}
             </div>
             <table className="w-full text-sm">
               <thead>
@@ -255,7 +266,9 @@ export function FileUploadStep({
                   ))}
                   {value.headers.length > 6 && (
                     <th className="px-2 py-1 text-left text-slate-400">
-                      +{value.headers.length - 6} more
+                      {tp('import.fileUpload.moreColumns', {
+                        count: value.headers.length - 6,
+                      })}
                     </th>
                   )}
                 </tr>
@@ -292,7 +305,7 @@ export function FileUploadStep({
             <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <p className="font-medium text-red-800 dark:text-red-200">
-                Error processing file
+                {tp('import.fileUpload.errorTitle')}
               </p>
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>

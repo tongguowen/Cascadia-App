@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { GitMerge, Loader2 } from 'lucide-react'
 import {
@@ -48,6 +49,7 @@ export function MergeToChangeOrderDialog({
   itemCount,
   onSuccess,
 }: MergeToChangeOrderDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const [selectedChangeOrderId, setSelectedChangeOrderId] = useState<string>('')
   const [deleteWorkspace, setDeleteWorkspace] = useState(false)
@@ -61,9 +63,12 @@ export function MergeToChangeOrderDialog({
 
   const handleMerge = async () => {
     if (!selectedChangeOrderId) {
-      handleError(new Error('Please select a change order'), {
-        title: 'Validation Error',
-      })
+      handleError(
+        new Error(tc('dialogs.mergeToChangeOrder.selectChangeOrderRequired')),
+        {
+          title: tc('dialogs.mergeToChangeOrder.validationTitle'),
+        },
+      )
       return
     }
 
@@ -87,9 +92,21 @@ export function MergeToChangeOrderDialog({
       const changeOrder = changeOrders.find(
         (e) => e.id === selectedChangeOrderId,
       )
+      const alreadyPresentSuffix =
+        response.data.itemsSkipped > 0
+          ? tc('dialogs.mergeToChangeOrder.alreadyPresentSuffix', {
+              count: response.data.itemsSkipped,
+            })
+          : ''
+
       showSuccess(
-        'Workspace merged into the change order',
-        `Added ${response.data.itemsAdded} item${response.data.itemsAdded !== 1 ? 's' : ''} to ${changeOrder?.itemNumber || 'ECO'}${response.data.itemsSkipped > 0 ? ` (${response.data.itemsSkipped} already present)` : ''}`,
+        tc('dialogs.mergeToChangeOrder.successTitle'),
+        tc('dialogs.mergeToChangeOrder.successDescription', {
+          count: response.data.itemsAdded,
+          changeOrderNumber:
+            changeOrder?.itemNumber ??
+            tc('dialogs.mergeToChangeOrder.unknownChangeOrder'),
+        }) + alreadyPresentSuffix,
       )
 
       onOpenChange(false)
@@ -98,7 +115,7 @@ export function MergeToChangeOrderDialog({
       onSuccess?.(response.data.ecoId)
     } catch (error) {
       handleError(error, {
-        title: 'Failed to merge the workspace into the change order',
+        title: tc('dialogs.mergeToChangeOrder.failedTitle'),
       })
     } finally {
       setIsSubmitting(false)
@@ -115,11 +132,15 @@ export function MergeToChangeOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitMerge className="h-5 w-5" />
-            Merge to Existing Change Order
+            {tc('dialogs.mergeToChangeOrder.title')}
           </DialogTitle>
           <DialogDescription>
-            Merge {itemCount} item{itemCount !== 1 ? 's' : ''} from workspace{' '}
-            <strong>{workspaceName}</strong> into an existing change order.
+            <Trans
+              i18nKey="dialogs.mergeToChangeOrder.description"
+              count={itemCount}
+              values={{ workspaceName, count: itemCount }}
+              components={{ strong: <strong /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -128,38 +149,46 @@ export function MergeToChangeOrderDialog({
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
               <span className="ml-2 text-slate-500">
-                Loading change orders...
+                {tc('dialogs.mergeToChangeOrder.loadingChangeOrders')}
               </span>
             </div>
           ) : changeOrders.length === 0 ? (
             <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                No editable change orders found for this design. Change orders
-                cannot accept items once their scope is locked.
+                {tc('dialogs.mergeToChangeOrder.noEditableHint')}
               </p>
               <p className="text-sm text-amber-800 dark:text-amber-200 mt-2">
-                Consider converting this workspace to a new change order
-                instead.
+                {tc('dialogs.mergeToChangeOrder.convertInsteadHint')}
               </p>
             </div>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="eco-select">Select Change Order *</Label>
+                <Label htmlFor="eco-select">
+                  {tc('dialogs.mergeToChangeOrder.selectChangeOrderLabel')}
+                </Label>
                 <Select
                   value={selectedChangeOrderId}
                   onValueChange={setSelectedChangeOrderId}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a change order">
+                    <SelectValue
+                      placeholder={tc(
+                        'dialogs.mergeToChangeOrder.selectChangeOrderPlaceholder',
+                      )}
+                    >
                       {selectedChangeOrder
                         ? `${selectedChangeOrder.itemNumber}${selectedChangeOrder.name ? ` - ${selectedChangeOrder.name}` : ''}`
-                        : 'Select change order'}
+                        : tc(
+                            'dialogs.mergeToChangeOrder.selectChangeOrderPlaceholder',
+                          )}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Available change orders</SelectLabel>
+                      <SelectLabel>
+                        {tc('dialogs.mergeToChangeOrder.availableChangeOrders')}
+                      </SelectLabel>
                       {changeOrders.map((changeOrder) => (
                         <SelectItem key={changeOrder.id} value={changeOrder.id}>
                           <div className="flex items-center gap-2">
@@ -217,7 +246,7 @@ export function MergeToChangeOrderDialog({
                   htmlFor="delete-workspace-merge"
                   className="text-sm font-medium leading-none text-slate-900 dark:text-slate-100 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Delete workspace after merge
+                  {tc('dialogs.mergeToChangeOrder.deleteWorkspaceLabel')}
                 </label>
               </div>
             </>
@@ -230,7 +259,7 @@ export function MergeToChangeOrderDialog({
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleMerge}
@@ -244,12 +273,12 @@ export function MergeToChangeOrderDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Merging...
+                {tc('actions.merging')}
               </>
             ) : (
               <>
                 <GitMerge className="h-4 w-4 mr-2" />
-                Merge to Change Order
+                {tc('dialogs.mergeToChangeOrder.mergeButton')}
               </>
             )}
           </Button>

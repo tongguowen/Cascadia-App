@@ -3,6 +3,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { Lock, Unlock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { DesignStatus } from '@/query/options/branches'
 import { Badge } from '@/components/ui'
 import { designStatusQuery } from '@/query/options/branches'
@@ -31,6 +32,7 @@ export function DesignPhaseIndicator({
   showDetails = false,
   status: initialStatus,
 }: DesignPhaseIndicatorProps) {
+  const { t: tp } = useTranslation('pages')
   // A caller that already holds the status passes it in rather than paying for
   // a second request.
   const { data: fetchedStatus, isLoading: loading } = useQuery(
@@ -52,10 +54,9 @@ export function DesignPhaseIndicator({
   const { phase, releasedItemCount, draftItemCount } = status.protection
   const isPreRelease = phase === 'pre-release'
 
-  // Build tooltip text
   const tooltipText = isPreRelease
-    ? `Pre-Release Phase: Create and edit items directly on main branch. ${draftItemCount} draft item(s) ready for release.`
-    : `Change Control Active: Main branch is protected. Use change-order branches to make changes. ${releasedItemCount} item(s) released.`
+    ? tp('designs.preRelease.tooltipPre', { count: draftItemCount })
+    : tp('designs.preRelease.tooltipPost', { count: releasedItemCount })
 
   return (
     <div
@@ -69,18 +70,21 @@ export function DesignPhaseIndicator({
         {isPreRelease ? (
           <>
             <Unlock className="h-3 w-3" />
-            Pre-Release
+            {tp('designs.preRelease.badge')}
           </>
         ) : (
           <>
             <Lock className="h-3 w-3" />
-            Change Control
+            {tp('designs.preRelease.changeControlBadge')}
           </>
         )}
       </Badge>
       {showDetails && (
         <span className="text-xs text-slate-500">
-          {draftItemCount} draft, {releasedItemCount} released
+          {tp('designs.preRelease.phaseDetails', {
+            draft: draftItemCount,
+            released: releasedItemCount,
+          })}
         </span>
       )}
     </div>

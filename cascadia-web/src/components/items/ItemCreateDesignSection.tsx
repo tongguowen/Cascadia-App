@@ -3,6 +3,7 @@
 
 import { Info } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import type { Design } from '@cascadia/commons/types/design'
 import { DesignPhaseIndicator } from '@/components/versioning/DesignPhaseIndicator'
 import { BranchSelector } from '@/components/versioning/BranchSelector'
@@ -18,6 +19,7 @@ interface ItemCreateDesignSectionProps {
   isCreateMode: boolean
   selectedBranchId: string | undefined
   onBranchChange: (branchId: string | undefined) => void
+  /** Localized singular label (e.g. "part" / "零件") for branch notices */
   itemLabel: string
 }
 
@@ -37,6 +39,7 @@ export function ItemCreateDesignSection({
   onBranchChange,
   itemLabel,
 }: ItemCreateDesignSectionProps) {
+  const { t: tc } = useTranslation('common')
   const { data: designStatus = null, isFetching: loadingStatus } = useQuery(
     designStatusQuery(designId ?? '', isCreateMode && Boolean(designId)),
   )
@@ -58,12 +61,12 @@ export function ItemCreateDesignSection({
     <div className="md:col-span-2 space-y-4">
       <div className="flex items-center gap-4">
         <ViewEditSelect
-          label="Design"
+          label={tc('fields.design')}
           value={isEditing ? designId : displayedDesignId}
           onChange={onDesignChange}
           isEditing={isEditing && isCreateMode}
           options={designOptions}
-          placeholder="Select a design..."
+          placeholder={tc('labels.selectDesignEllipsis')}
           required
           data-testid="design-selector"
         />
@@ -75,7 +78,7 @@ export function ItemCreateDesignSection({
       {showBranchSelector && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Target Branch{' '}
+            {tc('fields.targetBranch')}{' '}
             {branchRequired && <span className="text-red-500">*</span>}
           </label>
           <BranchSelector
@@ -84,30 +87,28 @@ export function ItemCreateDesignSection({
             onChange={onBranchChange}
             showMainOption={!branchRequired}
             placeholder={
-              branchRequired ? 'Select branch...' : 'Main branch (default)'
+              branchRequired
+                ? tc('labels.selectBranch')
+                : tc('labels.mainBranchDefault')
             }
           />
           {branchRequired && (
             <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm rounded-md">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>
-                This design is under change control. New {itemLabel} must be
-                created on an ECO or workspace branch.
+                {tc('itemCreate.changeControlNotice', { itemLabel })}
               </span>
             </div>
           )}
           {!branchRequired && !selectedBranchId && (
             <div className="flex items-start gap-2 mt-2 p-3 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm rounded-md">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>
-                No branch selected - {itemLabel} will be created on the main
-                branch. Select a workspace branch for private development work.
-              </span>
+              <span>{tc('itemCreate.mainBranchNotice', { itemLabel })}</span>
             </div>
           )}
           {branchRequired && !selectedBranchId && (
             <p className="text-sm text-red-500">
-              Please select a branch to create this {itemLabel} on
+              {tc('itemCreate.branchSelectRequired', { itemLabel })}
             </p>
           )}
         </div>

@@ -2,11 +2,13 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import type { FinalKind } from '@cascadia/commons/lifecycles/types'
 import { Button } from '@/components/ui'
 import { apiFetch } from '@/api/client'
 import { itemTransitionsQuery } from '@/query'
+import { translateStateName } from '@/i18n'
 
 export interface FreeTransitionOption {
   id: string
@@ -50,6 +52,7 @@ export function FreeTransitionControl({
   transition,
   className,
 }: FreeTransitionControlProps) {
+  const { t: tc } = useTranslation('common')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -73,7 +76,9 @@ export function FreeTransitionControl({
       }
       onTransitioned?.()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Transition failed')
+      setError(
+        e instanceof Error ? e.message : tc('dialogs.freeTransition.failed'),
+      )
     } finally {
       setBusy(false)
     }
@@ -102,7 +107,9 @@ export function FreeTransitionControl({
             }
             disabled={busy}
             onClick={() => run(t)}
-            title={`Transition to ${t.toStateName}`}
+            title={tc('dialogs.freeTransition.transitionTo', {
+              stateName: translateStateName(t.toStateName),
+            })}
           >
             {t.name}
           </Button>

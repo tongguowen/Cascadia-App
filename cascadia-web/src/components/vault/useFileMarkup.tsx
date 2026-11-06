@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { DEFAULT_ANNOTATION_COLOR } from '@cascadia/commons/vault/annotations'
 import type {
@@ -63,6 +64,7 @@ export function useFileMarkup({
   markup: PdfMarkupBinding
   markupDialog: React.ReactNode
 } {
+  const { t: tc } = useTranslation('common')
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
 
@@ -74,10 +76,12 @@ export function useFileMarkup({
   const { data: annotations = [] } = useQuery(fileAnnotationsQuery(fileId))
 
   const reportFailure = useCallback(
-    (action: string, error: unknown) => {
-      handleError(error, { title: `Could not ${action} markup` })
+    (action: 'add' | 'update' | 'delete', error: unknown) => {
+      handleError(error, {
+        title: tc(`vault.markup.couldNot.${action}`),
+      })
     },
-    [handleError],
+    [handleError, tc],
   )
 
   const save = useCallback(
@@ -105,11 +109,13 @@ export function useFileMarkup({
         draftRef.current = ''
         setPending({
           title:
-            geometry.kind === 'note' ? 'Add a comment' : 'Add a text label',
+            geometry.kind === 'note'
+              ? tc('vault.markup.addComment')
+              : tc('vault.markup.addTextLabel'),
           description:
             geometry.kind === 'note'
-              ? 'Pinned to the point you clicked.'
-              : 'Drawn onto the page at the point you clicked.',
+              ? tc('vault.markup.pinnedDescription')
+              : tc('vault.markup.drawnDescription'),
           value: '',
           commit: (contents) => void save(pageNumber, geometry, contents),
         })
@@ -117,7 +123,7 @@ export function useFileMarkup({
       }
       void save(pageNumber, geometry, null)
     },
-    [save],
+    [save, tc],
   )
 
   const onSelect = useCallback(
@@ -130,8 +136,8 @@ export function useFileMarkup({
 
       draftRef.current = annotation.contents ?? ''
       setPending({
-        title: 'Edit markup',
-        description: 'Clear the text and save to leave it blank.',
+        title: tc('confirm.editMarkup'),
+        description: tc('vault.markup.clearToBlank'),
         value: annotation.contents ?? '',
         commit: (contents) => {
           if (contents === annotation.contents) return
@@ -149,7 +155,7 @@ export function useFileMarkup({
         },
       })
     },
-    [canAnnotate, currentUserId, fileId, invalidate, reportFailure],
+    [canAnnotate, currentUserId, fileId, invalidate, reportFailure, tc],
   )
 
   const onDelete = useCallback(
@@ -184,7 +190,9 @@ export function useFileMarkup({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{pending?.title ?? 'Markup'}</DialogTitle>
+          <DialogTitle>
+            {pending?.title ?? tc('vault.markup.title')}
+          </DialogTitle>
           <DialogDescription>{pending?.description}</DialogDescription>
         </DialogHeader>
         <Textarea
@@ -194,11 +202,11 @@ export function useFileMarkup({
           onChange={(event) => {
             draftRef.current = event.target.value
           }}
-          placeholder="Type here"
+          placeholder={tc('vault.markup.typeHere')}
         />
         <DialogFooter>
           <Button variant="outline" onClick={() => setPending(null)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={() => {
@@ -209,7 +217,7 @@ export function useFileMarkup({
               setPending(null)
             }}
           >
-            Save
+            {tc('actions.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

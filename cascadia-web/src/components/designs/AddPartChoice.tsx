@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useId } from 'react'
+import { useTranslation } from 'react-i18next'
 import { PackagePlus, Search } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -31,11 +32,12 @@ export function AddPartChoice({
   onCreateNew,
   onUseExisting,
 }: AddPartChoiceProps) {
+  const { t: tc } = useTranslation('common')
   return (
     <div className="flex items-stretch gap-4 py-2">
       <ChoiceButton
         icon={<PackagePlus className="h-8 w-8" />}
-        title="Create New"
+        title={tc('dialogs.addPartChoice.createNew')}
         description={createDescription}
         onClick={onCreateNew}
         data-testid="add-part-create-new"
@@ -47,7 +49,7 @@ export function AddPartChoice({
       />
       <ChoiceButton
         icon={<Search className="h-8 w-8" />}
-        title="Use Existing"
+        title={tc('dialogs.addPartChoice.useExisting')}
         description={existingDescription}
         onClick={onUseExisting}
         data-testid="add-part-use-existing"

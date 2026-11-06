@@ -9,6 +9,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ListChecks } from 'lucide-react'
 import type { RtmGapType } from '@cascadia/commons/services/types/requirements-matrix'
 import {
@@ -28,12 +29,6 @@ import {
 import { ItemLink } from '@/components/items/ItemLink'
 import { programRequirementsRollupQuery } from '@/query'
 
-const GAP_LABELS: Record<RtmGapType, string> = {
-  not_allocated: 'Not allocated',
-  not_satisfied: 'Not satisfied',
-  not_verified: 'Not verified',
-}
-
 /** How many open gaps the card lists before pointing at the designs' tabs. */
 const GAPS_SHOWN = 8
 
@@ -43,6 +38,15 @@ function ratio(value: number, of: number): string {
 }
 
 export function ProgramRequirementsCard({ programId }: { programId: string }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+
+  const gapLabels: Record<RtmGapType, string> = {
+    not_allocated: tp('programs.detail.requirements.gapNotAllocated'),
+    not_satisfied: tp('programs.detail.requirements.gapNotSatisfied'),
+    not_verified: tp('programs.detail.requirements.gapNotVerified'),
+  }
+
   const { data: rollup, isPending } = useQuery(
     programRequirementsRollupQuery(programId),
   )
@@ -50,22 +54,28 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
   if (isPending || !rollup) return null
 
   const designs = rollup.designs.filter((design) => design.total > 0)
+  const reqPrefix = 'programs.detail.requirements'
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <ListChecks className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          <CardTitle>Requirements</CardTitle>
+          <CardTitle>{tp(`${reqPrefix}.title`)}</CardTitle>
         </div>
         <CardDescription>
           {rollup.totals.total === 0
-            ? 'No requirements in this program yet.'
-            : `${rollup.totals.total} requirements across ${designs.length} ${
-                designs.length === 1 ? 'design' : 'designs'
-              }: ${rollup.totals.verified} verified, ${rollup.openGapsTotal} open ${
-                rollup.openGapsTotal === 1 ? 'gap' : 'gaps'
-              }.`}
+            ? tp(`${reqPrefix}.empty`)
+            : tp(`${reqPrefix}.summary`, {
+                total: rollup.totals.total,
+                designCount: designs.length,
+                designUnit: tc('units.design', { count: designs.length }),
+                verified: rollup.totals.verified,
+                gaps: rollup.openGapsTotal,
+                gapUnit: tp(`${reqPrefix}.gap`, {
+                  count: rollup.openGapsTotal,
+                }),
+              })}
         </CardDescription>
       </CardHeader>
       {rollup.totals.total > 0 && (
@@ -73,13 +83,25 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Design</TableHead>
-                <TableHead className="text-right">Requirements</TableHead>
-                <TableHead className="text-right">Allocated</TableHead>
-                <TableHead className="text-right">Satisfied</TableHead>
-                <TableHead className="text-right">Verified</TableHead>
-                <TableHead className="text-right">Suspect</TableHead>
-                <TableHead className="text-right">Gaps</TableHead>
+                <TableHead>{tp(`${reqPrefix}.columns.design`)}</TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.requirements`)}
+                </TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.allocated`)}
+                </TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.satisfied`)}
+                </TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.verified`)}
+                </TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.suspect`)}
+                </TableHead>
+                <TableHead className="text-right">
+                  {tp(`${reqPrefix}.columns.gaps`)}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -129,7 +151,7 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
               })}
               {designs.length > 1 && (
                 <TableRow className="font-medium">
-                  <TableCell>All designs</TableCell>
+                  <TableCell>{tp(`${reqPrefix}.columns.allDesigns`)}</TableCell>
                   <TableCell className="text-right">
                     {rollup.totals.total}
                   </TableCell>
@@ -156,7 +178,7 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
           {rollup.openGaps.length > 0 && (
             <div>
               <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                Open gaps, most important first
+                {tp(`${reqPrefix}.openGapsHeading`)}
               </p>
               <ul className="space-y-1">
                 {rollup.openGaps.slice(0, GAPS_SHOWN).map((gap) => (
@@ -174,7 +196,7 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
                     <span className="text-slate-700 dark:text-slate-300">
                       {gap.name}
                     </span>
-                    <Badge variant="outline">{GAP_LABELS[gap.gapType]}</Badge>
+                    <Badge variant="outline">{gapLabels[gap.gapType]}</Badge>
                     {gap.priority && (
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         {gap.priority} · {gap.designCode}
@@ -185,8 +207,9 @@ export function ProgramRequirementsCard({ programId }: { programId: string }) {
               </ul>
               {rollup.openGapsTotal > GAPS_SHOWN && (
                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  {rollup.openGapsTotal - GAPS_SHOWN} more on the designs'
-                  Requirements tabs.
+                  {tp(`${reqPrefix}.moreGapsHint`, {
+                    count: rollup.openGapsTotal - GAPS_SHOWN,
+                  })}
                 </p>
               )}
             </div>

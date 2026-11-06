@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Badge,
@@ -51,6 +52,8 @@ export function RegisterPhysicalPartDialog({
   onOpenChange,
   onRegistered,
 }: RegisterPhysicalPartDialogProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const [query, setQuery] = useState('')
   const [selectedPart, setSelectedPart] = useState<SelectedPart | null>(null)
@@ -174,16 +177,15 @@ export function RegisterPhysicalPartDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Register Physical Part</DialogTitle>
+          <DialogTitle>{tp('physicalParts.registerDialogTitle')}</DialogTitle>
           <DialogDescription>
-            Record a serialized unit or a lot/batch you physically have.
-            Registering the same identity twice returns the existing record.
+            {tp('physicalParts.registerDialogDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div>
-            <Label>Part *</Label>
+            <Label>{tc('fields.partRequired')}</Label>
             {selectedPart ? (
               <div className="mt-1 flex items-center justify-between rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700">
                 <div>
@@ -219,7 +221,7 @@ export function RegisterPhysicalPartDialog({
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by part number or name…"
+                  placeholder={tp('physicalParts.searchPartPlaceholder')}
                 />
                 {suggestions.length > 0 && (
                   <div className="absolute z-10 mt-1 w-full rounded-md border border-slate-300 bg-white shadow-md dark:border-slate-700 dark:bg-slate-950">
@@ -296,7 +298,7 @@ export function RegisterPhysicalPartDialog({
 
           {selectedPart && identityKind && (
             <div>
-              <Label>Notes</Label>
+              <Label>{tc('fields.notes')}</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Info } from 'lucide-react'
 import type { FormEvent } from 'react'
 import type { PartType } from '@cascadia/commons/items/types/part'
@@ -81,7 +82,17 @@ export function CreatePartInDesignForm({
   onBack,
   onCreated,
 }: CreatePartInDesignFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess, showWarning } = useErrorHandler()
+  const partTypeOptions = useMemo(
+    () =>
+      PART_TYPE_OPTIONS.map((opt) => ({
+        ...opt,
+        label: tp(`parts.partType.${opt.value}`),
+      })),
+    [tp],
+  )
   const [itemNumber, setItemNumber] = useState('')
   const [name, setName] = useState('')
   const [partType, setPartType] = useState<PartType>('Manufacture')
@@ -157,7 +168,7 @@ export function CreatePartInDesignForm({
       onCreated(item)
     },
     onError: (error: unknown) => {
-      handleError(error, { title: 'Failed to create part' })
+      handleError(error, { title: tp('parts.form.createFailedTitle') })
     },
   })
 
@@ -174,43 +185,43 @@ export function CreatePartInDesignForm({
     <form onSubmit={handleSubmit} data-testid="create-part-form">
       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ViewEditText
-          label="Item Number"
+          label={tc('fields.itemNumber')}
           value={itemNumber}
           onChange={setItemNumber}
           isEditing
-          placeholder="Leave blank to auto-number"
+          placeholder={tp('parts.form.createInDesign.itemNumberPlaceholder')}
           data-testid="create-part-item-number"
         />
         <ViewEditSelect
-          label="Type"
+          label={tc('fields.type')}
           value={partType}
           onChange={(value) => setPartType(value as PartType)}
           isEditing
-          options={PART_TYPE_OPTIONS}
+          options={partTypeOptions}
           data-testid="create-part-type"
         />
         <ViewEditText
-          label="Name"
+          label={tc('fields.name')}
           value={name}
           onChange={setName}
           isEditing
-          placeholder="Part name"
+          placeholder={tp('parts.form.createInDesign.namePlaceholder')}
           required
           className="md:col-span-2"
           data-testid="create-part-name"
         />
         <ViewEditTextarea
-          label="Description"
+          label={tc('fields.description')}
           value={description}
           onChange={setDescription}
           isEditing
-          placeholder="Enter a description..."
+          placeholder={tp('parts.form.createInDesign.descriptionPlaceholder')}
           className="md:col-span-2"
         />
         {parent && (
           <>
             <ViewEditNumber
-              label="Quantity"
+              label={tc('fields.quantity')}
               value={quantity}
               onChange={setQuantity}
               isEditing
@@ -219,12 +230,12 @@ export function CreatePartInDesignForm({
               required
             />
             <ViewEditNumber
-              label="Find Number"
+              label={tc('fields.findNumber')}
               value={findNumber}
               onChange={setFindNumber}
               isEditing
               min={1}
-              placeholder="Optional"
+              placeholder={tp('parts.form.createInDesign.findNumberPlaceholder')}
             />
           </>
         )}
@@ -233,11 +244,7 @@ export function CreatePartInDesignForm({
       {blocked && (
         <div className="flex items-start gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm rounded-md">
           <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span>
-            This design is under change control, so nothing can be created on
-            main. Switch the page to a change-order or workspace branch and the
-            part will be created there.
-          </span>
+          <span>{tp('parts.form.createInDesign.changeControlBlocked')}</span>
         </div>
       )}
 
@@ -249,7 +256,7 @@ export function CreatePartInDesignForm({
           onClick={onBack}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
+          {tc('labels.back')}
         </Button>
         <Button
           type="submit"
@@ -257,10 +264,10 @@ export function CreatePartInDesignForm({
           data-testid="create-part-submit"
         >
           {createPart.isPending
-            ? 'Creating...'
+            ? tp('parts.form.createInDesign.creating')
             : parent
-              ? 'Create and Add to BOM'
-              : 'Create Part'}
+              ? tp('parts.form.createInDesign.createAndAddToBom')
+              : tp('parts.form.createSubmit')}
         </Button>
       </DialogFooter>
     </form>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { AddPartChoice } from './AddPartChoice'
@@ -95,6 +96,7 @@ export function AddPartToDesignDialog({
   branchId,
   onSuccess,
 }: AddPartToDesignDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { alert } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const [step, setStep] = useState<AddPartStep>('choose')
@@ -236,8 +238,11 @@ export function AddPartToDesignDialog({
     onSuccess: ({ successCount, failedCount }) => {
       if (failedCount > 0) {
         alert({
-          title: 'Partial Success',
-          description: `Added ${successCount} part(s). ${failedCount} failed to add.`,
+          title: tc('dialogs.addPartToDesign.partialSuccessTitle'),
+          description: tc('dialogs.addPartToDesign.partialSuccessDescription', {
+            successCount,
+            failedCount,
+          }),
           variant: 'default',
         })
       }
@@ -245,7 +250,7 @@ export function AddPartToDesignDialog({
       onOpenChange(false)
     },
     onError: (error: unknown) => {
-      handleError(error, { title: 'Failed to add parts to design' })
+      handleError(error, { title: tc('dialogs.addPartToDesign.failedTitle') })
     },
   })
 
@@ -260,26 +265,33 @@ export function AddPartToDesignDialog({
         <DialogHeader>
           <DialogTitle>
             {step === 'choose'
-              ? 'Add Part'
+              ? tc('dialogs.addPartToDesign.titleChoose')
               : step === 'create'
-                ? 'New Part'
-                : 'Add Parts to Design'}
+                ? tc('dialogs.addPartToDesign.titleCreate')
+                : tc('dialogs.addPartToDesign.titleExisting')}
           </DialogTitle>
           <DialogDescription>
             {step === 'choose'
-              ? `Create a new part in ${designName}, or bring in one that already exists.`
+              ? tc('dialogs.addPartToDesign.descChoose', { designName })
               : step === 'create'
-                ? `Created in ${designName}, at the top level of its structure.`
+                ? tc('dialogs.addPartToDesign.descCreate', { designName })
                 : addMode === 'usage_copy'
-                  ? `Selected parts will be copied as usages in ${designName}.`
-                  : `Selected parts will be linked as read-only references in ${designName}.`}
+                  ? tc('dialogs.addPartToDesign.descUsageCopy', { designName })
+                  : tc('dialogs.addPartToDesign.descCrossDesignRef', {
+                      designName,
+                    })}
           </DialogDescription>
         </DialogHeader>
 
         {step === 'choose' && (
           <AddPartChoice
-            createDescription={`A new part, created in ${designCode} and placed at the top level of its structure.`}
-            existingDescription="Copy or reference a part from the standard library or another design."
+            createDescription={tc(
+              'dialogs.addPartToDesign.createChoiceDescription',
+              { designCode },
+            )}
+            existingDescription={tc(
+              'dialogs.addPartToDesign.existingChoiceDescription',
+            )}
             onCreateNew={() => setStep('create')}
             onUseExisting={() => setStep('existing')}
           />
@@ -311,7 +323,7 @@ export function AddPartToDesignDialog({
                 }`}
                 onClick={() => setAddMode('usage_copy')}
               >
-                Usage Copy
+                {tc('dialogs.addPartToDesign.usageCopy')}
               </button>
               <button
                 type="button"
@@ -322,7 +334,7 @@ export function AddPartToDesignDialog({
                 }`}
                 onClick={() => setAddMode('cross_design_ref')}
               >
-                Cross-Design Reference
+                {tc('dialogs.addPartToDesign.crossDesignRef')}
               </button>
             </div>
 
@@ -335,10 +347,14 @@ export function AddPartToDesignDialog({
                 }
               >
                 <SelectTrigger className="h-8 text-xs flex-1">
-                  <SelectValue placeholder="All Programs" />
+                  <SelectValue
+                    placeholder={tc('dialogs.addPartToDesign.allPrograms')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">All Programs</SelectItem>
+                  <SelectItem value="__all__">
+                    {tc('dialogs.addPartToDesign.allPrograms')}
+                  </SelectItem>
                   {programs.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
@@ -357,10 +373,14 @@ export function AddPartToDesignDialog({
                 disabled={!selectedProgramId}
               >
                 <SelectTrigger className="h-8 text-xs flex-1">
-                  <SelectValue placeholder="All Designs" />
+                  <SelectValue
+                    placeholder={tc('dialogs.addPartToDesign.allDesigns')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">All Designs</SelectItem>
+                  <SelectItem value="__all__">
+                    {tc('dialogs.addPartToDesign.allDesigns')}
+                  </SelectItem>
                   {designs.map((d) => (
                     <SelectItem key={d.id} value={d.id}>
                       {d.code} — {d.name}
@@ -379,10 +399,14 @@ export function AddPartToDesignDialog({
                 disabled={!selectedDesignId}
               >
                 <SelectTrigger className="h-8 text-xs flex-1">
-                  <SelectValue placeholder="All Branches" />
+                  <SelectValue
+                    placeholder={tc('dialogs.addPartToDesign.allBranches')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">All Branches</SelectItem>
+                  <SelectItem value="__all__">
+                    {tc('dialogs.addPartToDesign.allBranches')}
+                  </SelectItem>
                   {branches.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
@@ -394,10 +418,10 @@ export function AddPartToDesignDialog({
 
             {/* Search Input */}
             <div>
-              <Label>Search Parts</Label>
+              <Label>{tc('dialogs.addPartToDesign.searchPartsLabel')}</Label>
               <Input
                 type="text"
-                placeholder="Search by part number or name..."
+                placeholder={tc('dialogs.addPartToDesign.searchPartsPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -407,7 +431,9 @@ export function AddPartToDesignDialog({
             {selectedItems.length > 0 && (
               <div className="p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
                 <Label className="text-xs text-cyan-700 dark:text-cyan-300">
-                  Selected ({selectedItems.length})
+                  {tc('dialogs.addPartToDesign.selectedCount', {
+                    count: selectedItems.length,
+                  })}
                 </Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {selectedItems.map((item) => (
@@ -428,11 +454,11 @@ export function AddPartToDesignDialog({
             <div className="border border-slate-300 dark:border-slate-700 rounded-lg max-h-60 overflow-y-auto auto-hide-scroll">
               {searching ? (
                 <div className="p-4 text-center text-sm text-slate-500">
-                  Searching...
+                  {tc('dialogs.addPartToDesign.searching')}
                 </div>
               ) : searchResults.length === 0 ? (
                 <div className="p-4 text-center text-sm text-slate-500">
-                  No parts found. Try a different search term.
+                  {tc('dialogs.addPartToDesign.noPartsFound')}
                 </div>
               ) : (
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -480,7 +506,7 @@ export function AddPartToDesignDialog({
                                   variant="outline"
                                   className="text-xs text-amber-600 dark:text-amber-400"
                                 >
-                                  Assigned elsewhere
+                                  {tc('dialogs.addPartToDesign.assignedElsewhere')}
                                 </Badge>
                               )}
                           </div>
@@ -512,12 +538,14 @@ export function AddPartToDesignDialog({
                     htmlFor="suffixItemNumbers"
                     className="text-sm font-normal cursor-pointer"
                   >
-                    Suffix item numbers with design code
+                    {tc('dialogs.addPartToDesign.suffixItemNumbers')}
                   </Label>
                 </div>
                 {suffixItemNumbers && designCode && (
                   <p className="text-xs text-slate-500 dark:text-slate-400 ml-6">
-                    e.g., PN-000001-{designCode}
+                    {tc('dialogs.addPartToDesign.suffixExample', {
+                      code: designCode,
+                    })}
                   </p>
                 )}
               </>
@@ -526,9 +554,7 @@ export function AddPartToDesignDialog({
             {/* Cross-design reference info */}
             {addMode === 'cross_design_ref' && (
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Referenced parts appear read-only in the BOM tree. You can later
-                &ldquo;pull in&rdquo; a reference to convert it to a full usage
-                copy.
+                {tc('dialogs.addPartToDesign.crossDesignRefHint')}
               </p>
             )}
           </div>
@@ -541,7 +567,7 @@ export function AddPartToDesignDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           </DialogFooter>
         )}
@@ -555,14 +581,14 @@ export function AddPartToDesignDialog({
               onClick={() => setStep('choose')}
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
+              {tc('actions.back')}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button
               type="button"
@@ -570,8 +596,10 @@ export function AddPartToDesignDialog({
               disabled={selectedItems.length === 0 || addParts.isPending}
             >
               {addParts.isPending
-                ? 'Adding...'
-                : `Add ${selectedItems.length > 0 ? `(${selectedItems.length})` : ''}`}
+                ? tc('actions.adding')
+                : tc('dialogs.addPartToDesign.addWithCount', {
+                    count: selectedItems.length,
+                  })}
             </Button>
           </DialogFooter>
         )}

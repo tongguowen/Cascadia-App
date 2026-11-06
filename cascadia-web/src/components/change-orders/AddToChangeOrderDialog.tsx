@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { formatRevision } from '@cascadia/commons/types/lifecycle'
@@ -28,6 +29,7 @@ import {
 import { apiFetch } from '@/api/client'
 import { useAlertDialog } from '@/hooks/useAlertDialog'
 import { useErrorHandler } from '@/hooks/useErrorHandler'
+import { translateStateName } from '@/i18n'
 
 interface AddToChangeOrderDialogProps {
   open: boolean
@@ -46,6 +48,7 @@ export function AddToChangeOrderDialog({
 }: AddToChangeOrderDialogProps) {
   const { alert } = useAlertDialog()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
   const [loading, setLoading] = useState(false)
   const [selectedAction, setSelectedAction] = useState<ChangeAction | null>(
     null,
@@ -77,13 +80,15 @@ export function AddToChangeOrderDialog({
       })
 
       alert({
-        title: 'Item Added',
-        description: `${item.itemNumber} has been added to the change order.`,
+        title: tc('dialogs.addToEco.addedTitle'),
+        description: tc('dialogs.addToEco.addedDescription', {
+          itemNumber: item.itemNumber,
+        }),
       })
 
       onSuccess()
     } catch (error) {
-      handleError(error, { title: 'Failed to add item to the change order' })
+      handleError(error, { title: tc('dialogs.addToEco.failedTitle') })
     } finally {
       setLoading(false)
     }
@@ -93,9 +98,9 @@ export function AddToChangeOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add to Change Order</DialogTitle>
+          <DialogTitle>{tc('dialogs.addToEco.title')}</DialogTitle>
           <DialogDescription>
-            Add {item.itemNumber} to this engineering change order.
+            {tc('dialogs.addToEco.description', { itemNumber: item.itemNumber })}
           </DialogDescription>
         </DialogHeader>
 
@@ -112,17 +117,20 @@ export function AddToChangeOrderDialog({
               {item.name}
             </div>
             <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Current: Rev {formatRevision(item.revision)} ({item.state})
+              {tc('labels.currentRev', {
+                revision: formatRevision(item.revision),
+                state: translateStateName(item.state),
+              })}
             </div>
           </div>
 
           {/* Change action */}
           <div className="space-y-2">
-            <Label>Change Action</Label>
+            <Label>{tc('labels.changeAction')}</Label>
             {loadingOptions ? (
               <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Resolving available actions...
+                {tc('dialogs.addToEco.resolvingActions')}
               </div>
             ) : availableActions.length > 0 ? (
               <Select
@@ -130,7 +138,7 @@ export function AddToChangeOrderDialog({
                 onValueChange={(v) => setSelectedAction(v as ChangeAction)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select action" />
+                  <SelectValue placeholder={tc('labels.selectAction')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableActions.map((action) => (
@@ -143,7 +151,9 @@ export function AddToChangeOrderDialog({
             ) : (
               <div className="text-sm text-slate-500 dark:text-slate-400">
                 {itemOptions?.blockedReason ??
-                  `No change action is available for items in ${item.state} state.`}
+                  tc('dialogs.addToEco.noActionForState', {
+                    state: translateStateName(item.state),
+                  })}
               </div>
             )}
           </div>
@@ -153,22 +163,27 @@ export function AddToChangeOrderDialog({
           {targetInfo?.targetState && (
             <div className="text-sm">
               <span className="text-slate-500 dark:text-slate-400">
-                Target:{' '}
+                {tc('labels.target')}{' '}
               </span>
               <span className="font-medium text-slate-900 dark:text-slate-100">
                 {targetInfo.targetRevision
-                  ? `Rev ${targetInfo.targetRevision} (${targetInfo.targetState})`
-                  : targetInfo.targetState}
+                  ? tc('dialogs.addToEco.targetRev', {
+                      revision: targetInfo.targetRevision,
+                      state: translateStateName(targetInfo.targetState),
+                    })
+                  : translateStateName(targetInfo.targetState)}
               </span>
             </div>
           )}
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">
+              {tc('labels.descriptionOptional')}
+            </Label>
             <Textarea
               id="description"
-              placeholder="Describe the change..."
+              placeholder={tc('dialogs.addToEco.describePlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -178,14 +193,14 @@ export function AddToChangeOrderDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || loadingOptions || !changeAction}
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Add to ECO
+            {tc('actions.addToEco')}
           </Button>
         </DialogFooter>
       </DialogContent>

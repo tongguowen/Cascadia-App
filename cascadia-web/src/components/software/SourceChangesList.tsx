@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SourceDiffDialog } from './SourceDiffDialog'
 import type { SourceDiffTarget } from './SourceDiffDialog'
 import { Badge } from '@/components/ui'
@@ -40,6 +41,7 @@ export function SourceChangesList({
   itemId: string
   changes: Array<SourceFieldChange>
 }) {
+  const { t: tc } = useTranslation('common')
   const [diffTarget, setDiffTarget] = useState<SourceDiffTarget | null>(null)
 
   return (
@@ -62,7 +64,7 @@ export function SourceChangesList({
               })
             }
             className="flex w-full items-center gap-2 rounded px-1 py-0.5 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
-            title="Show line diff"
+            title={tc('tooltips.showLineDiff')}
           >
             <Badge
               variant={statusVariant[change.fieldName] ?? 'secondary'}

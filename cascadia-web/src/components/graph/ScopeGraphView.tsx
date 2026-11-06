@@ -13,6 +13,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import * as dagre from 'dagre'
 import { GitBranch, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { GraphScopeNode } from './GraphScopeNode'
 import { RelationshipEdge } from './RelationshipEdge'
 import { EdgeDirectionLegend } from './EdgeDirectionLegend'
@@ -310,11 +311,15 @@ export function ScopeGraphView({
   title,
   inlineHeight = '600px',
 }: ScopeGraphViewProps) {
+  const { t: tp } = useTranslation('pages')
+  const sg = (key: string, opts?: Record<string, unknown>) =>
+    tp(`graph.scopeGraph.${key}` as 'graph.scopeGraph.programTitle', opts)
   const { theme } = useTheme()
   const queryClient = useQueryClient()
   const rootNodeId = `${rootType}:${rootId}`
   const graphTitle =
-    title ?? (rootType === 'program' ? 'Program Graph' : 'Design Graph')
+    title ??
+    (rootType === 'program' ? sg('programTitle') : sg('designTitle'))
 
   const [availableItemTypes, setAvailableItemTypes] = useState<
     Array<ItemTypeCount>
@@ -344,7 +349,7 @@ export function ScopeGraphView({
   const rootQuery = isProgramRoot ? programRootQuery : designRootQuery
   const loading = rootQuery.isPending || rootQuery.isFetching
   const rootError = rootQuery.error
-  const error = rootError ? rootError.message || 'Failed to load graph' : null
+  const error = rootError ? rootError.message || sg('loadFailed') : null
 
   // Graph caches: everything ever fetched; visibility derives from expandedMap
   const nodeCacheRef = useRef<Map<string, CachedNode>>(new Map())
@@ -725,13 +730,16 @@ export function ScopeGraphView({
         <div className="mb-4 pb-4 border-b border-slate-300 dark:border-slate-700">
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Item Types:
+              {sg('itemTypesLabel')}
             </label>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-500 dark:text-slate-400">
                 {selectedItemTypes.length === 0
-                  ? 'Showing all types'
-                  : `${selectedItemTypes.length} of ${availableItemTypes.length} types selected`}
+                  ? sg('showingAllTypes')
+                  : sg('typesSelected', {
+                      selected: selectedItemTypes.length,
+                      total: availableItemTypes.length,
+                    })}
               </span>
               <button
                 type="button"
@@ -739,7 +747,7 @@ export function ScopeGraphView({
                 disabled={loading || selectedItemTypes.length === 0}
                 className="text-xs text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                All
+                {sg('all')}
               </button>
             </div>
           </div>
@@ -778,7 +786,7 @@ export function ScopeGraphView({
       {error && graphNodes.length > 0 && (
         <div className="mb-4 flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
           <p className="text-sm text-red-600 dark:text-red-400">
-            {error} — showing the last version that loaded.
+            {sg('staleBanner', { error })}
           </p>
           <Button
             variant="outline"
@@ -789,7 +797,7 @@ export function ScopeGraphView({
             <RefreshCw
               className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`}
             />
-            Retry
+            {sg('retry')}
           </Button>
         </div>
       )}
@@ -805,23 +813,28 @@ export function ScopeGraphView({
             onClick={() => void rootQuery.refetch()}
           >
             <RefreshCw className="h-4 w-4 mr-1" />
-            Retry
+            {sg('retry')}
           </Button>
         </div>
       ) : loading && graphNodes.length === 0 ? (
         <div className="flex items-center justify-center py-12 text-slate-500">
           <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-          Loading graph...
+          {sg('loading')}
         </div>
       ) : graphNodes.length === 0 ? (
         <div className="text-center py-8">
           <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
-          <p className="text-slate-500 dark:text-slate-400">Nothing to show</p>
+          <p className="text-slate-500 dark:text-slate-400">
+            {sg('nothingToShow')}
+          </p>
         </div>
       ) : (
         <FullscreenGraphWrapper
           title={graphTitle}
-          subtitle={`${graphNodes.length} node${graphNodes.length !== 1 ? 's' : ''}, ${graphEdges.length} connection${graphEdges.length !== 1 ? 's' : ''}`}
+          subtitle={sg('subtitle', {
+            nodes: graphNodes.length,
+            connections: graphEdges.length,
+          })}
           inlineHeight={inlineHeight}
           headerControls={
             <Button
@@ -840,27 +853,21 @@ export function ScopeGraphView({
               <div className="flex flex-wrap gap-4 text-xs">
                 <div className="flex items-center gap-1">
                   <span className="inline-block w-4 h-3 rounded border-2 border-indigo-500 bg-indigo-100 dark:bg-indigo-950" />
-                  <span>Program</span>
+                  <span>{sg('legendProgram')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="inline-block w-4 h-3 rounded border-2 border-violet-500 bg-violet-100 dark:bg-violet-950" />
-                  <span>Design</span>
+                  <span>{sg('legendDesign')}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="inline-block w-4 h-3 rounded border-2 border-slate-400 bg-slate-100 dark:bg-slate-800" />
-                  <span>Item</span>
+                  <span>{sg('legendItem')}</span>
                 </div>
               </div>
               <div className="mt-2">
                 <EdgeDirectionLegend example="a Part that Satisfies a Requirement points at the Requirement" />
               </div>
-              <p className="mt-2 text-xs">
-                Click +/− buttons to drill down step by step: program → designs
-                → items → related items (work instructions, work orders,
-                physical parts, …). Designs show their top-level items; expand
-                an item to reveal what sits beneath it. The type filter applies
-                when expanding designs. Click a code to open its page.
-              </p>
+              <p className="mt-2 text-xs">{sg('helpText')}</p>
             </div>
           }
         >

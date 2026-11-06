@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { FormField, Input } from '@/components/ui'
 import {
-  ITEM_NUMBER_PLACEHOLDER,
-  getItemNumberHelpText,
+  allowsManualEntry,
+  formatSchemeExample,
 } from '@/items/numbering/format'
 
 interface ItemNumberFieldProps {
@@ -36,17 +37,26 @@ export function ItemNumberField({
   onChange,
   onBlur,
   error,
-  label = 'Item Number',
+  label,
   name,
   disabled,
   className,
   'data-testid': testId,
 }: ItemNumberFieldProps) {
+  const { t: tc } = useTranslation('common')
+  const example = formatSchemeExample(itemType)
+  const exampleSuffix = example
+    ? tc('labels.itemNumberExample', { example })
+    : ''
+  const helpText = allowsManualEntry(itemType)
+    ? `${tc('labels.itemNumberHelpManual')}${exampleSuffix}`
+    : `${tc('labels.itemNumberHelpAuto')}${exampleSuffix}`
+
   return (
     <FormField
-      label={label}
+      label={label ?? tc('fields.itemNumber')}
       error={error}
-      helpText={getItemNumberHelpText(itemType)}
+      helpText={helpText}
       className={className}
     >
       <Input
@@ -54,7 +64,7 @@ export function ItemNumberField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
-        placeholder={ITEM_NUMBER_PLACEHOLDER}
+        placeholder={tc('labels.itemNumberPlaceholder')}
         error={!!error}
         disabled={disabled}
         data-testid={testId}

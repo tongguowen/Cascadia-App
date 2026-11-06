@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   Box,
@@ -31,14 +32,6 @@ const domainIcons: Record<ThreadDomain, typeof Box> = {
   physical: Box,
 }
 
-const domainLabels: Record<ThreadDomain, string> = {
-  requirements: 'Requirements',
-  engineering: 'Engineering',
-  manufacturing: 'Manufacturing',
-  validation: 'Validation',
-  physical: 'Physical',
-}
-
 const domainColors: Record<ThreadDomain, string> = {
   requirements:
     'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950',
@@ -58,13 +51,6 @@ const severityColors: Record<ImpactSeverity, string> = {
   low: 'bg-blue-400',
 }
 
-const severityLabels: Record<ImpactSeverity, string> = {
-  critical: 'Critical',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-}
-
 /**
  * Summary cards showing impact analysis results by domain and severity.
  */
@@ -72,7 +58,14 @@ export function ImpactSummaryCards({
   result,
   className,
 }: ImpactSummaryCardsProps) {
+  const { t: tc } = useTranslation('common')
   const { summary, recommendations } = result
+
+  const severityLabel = (severity: ImpactSeverity) =>
+    tc(`labels.severity.${severity}`)
+
+  const domainLabel = (domain: ThreadDomain) =>
+    tc(`labels.domains.${domain}`)
   const domains: Array<ThreadDomain> = [
     'requirements',
     'engineering',
@@ -99,7 +92,7 @@ export function ImpactSummaryCards({
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Impact Overview
+            {tc('dialogs.impact.summary.overview')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -108,25 +101,33 @@ export function ImpactSummaryCards({
               <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {summary.totalImpacted}
               </div>
-              <div className="text-xs text-slate-500">Total Impacted</div>
+              <div className="text-xs text-slate-500">
+                {tc('dialogs.impact.summary.totalImpacted')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-red-50 dark:bg-red-950">
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {summary.bySeverity.critical}
               </div>
-              <div className="text-xs text-slate-500">Critical</div>
+              <div className="text-xs text-slate-500">
+                {severityLabel('critical')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {summary.bySeverity.high}
               </div>
-              <div className="text-xs text-slate-500">High</div>
+              <div className="text-xs text-slate-500">
+                {severityLabel('high')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {summary.crossDesignCount}
               </div>
-              <div className="text-xs text-slate-500">Cross-Design</div>
+              <div className="text-xs text-slate-500">
+                {tc('dialogs.impact.summary.crossDesign')}
+              </div>
             </div>
           </div>
 
@@ -134,7 +135,7 @@ export function ImpactSummaryCards({
           {totalSeverity > 0 && (
             <div className="mt-4">
               <div className="text-xs text-slate-500 mb-1">
-                Severity Distribution
+                {tc('dialogs.impact.summary.severityDistribution')}
               </div>
               <div className="h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800">
                 {severities.map((severity) => {
@@ -146,7 +147,7 @@ export function ImpactSummaryCards({
                       key={severity}
                       className={cn(severityColors[severity], 'transition-all')}
                       style={{ width: `${width}%` }}
-                      title={`${severityLabels[severity]}: ${count}`}
+                      title={`${severityLabel(severity)}: ${count}`}
                     />
                   )
                 })}
@@ -164,7 +165,7 @@ export function ImpactSummaryCards({
                         )}
                       />
                       <span>
-                        {severityLabels[severity]}: {count}
+                        {severityLabel(severity)}: {count}
                       </span>
                     </div>
                   )
@@ -196,12 +197,12 @@ export function ImpactSummaryCards({
                 <div className="flex items-center gap-2 mb-2">
                   <Icon className="h-4 w-4" />
                   <span className="text-sm font-medium">
-                    {domainLabels[domain]}
+                    {domainLabel(domain)}
                   </span>
                 </div>
                 <div className="text-3xl font-bold">{count}</div>
                 <div className="text-xs opacity-70">
-                  {count === 1 ? 'item impacted' : 'items impacted'}
+                  {tc('dialogs.impact.summary.itemImpacted', { count })}
                 </div>
               </CardContent>
             </Card>
@@ -214,7 +215,7 @@ export function ImpactSummaryCards({
         <Card className="w-full max-w-full overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg text-slate-900 dark:text-slate-100">
-              Recommendations
+              {tc('dialogs.impact.summary.recommendations')}
             </CardTitle>
           </CardHeader>
           <CardContent>

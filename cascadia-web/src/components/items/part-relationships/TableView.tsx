@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ChevronDown,
   ExternalLink,
@@ -77,6 +78,7 @@ export function TableView({
   onEdit: (relationship: Relationship) => void
   onRemove: (relationshipId: string) => void
 }) {
+  const { t: tp } = useTranslation('pages')
   const isTypeExpanded = (type: string) => !collapsedTypes.has(type)
   const toggleType = onToggleType
   const handleAddToExistingType = onAddToType
@@ -367,7 +369,7 @@ export function TableView({
                 variant="ghost"
                 size="icon"
                 onClick={() => setEditingRelationship(row.original)}
-                aria-label="Edit relationship"
+                aria-label={tp('relationships.editRelationshipAria')}
               >
                 <Pencil className="h-4 w-4 text-slate-600 dark:text-slate-400" />
               </Button>
@@ -376,7 +378,7 @@ export function TableView({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemoveRelationship(row.original.id)}
-                aria-label="Remove relationship"
+                aria-label={tp('relationships.removeRelationshipAria')}
               >
                 <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
               </Button>
@@ -393,6 +395,7 @@ export function TableView({
       showOption,
       optionModel,
       optionFilterOptions,
+      tp,
     ],
   )
 
@@ -403,12 +406,12 @@ export function TableView({
           <div className="text-center py-8">
             <TableIcon className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
             <p className="text-slate-500 dark:text-slate-400 mb-4">
-              No relationships yet
+              {tp('relationships.empty')}
             </p>
             {!readOnly && (
               <Button variant="outline" size="sm" onClick={onAddNewType}>
                 <Plus className="h-4 w-4 mr-1" />
-                Add First Relationship
+                {tp('relationships.addFirst')}
               </Button>
             )}
           </div>
@@ -417,15 +420,19 @@ export function TableView({
             {showOption && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Show BOM as
+                  {tp('relationships.showBomAs')}
                 </span>
                 <Select value={viewMake} onValueChange={setViewMake}>
                   <SelectTrigger className="h-8 w-48 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All lines (150 %)</SelectItem>
-                    <SelectItem value="fixed">Fixed lines only</SelectItem>
+                    <SelectItem value="all">
+                      {tp('relationships.bomViewAllLines')}
+                    </SelectItem>
+                    <SelectItem value="fixed">
+                      {tp('relationships.bomViewFixedLines')}
+                    </SelectItem>
                     {makes
                       .filter((m) => m.active)
                       .map((m) => (

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Check } from 'lucide-react'
 import {
   Dialog,
@@ -45,6 +46,8 @@ export function AddDesignToChangeOrderDialog({
   existingDesignIds,
   onSuccess,
 }: AddDesignToChangeOrderDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { alert } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const [searchQuery, setSearchQuery] = useState('')
@@ -116,8 +119,11 @@ export function AddDesignToChangeOrderDialog({
 
       if (failedCount > 0) {
         alert({
-          title: 'Partial Success',
-          description: `Added ${successCount} design(s). ${failedCount} failed to add.`,
+          title: tc('dialogs.addDesignToChangeOrder.partialSuccessTitle'),
+          description: tc(
+            'dialogs.addDesignToChangeOrder.partialSuccessDescription',
+            { successCount, failedCount },
+          ),
           variant: 'default',
         })
       }
@@ -127,7 +133,7 @@ export function AddDesignToChangeOrderDialog({
         onOpenChange(false)
       }
     } catch (error) {
-      handleError(error, { title: 'Failed to add designs to the change order' })
+      handleError(error, { title: tc('dialogs.addDesignToChangeOrder.failedTitle') })
     } finally {
       setLoading(false)
     }
@@ -146,21 +152,27 @@ export function AddDesignToChangeOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto auto-hide-scroll">
         <DialogHeader>
-          <DialogTitle>Add Designs to Change Order</DialogTitle>
+          <DialogTitle>{tc('dialogs.addDesignToChangeOrder.title')}</DialogTitle>
           <DialogDescription>
-            Select designs to associate with this ECO
-            {changeOrderNumber ? ` (${changeOrderNumber})` : ''}. ECO branches
-            will be created when you check out items from these designs.
+            {tc('dialogs.addDesignToChangeOrder.description', {
+              changeOrderSuffix: changeOrderNumber
+                ? tc('dialogs.addDesignToChangeOrder.changeOrderSuffix', {
+                    changeOrderNumber,
+                  })
+                : '',
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Search Input */}
           <div>
-            <Label>Search Designs</Label>
+            <Label>
+              {tc('dialogs.addDesignToChangeOrder.searchDesignsLabel')}
+            </Label>
             <Input
               type="text"
-              placeholder="Search by code or name..."
+              placeholder={tp('changeOrders.detail.searchDesignsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -170,7 +182,9 @@ export function AddDesignToChangeOrderDialog({
           {selectedDesigns.length > 0 && (
             <div className="p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
               <Label className="text-xs text-cyan-700 dark:text-cyan-300">
-                Selected ({selectedDesigns.length})
+                {tc('dialogs.addDesignToChangeOrder.selectedCount', {
+                  count: selectedDesigns.length,
+                })}
               </Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedDesigns.map((design) => (
@@ -191,13 +205,13 @@ export function AddDesignToChangeOrderDialog({
           <div className="border border-slate-300 dark:border-slate-700 rounded-lg max-h-60 overflow-y-auto auto-hide-scroll">
             {fetching ? (
               <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                Loading designs...
+                {tc('dialogs.addDesignToChangeOrder.loadingDesigns')}
               </div>
             ) : filteredDesigns.length === 0 ? (
               <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                 {allDesigns.length === 0
-                  ? 'No designs available to add. All designs may already be associated with this change order.'
-                  : 'No designs match your search.'}
+                  ? tc('dialogs.addDesignToChangeOrder.noAvailable')
+                  : tc('dialogs.addDesignToChangeOrder.noMatch')}
               </div>
             ) : (
               <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -265,7 +279,7 @@ export function AddDesignToChangeOrderDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             type="button"
@@ -273,8 +287,12 @@ export function AddDesignToChangeOrderDialog({
             disabled={selectedDesigns.length === 0 || loading}
           >
             {loading
-              ? 'Adding...'
-              : `Add${selectedDesigns.length > 0 ? ` (${selectedDesigns.length})` : ''}`}
+              ? tc('actions.adding')
+              : selectedDesigns.length > 0
+                ? tc('dialogs.addDesignToChangeOrder.addWithCount', {
+                    count: selectedDesigns.length,
+                  })
+                : tc('dialogs.addDesignToChangeOrder.add')}
           </Button>
         </DialogFooter>
       </DialogContent>

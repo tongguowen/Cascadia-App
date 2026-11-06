@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Download, Eye, GitCompare, Plus, Tag } from 'lucide-react'
 import { TAG_TYPES } from '@cascadia/commons/versioning/branch-types'
 import type { VersionContext } from '@/hooks/useVersionContext'
@@ -46,6 +47,8 @@ export function BaselinesTab({
   onViewBaseline,
   onCreateBaseline,
 }: BaselinesTabProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [compareFrom, setCompareFrom] = useState<string>('')
   const [compareTo, setCompareTo] = useState<string>('')
 
@@ -80,7 +83,7 @@ export function BaselinesTab({
         {onCreateBaseline && (
           <Button onClick={onCreateBaseline} disabled={isHistoricalView}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Baseline
+            {tp('designs.baselines.createBaseline')}
           </Button>
         )}
       </div>
@@ -88,9 +91,9 @@ export function BaselinesTab({
       {/* Baselines Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Baselines & Tags</CardTitle>
+          <CardTitle>{tp('designs.baselines.title')}</CardTitle>
           <CardDescription>
-            {tags.length} {tags.length === 1 ? 'baseline' : 'baselines'} created
+            {tp('designs.baselines.count', { count: tags.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,11 +101,11 @@ export function BaselinesTab({
             <div className="border rounded-lg divide-y dark:border-slate-700 dark:divide-slate-700">
               {/* Header */}
               <div className="flex items-center gap-4 py-2 px-4 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-500 dark:text-slate-400">
-                <div className="w-32">Name</div>
-                <div className="w-24">Type</div>
-                <div className="flex-1">Description</div>
-                <div className="w-32">Created</div>
-                <div className="w-48 text-right">Actions</div>
+                <div className="w-32">{tc('columns.name')}</div>
+                <div className="w-24">{tc('columns.type')}</div>
+                <div className="flex-1">{tc('columns.description')}</div>
+                <div className="w-32">{tc('columns.created')}</div>
+                <div className="w-48 text-right">{tc('columns.actions')}</div>
               </div>
 
               {/* Rows */}
@@ -136,7 +139,7 @@ export function BaselinesTab({
                       variant="ghost"
                       size="sm"
                       onClick={() => onViewBaseline(tag.id, tag.name)}
-                      title="View at this baseline"
+                      title={tp('designs.baselines.viewAtBaseline')}
                     >
                       <Eye className="h-3 w-3" />
                     </Button>
@@ -147,7 +150,7 @@ export function BaselinesTab({
                         setCompareFrom(tag.id)
                         // Scroll to compare section
                       }}
-                      title="Compare to another baseline"
+                      title={tp('designs.baselines.compareBaselines')}
                     >
                       <GitCompare className="h-3 w-3" />
                     </Button>
@@ -156,7 +159,7 @@ export function BaselinesTab({
                       variant="ghost"
                       size="sm"
                       disabled
-                      title="Export BOM — coming soon"
+                      title={tp('designs.baselines.exportBomSoon')}
                     >
                       <Download className="h-3 w-3" />
                     </Button>
@@ -166,8 +169,7 @@ export function BaselinesTab({
             </div>
           ) : (
             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              No baselines or tags created yet. Create a baseline to capture the
-              current configuration.
+              {tp('designs.baselines.empty')}
             </div>
           )}
         </CardContent>
@@ -179,17 +181,17 @@ export function BaselinesTab({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GitCompare className="h-5 w-5" />
-              Compare Baselines
+              {tp('designs.baselines.compareTitle')}
             </CardTitle>
             <CardDescription>
-              Compare two baselines to see what changed
+              {tp('designs.baselines.compareDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
               <Select value={compareFrom} onValueChange={setCompareFrom}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="From baseline..." />
+                  <SelectValue placeholder={tp('designs.baselines.fromPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortedTags.map((tag) => (
@@ -200,11 +202,11 @@ export function BaselinesTab({
                 </SelectContent>
               </Select>
 
-              <span className="text-slate-400">to</span>
+              <span className="text-slate-400">{tp('designs.baselines.toLabel')}</span>
 
               <Select value={compareTo} onValueChange={setCompareTo}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="To baseline..." />
+                  <SelectValue placeholder={tp('designs.baselines.toPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {sortedTags.map((tag) => (
@@ -216,12 +218,12 @@ export function BaselinesTab({
               </Select>
 
               {/* TODO: Navigate to comparison view or open modal when the comparison API is implemented */}
-              <Button disabled title="Baseline comparison — coming soon">
-                Compare
+              <Button disabled title={tp('designs.baselines.compareSoon')}>
+                {tp('designs.baselines.compare')}
               </Button>
 
               <span className="text-sm text-slate-500 dark:text-slate-400">
-                Coming soon
+                {tp('designs.baselines.comingSoon')}
               </span>
             </div>
           </CardContent>

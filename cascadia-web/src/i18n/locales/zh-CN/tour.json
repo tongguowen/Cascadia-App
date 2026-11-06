@@ -1,0 +1,53 @@
+{
+  "buttons": {
+    "done": "开始使用",
+    "next": "下一步",
+    "previous": "上一步"
+  },
+  "startButton": {
+    "aria": "开始产品导览",
+    "title": "开始产品导览"
+  },
+  "steps": {
+    "welcome": {
+      "title": "欢迎使用 Watchlink PLM",
+      "description": "快速浏览主要功能，帮助您上手产品生命周期管理。"
+    },
+    "navigation": {
+      "title": "导航侧栏",
+      "description": "这是主入口。可在此进入 PLM 各主要模块。可固定展开或收起以节省空间。"
+    },
+    "parts": {
+      "title": "零件库",
+      "description": "在此管理零件目录：创建、查看并组织机械、电气与软件零件，并保留完整修订历史。"
+    },
+    "documents": {
+      "title": "图文档管控",
+      "description": "存储并管理带版本控制的工程图文档，并与零件、需求、工程变更单关联。"
+    },
+    "changeOrders": {
+      "title": "工程变更",
+      "description": "Cascadia 的标志性能力：ECO 即分支。每个工程变更单在独立分支上并行开发，审批通过后合并回主线。"
+    },
+    "programs": {
+      "title": "项目与设计空间",
+      "description": "按项目（权限边界）与设计空间（版本容器）组织工作，使工程数据结构清晰。"
+    },
+    "search": {
+      "title": "企业搜索",
+      "description": "在全系统快速查找任意对象：零件、图文档、需求、工程变更单等。按 Ctrl+K（Mac 为 Cmd+K）可快速打开。"
+    },
+    "dashboard": {
+      "title": "仪表盘概览",
+      "description": "仪表盘展示关键指标：零件、设计空间、需求与进行中的工程变更单数量。点击卡片可进入对应模块。"
+    },
+    "profile": {
+      "title": "个人资料",
+      "description": "在此进入个人设置、偏好与退出登录。附近还可切换主题。"
+    },
+    "complete": {
+      "title": "准备就绪",
+      "description": "基础介绍到此为止。可从零件库入手，或创建第一个设计空间。随时可通过页头的帮助按钮重新开启导览。"
+    }
+  }
+}

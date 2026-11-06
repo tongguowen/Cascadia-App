@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ExternalLink, Search } from 'lucide-react'
 import { AddPartChoice } from './AddPartChoice'
@@ -79,6 +80,7 @@ export function AddPartToStructureDialog({
   branchId,
   onSuccess,
 }: AddPartToStructureDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { handleError } = useErrorHandler()
   const [step, setStep] = useState<AddPartStep>('choose')
   const [designScope, setDesignScope] = useState<DesignScope>('current')
@@ -181,7 +183,7 @@ export function AddPartToStructureDialog({
       onOpenChange(false)
     },
     onError: (error: unknown) => {
-      handleError(error, { title: 'Failed to add part to structure' })
+      handleError(error, { title: tc('dialogs.addPartToStructure.failedTitle') })
     },
   })
 
@@ -190,9 +192,9 @@ export function AddPartToStructureDialog({
     addPart.mutate(selectedItem)
   }
 
-  const scopeOptions: Array<{ value: DesignScope; label: string }> = [
-    { value: 'current', label: 'This Design' },
-    { value: 'library', label: 'Libraries' },
+  const scopeOptions: Array<{ value: DesignScope; labelKey: string }> = [
+    { value: 'current', labelKey: 'dialogs.addPartToStructure.scopeThisDesign' },
+    { value: 'library', labelKey: 'dialogs.addPartToStructure.scopeLibraries' },
   ]
 
   return (
@@ -201,39 +203,44 @@ export function AddPartToStructureDialog({
         <DialogHeader>
           <DialogTitle>
             {step === 'choose'
-              ? 'Add Child Part'
+              ? tc('dialogs.addPartToStructure.titleChoose')
               : step === 'create'
-                ? 'New Child Part'
-                : 'Add Part to BOM'}
+                ? tc('dialogs.addPartToStructure.titleCreate')
+                : tc('dialogs.addPartToStructure.titleExisting')}
           </DialogTitle>
           <DialogDescription>
             {step === 'choose' ? (
-              <>
-                Create a new part under{' '}
-                <span className="font-medium">{parentItemNumber}</span>, or add
-                one that already exists.
-              </>
+              <Trans
+                i18nKey="dialogs.addPartToStructure.descChoose"
+                values={{ parentItemNumber }}
+                components={{ strong: <span className="font-medium" /> }}
+              />
             ) : step === 'create' ? (
-              <>
-                Created in{' '}
-                <span className="font-medium">{currentDesignCode}</span> and
-                placed under{' '}
-                <span className="font-medium">{parentItemNumber}</span>.
-              </>
+              <Trans
+                i18nKey="dialogs.addPartToStructure.descCreate"
+                values={{ currentDesignCode, parentItemNumber }}
+                components={{ strong: <span className="font-medium" /> }}
+              />
             ) : (
-              <>
-                Add a child part to{' '}
-                <span className="font-medium">{parentItemNumber}</span> in{' '}
-                <span className="font-medium">{currentDesignCode}</span>
-              </>
+              <Trans
+                i18nKey="dialogs.addPartToStructure.descExisting"
+                values={{ parentItemNumber, currentDesignCode }}
+                components={{ strong: <span className="font-medium" /> }}
+              />
             )}
           </DialogDescription>
         </DialogHeader>
 
         {step === 'choose' && (
           <AddPartChoice
-            createDescription={`A new part, created in ${currentDesignCode} and placed under ${parentItemNumber}.`}
-            existingDescription={`A part from this design or the standard library, placed under ${parentItemNumber}.`}
+            createDescription={tc(
+              'dialogs.addPartToStructure.createChoiceDescription',
+              { currentDesignCode, parentItemNumber },
+            )}
+            existingDescription={tc(
+              'dialogs.addPartToStructure.existingChoiceDescription',
+              { parentItemNumber },
+            )}
             onCreateNew={() => setStep('create')}
             onUseExisting={() => setStep('existing')}
           />
@@ -257,7 +264,9 @@ export function AddPartToStructureDialog({
           <div className="space-y-4">
             {/* Source Selector */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Source</Label>
+              <Label className="text-sm font-medium mb-2 block">
+                {tc('dialogs.addPartToStructure.sourceLabel')}
+              </Label>
               <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
                 {scopeOptions.map((option) => (
                   <button
@@ -271,7 +280,7 @@ export function AddPartToStructureDialog({
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
                     )}
                   >
-                    {option.label}
+                    {tc(option.labelKey)}
                   </button>
                 ))}
               </div>
@@ -279,12 +288,14 @@ export function AddPartToStructureDialog({
 
             {/* Search Input */}
             <div>
-              <Label>Search Parts</Label>
+              <Label>{tc('dialogs.addPartToStructure.searchPartsLabel')}</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   type="text"
-                  placeholder="Search by part number or name..."
+                  placeholder={tc(
+                    'dialogs.addPartToStructure.searchPartsPlaceholder',
+                  )}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -296,15 +307,17 @@ export function AddPartToStructureDialog({
             <div className="border border-slate-300 dark:border-slate-700 rounded-lg max-h-48 overflow-y-auto auto-hide-scroll">
               {searching ? (
                 <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                  Searching...
+                  {tc('dialogs.addPartToStructure.searching')}
                 </div>
               ) : searchQuery.length < 2 ? (
                 <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                  Type at least 2 characters to search
+                  {tc('dialogs.addPartToStructure.minSearchChars')}
                 </div>
               ) : searchResults.length === 0 ? (
                 <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                  No parts found matching "{searchQuery}"
+                  {tc('dialogs.addPartToStructure.noMatch', {
+                    query: searchQuery,
+                  })}
                 </div>
               ) : (
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -371,7 +384,7 @@ export function AddPartToStructureDialog({
             {selectedItem && (
               <div className="grid grid-cols-2 gap-4 pt-2 border-t">
                 <div>
-                  <Label>Quantity</Label>
+                  <Label>{tc('dialogs.addPartToStructure.quantityLabel')}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -381,13 +394,17 @@ export function AddPartToStructureDialog({
                   />
                 </div>
                 <div>
-                  <Label>Find Number</Label>
+                  <Label>
+                    {tc('dialogs.addPartToStructure.findNumberLabel')}
+                  </Label>
                   <Input
                     type="number"
                     min="1"
                     value={findNumber}
                     onChange={(e) => setFindNumber(e.target.value)}
-                    placeholder="Optional"
+                    placeholder={tc(
+                      'dialogs.addPartToStructure.optionalPlaceholder',
+                    )}
                   />
                 </div>
               </div>
@@ -395,7 +412,9 @@ export function AddPartToStructureDialog({
 
             {selectedItem && (selectedPart?.makes?.length ?? 0) > 0 && (
               <div>
-                <Label>Target execution (optional)</Label>
+                <Label>
+                  {tc('dialogs.addPartToStructure.targetExecutionLabel')}
+                </Label>
                 <Select
                   value={targetMakeCode}
                   onValueChange={setTargetMakeCode}
@@ -404,7 +423,9 @@ export function AddPartToStructureDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Unspecified</SelectItem>
+                    <SelectItem value="__none__">
+                      {tc('dialogs.addPartToStructure.unspecified')}
+                    </SelectItem>
                     {selectedPart?.makes
                       ?.filter((make) => make.active)
                       .map((make) => (
@@ -416,8 +437,7 @@ export function AddPartToStructureDialog({
                   </SelectContent>
                 </Select>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Pins this BOM line to an execution of the selected Part
-                  revision.
+                  {tc('dialogs.addPartToStructure.targetExecutionHint')}
                 </p>
               </div>
             )}
@@ -431,7 +451,7 @@ export function AddPartToStructureDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           </DialogFooter>
         )}
@@ -445,21 +465,23 @@ export function AddPartToStructureDialog({
               onClick={() => setStep('choose')}
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
+              {tc('actions.back')}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button
               type="button"
               onClick={handleAdd}
               disabled={!selectedItem || addPart.isPending}
             >
-              {addPart.isPending ? 'Adding...' : 'Add to BOM'}
+              {addPart.isPending
+                ? tc('actions.adding')
+                : tc('dialogs.addPartToStructure.addToBom')}
             </Button>
           </DialogFooter>
         )}

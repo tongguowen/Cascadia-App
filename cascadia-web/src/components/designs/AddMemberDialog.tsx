@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Package, Search } from 'lucide-react'
 import {
@@ -48,6 +49,7 @@ export function AddMemberDialog({
   existingMemberIds,
   onSuccess,
 }: AddMemberDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { handleError } = useErrorHandler()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDesignId, setSelectedDesignId] = useState<string | null>(null)
@@ -94,7 +96,7 @@ export function AddMemberDialog({
       onOpenChange(false)
     },
     onError: (error: Error) => {
-      handleError(error, { title: 'Failed to add design to family' })
+      handleError(error, { title: tc('dialogs.addMember.failedTitle') })
     },
   })
 
@@ -107,10 +109,13 @@ export function AddMemberDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto auto-hide-scroll">
         <DialogHeader>
-          <DialogTitle>Add Member to Family</DialogTitle>
+          <DialogTitle>{tc('dialogs.addMember.title')}</DialogTitle>
           <DialogDescription>
-            Select a standalone design to add to the{' '}
-            <span className="font-medium">{familyDesignCode}</span> family
+            <Trans
+              i18nKey="dialogs.addMember.description"
+              values={{ familyDesignCode }}
+              components={{ strong: <span className="font-medium" /> }}
+            />
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +125,7 @@ export function AddMemberDialog({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
               type="text"
-              placeholder="Search designs..."
+              placeholder={tc('dialogs.addMember.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -131,13 +136,13 @@ export function AddMemberDialog({
           <div className="border border-slate-300 dark:border-slate-700 rounded-lg max-h-64 overflow-y-auto auto-hide-scroll">
             {searching ? (
               <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                Loading designs...
+                {tc('dialogs.addMember.loadingDesigns')}
               </div>
             ) : filteredDesigns.length === 0 ? (
               <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                 {searchQuery
-                  ? `No designs matching "${searchQuery}"`
-                  : 'No eligible designs found. Designs must be standalone (no parent) and in the same program.'}
+                  ? tc('dialogs.addMember.noMatch', { query: searchQuery })
+                  : tc('dialogs.addMember.noEligible')}
               </div>
             ) : (
               <RadioGroup
@@ -186,14 +191,16 @@ export function AddMemberDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             type="button"
             onClick={handleAdd}
             disabled={!selectedDesignId || addMember.isPending}
           >
-            {addMember.isPending ? 'Adding...' : 'Add to Family'}
+            {addMember.isPending
+              ? tc('actions.adding')
+              : tc('dialogs.addMember.addToFamily')}
           </Button>
         </DialogFooter>
       </DialogContent>

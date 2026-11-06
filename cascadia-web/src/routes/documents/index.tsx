@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -97,6 +98,8 @@ export const Route = createFileRoute('/documents/')({
 })
 
 function DocumentsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -134,10 +137,12 @@ function DocumentsListPage() {
     if (!document.id) return
 
     confirm({
-      title: 'Delete Document',
-      description: `Are you sure you want to delete ${document.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('documents.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: document.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -146,12 +151,12 @@ function DocumentsListPage() {
           })
 
           showSuccess(
-            'Document deleted',
-            `${document.itemNumber} has been deleted`,
+            t('documents.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: document.itemNumber }),
           )
           await invalidate('documents')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete document' })
+          handleError(error, { title: t('documents.deleteFailed') })
         }
       },
     })
@@ -180,7 +185,7 @@ function DocumentsListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Documents
+              {t('documents.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -189,9 +194,11 @@ function DocumentsListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage your document library
+            {t('documents.subtitle')}
             {selectedDesign && (
-              <span className="text-slate-500"> in {selectedDesign.name}</span>
+              <span className="text-slate-500">
+                {tc('context.inDesign', { designName: selectedDesign.name })}
+              </span>
             )}
           </p>
         </div>
@@ -215,7 +222,7 @@ function DocumentsListPage() {
               data-testid="create-document-button"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Document
+              {t('documents.create')}
             </Button>
           </Link>
         </div>
@@ -226,18 +233,18 @@ function DocumentsListPage() {
         itemType="Document"
         filters={filters}
         total={total}
-        totalLabel="Total Documents"
+        totalLabel={t('documents.total')}
       />
 
       {/* Documents Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Documents</CardTitle>
+          <CardTitle>{t('documents.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'document' : 'documents'} in the system
+            {t('documents.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -66,6 +67,22 @@ interface TemplateSuggestion {
   name?: string | null
 }
 
+function instructionStatusLabel(
+  status: WorkOrderInstructionStatus,
+  tp: (key: string) => string,
+): string {
+  switch (status) {
+    case 'Not Started':
+      return tp('workOrders.traveler.statusNotStarted')
+    case 'In Progress':
+      return tp('workOrders.traveler.statusInProgress')
+    case 'Complete':
+      return tp('workOrders.traveler.statusComplete')
+    case 'Skipped':
+      return tp('workOrders.traveler.statusSkipped')
+  }
+}
+
 const statusStyles: Record<WorkOrderInstructionStatus, string> = {
   'Not Started':
     'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
@@ -85,6 +102,8 @@ export function WorkOrderTravelerSection({
   workOrderId,
   readOnly = false,
 }: WorkOrderTravelerSectionProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [addOpen, setAddOpen] = useState(false)
@@ -123,11 +142,11 @@ export function WorkOrderTravelerSection({
       const created = result.data.created.length
       showSuccess(
         created > 0
-          ? `${created} instruction${created === 1 ? '' : 's'} added`
-          : 'Traveler already up to date',
+          ? tp('workOrders.traveler.populateAddedTitle', { count: created })
+          : tp('workOrders.traveler.populateUpToDateTitle'),
         created > 0
-          ? 'Instantiated from part attachments across the BOM'
-          : 'Every applicable template is already on the traveler',
+          ? tp('workOrders.traveler.populateAddedDescription')
+          : tp('workOrders.traveler.populateUpToDateDescription'),
       )
     })
 
@@ -179,8 +198,8 @@ export function WorkOrderTravelerSection({
         { method: 'POST' },
       )
       showSuccess(
-        'Snapshot refreshed',
-        `"${line.title}" re-frozen from its template`,
+        tp('workOrders.traveler.refreshTitle'),
+        tp('workOrders.traveler.refreshDescription', { title: line.title }),
       )
     })
 
@@ -197,10 +216,9 @@ export function WorkOrderTravelerSection({
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <CardTitle>Traveler</CardTitle>
+              <CardTitle>{tp('workOrders.traveler.title')}</CardTitle>
               <CardDescription>
-                The instructions this order executes — frozen copies of the
-                templates, in build sequence
+                {tp('workOrders.traveler.description')}
               </CardDescription>
             </div>
             {!readOnly && (
@@ -212,11 +230,11 @@ export function WorkOrderTravelerSection({
                   disabled={busy}
                 >
                   <ClipboardList className="h-4 w-4 mr-2" />
-                  Populate from part
+                  {tp('workOrders.traveler.populateFromPart')}
                 </Button>
                 <Button size="sm" onClick={() => setAddOpen(true)}>
                   <ListPlus className="h-4 w-4 mr-2" />
-                  Add instruction
+                  {tp('workOrders.traveler.addInstruction')}
                 </Button>
               </div>
             )}
@@ -225,19 +243,20 @@ export function WorkOrderTravelerSection({
         <CardContent>
           {lines.length === 0 ? (
             <p className="text-slate-500 text-center py-8">
-              No instructions yet. Add templates by hand, or populate from the
-              work instructions attached to this order's part and its BOM.
+              {tp('workOrders.traveler.emptyInstructions')}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">#</TableHead>
-                  <TableHead>Instruction</TableHead>
-                  <TableHead>Part</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{tc('columns.instruction')}</TableHead>
+                  <TableHead>{tc('columns.part')}</TableHead>
+                  <TableHead>{tc('columns.progress')}</TableHead>
+                  <TableHead>{tc('columns.status')}</TableHead>
+                  <TableHead className="text-right">
+                    {tc('columns.actions')}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -262,8 +281,9 @@ export function WorkOrderTravelerSection({
                         <div className="text-xs text-slate-500">
                           {line.instructionNumber}
                           {line.workInstructionId === null &&
-                            ' · template deleted'}
-                          {line.skipReason && ` · skipped: ${line.skipReason}`}
+                            ` · ${tp('workOrders.traveler.templateDeleted')}`}
+                          {line.skipReason &&
+                            ` · ${tp('workOrders.traveler.skippedWithReason', { reason: line.skipReason })}`}
                         </div>
                       </div>
                     </TableCell>
@@ -286,7 +306,9 @@ export function WorkOrderTravelerSection({
                       </span>
                       {line.executionCount > line.completedCount && (
                         <span className="text-xs text-slate-500 ml-1.5">
-                          ({line.executionCount - line.completedCount} open)
+                          {tp('workOrders.traveler.openRuns', {
+                            count: line.executionCount - line.completedCount,
+                          })}
                         </span>
                       )}
                     </TableCell>
@@ -295,7 +317,7 @@ export function WorkOrderTravelerSection({
                         variant="secondary"
                         className={cn('font-medium', statusStyles[line.status])}
                       >
-                        {line.status}
+                        {instructionStatusLabel(line.status, tp)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -315,7 +337,7 @@ export function WorkOrderTravelerSection({
                               }}
                             >
                               <Play className="h-4 w-4 mr-1" />
-                              Run
+                              {tc('actions.run')}
                             </Link>
                           </Button>
                         )}
@@ -327,7 +349,7 @@ export function WorkOrderTravelerSection({
                               className="h-8 w-8"
                               disabled={busy || index === 0}
                               onClick={() => handleMove(line, -1)}
-                              title="Move up"
+                              title={tp('workOrders.traveler.moveUp')}
                             >
                               <ArrowUp className="h-4 w-4" />
                             </Button>
@@ -337,7 +359,7 @@ export function WorkOrderTravelerSection({
                               className="h-8 w-8"
                               disabled={busy || index === lines.length - 1}
                               onClick={() => handleMove(line, 1)}
-                              title="Move down"
+                              title={tp('workOrders.traveler.moveDown')}
                             >
                               <ArrowDown className="h-4 w-4" />
                             </Button>
@@ -348,7 +370,7 @@ export function WorkOrderTravelerSection({
                                 className="h-8 w-8"
                                 disabled={busy}
                                 onClick={() => handleUnskip(line)}
-                                title="Unskip"
+                                title={tp('workOrders.traveler.unskip')}
                               >
                                 <Undo2 className="h-4 w-4" />
                               </Button>
@@ -363,7 +385,7 @@ export function WorkOrderTravelerSection({
                                     setSkipTarget(line)
                                     setSkipReason('')
                                   }}
-                                  title="Skip (requires reason)"
+                                  title={tp('workOrders.traveler.skipRequiresReason')}
                                 >
                                   <SkipForward className="h-4 w-4" />
                                 </Button>
@@ -378,7 +400,9 @@ export function WorkOrderTravelerSection({
                                     className="h-8 w-8"
                                     disabled={busy}
                                     onClick={() => handleRefresh(line)}
-                                    title="Re-freeze from template"
+                                    title={tp(
+                                      'workOrders.traveler.refreshFromTemplate',
+                                    )}
                                   >
                                     <RefreshCw className="h-4 w-4" />
                                   </Button>
@@ -389,7 +413,7 @@ export function WorkOrderTravelerSection({
                                   className="h-8 w-8 text-red-500 hover:text-red-600 dark:hover:text-red-400"
                                   disabled={busy}
                                   onClick={() => handleRemove(line)}
-                                  title="Remove"
+                                  title={tp('workOrders.traveler.removeLine')}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -409,9 +433,9 @@ export function WorkOrderTravelerSection({
 
       <Card>
         <CardHeader>
-          <CardTitle>Execution History</CardTitle>
+          <CardTitle>{tp('workOrders.traveler.executionHistoryTitle')}</CardTitle>
           <CardDescription>
-            Every run recorded against this order's traveler
+            {tp('workOrders.traveler.executionHistoryDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -422,7 +446,7 @@ export function WorkOrderTravelerSection({
             />
           ) : (
             <p className="text-slate-500 text-center py-8">
-              No executions yet. Run a traveler instruction to see records here.
+              {tp('workOrders.traveler.executionsEmpty')}
             </p>
           )}
         </CardContent>
@@ -443,25 +467,28 @@ export function WorkOrderTravelerSection({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Skip "{skipTarget?.title}"?</DialogTitle>
+            <DialogTitle>
+              {tp('workOrders.traveler.skipDialogTitle', {
+                title: skipTarget?.title ?? '',
+              })}
+            </DialogTitle>
             <DialogDescription>
-              Skipping marks this instruction not applicable for this order. The
-              reason is recorded and the line stops blocking completion.
+              {tp('workOrders.traveler.skipDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={skipReason}
             onChange={(e) => setSkipReason(e.target.value)}
-            placeholder="Why is this instruction not applicable?"
+            placeholder={tp('workOrders.traveler.skipReasonPlaceholder')}
             rows={3}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setSkipTarget(null)}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button onClick={handleSkip} disabled={busy || !skipReason.trim()}>
               <SkipForward className="h-4 w-4 mr-2" />
-              Skip instruction
+              {tp('workOrders.traveler.skipInstruction')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -481,6 +508,8 @@ function AddInstructionDialog({
   onOpenChange: (open: boolean) => void
   onAdded: () => Promise<unknown>
 }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<TemplateSuggestion | null>(null)
@@ -522,7 +551,12 @@ function AddInstructionDialog({
         method: 'POST',
         body: JSON.stringify(body),
       })
-      showSuccess('Instruction added', `${selected.itemNumber} instantiated`)
+      showSuccess(
+        tp('workOrders.traveler.instructionAddedTitle'),
+        tp('workOrders.traveler.instructionAddedDescription', {
+          itemNumber: selected.itemNumber,
+        }),
+      )
       await onAdded()
       onOpenChange(false)
     } catch (error) {
@@ -536,10 +570,9 @@ function AddInstructionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add instruction to traveler</DialogTitle>
+          <DialogTitle>{tp('workOrders.traveler.addDialogTitle')}</DialogTitle>
           <DialogDescription>
-            The template's current content is frozen into this order — later
-            template edits won't change it.
+            {tp('workOrders.traveler.addDialogDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -556,7 +589,7 @@ function AddInstructionDialog({
                 size="sm"
                 onClick={() => setSelected(null)}
               >
-                Change
+                {tc('labels.change')}
               </Button>
             </div>
           ) : (
@@ -564,7 +597,9 @@ function AddInstructionDialog({
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search work instruction templates…"
+                placeholder={tp(
+                  'workOrders.traveler.searchTemplatesPlaceholder',
+                )}
                 autoFocus
               />
               {suggestions.length > 0 && (
@@ -595,12 +630,12 @@ function AddInstructionDialog({
                 onChange={(e) => setPerUnit(e.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 dark:border-slate-700"
               />
-              Once per unit (required runs = order quantity)
+              {tp('workOrders.traveler.perUnitLabel')}
             </label>
             {!perUnit && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-slate-600 dark:text-slate-400">
-                  Required runs:
+                  {tp('workOrders.traveler.requiredRunsLabel')}
                 </span>
                 <Input
                   type="number"
@@ -615,11 +650,13 @@ function AddInstructionDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleAdd} disabled={!selected || saving}>
             <ListPlus className="h-4 w-4 mr-2" />
-            {saving ? 'Adding…' : 'Add to traveler'}
+            {saving
+              ? tc('actions.adding')
+              : tp('workOrders.traveler.addToTraveler')}
           </Button>
         </DialogFooter>
       </DialogContent>

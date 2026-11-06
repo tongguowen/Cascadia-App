@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Archive,
@@ -121,6 +122,8 @@ export function FileList({
   optionModel,
   makes,
 }: FileListProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -161,17 +164,17 @@ export function FileList({
 
       downloadBlob(await response.blob(), file.originalFileName)
     } catch (err) {
-      handleError(err, { title: 'Download failed' })
+      handleError(err, { title: tc('errors.downloadFailed') })
     }
   }
 
   const handleDelete = (fileId: string) => {
     if (readOnly) return
     confirm({
-      title: 'Delete File',
-      description: 'Are you sure you want to delete this file?',
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tc('confirm.deleteFile'),
+      description: tc('confirm.deleteFileDescription'),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -186,7 +189,7 @@ export function FileList({
           await invalidate('files')
           onFileDeleted?.(fileId)
         } catch (err) {
-          handleError(err, { title: 'Delete failed' })
+          handleError(err, { title: tp('files.deleteFailed') })
         }
       },
     })
@@ -207,7 +210,7 @@ export function FileList({
       await loadFiles()
       onFileCheckedOut?.(fileId)
     } catch (err) {
-      handleError(err, { title: 'Checkout failed' })
+      handleError(err, { title: tp('files.checkoutFailed') })
     }
   }
 
@@ -225,13 +228,13 @@ export function FileList({
       await loadFiles()
       onFileCheckedIn?.(fileId)
     } catch (err) {
-      handleError(err, { title: 'Checkin failed' })
+      handleError(err, { title: tp('files.checkinFailed') })
     }
   }
 
   const handleForceUnlock = (fileId: string) => {
     confirm({
-      title: 'Force Unlock File',
+      title: tc('confirm.forceUnlockFile'),
       description:
         'This will release the checkout lock held by another user. Any unsaved changes by that user will be lost.',
       actionLabel: 'Force Unlock',
@@ -248,7 +251,7 @@ export function FileList({
 
           await loadFiles()
         } catch (err) {
-          handleError(err, { title: 'Force unlock failed' })
+          handleError(err, { title: tp('files.forceUnlockFailed') })
         }
       },
     })
@@ -272,7 +275,7 @@ export function FileList({
       await invalidate('files')
       onThumbnailChanged?.()
     } catch (err) {
-      handleError(err, { title: 'Failed to update thumbnail' })
+      handleError(err, { title: tp('files.updateThumbnailFailed') })
     }
   }
 
@@ -294,7 +297,7 @@ export function FileList({
 
       await invalidate('files')
     } catch (err) {
-      handleError(err, { title: 'Failed to update category' })
+      handleError(err, { title: tp('files.updateCategoryFailed') })
     }
   }
 
@@ -319,7 +322,7 @@ export function FileList({
 
       await invalidate('files')
     } catch (err) {
-      handleError(err, { title: 'Failed to update file applicability' })
+      handleError(err, { title: tp('files.updateApplicabilityFailed') })
     }
   }
 
@@ -390,7 +393,9 @@ export function FileList({
   if (loading) {
     return (
       <div className={cn('text-center py-8', className)}>
-        <p className="text-slate-600 dark:text-slate-400">Loading files...</p>
+        <p className="text-slate-600 dark:text-slate-400">
+          {tp('vault.fileList.loadingFiles')}
+        </p>
       </div>
     )
   }
@@ -398,9 +403,11 @@ export function FileList({
   if (error) {
     return (
       <div className={cn('text-center py-8', className)}>
-        <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+        <p className="text-red-600 dark:text-red-400">
+          {tp('vault.fileList.errorPrefix', { error })}
+        </p>
         <Button onClick={loadFiles} className="mt-4">
-          Retry
+          {tc('errorBoundary.retry')}
         </Button>
       </div>
     )
@@ -411,7 +418,7 @@ export function FileList({
       <div className={cn('text-center py-8', className)}>
         <FileIcon className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
         <p className="text-slate-600 dark:text-slate-400">
-          No files attached to this item
+          {tp('vault.fileList.emptyMessage')}
         </p>
       </div>
     )
@@ -429,11 +436,11 @@ export function FileList({
     },
     {
       id: 'fileName',
-      header: 'File Name',
+      header: tc('columns.fileName'),
       accessorKey: 'originalFileName',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search files...',
+      filterPlaceholder: tp('vault.fileList.searchFiles'),
       cell: ({ row }) => {
         const file = row.original
         return (
@@ -445,7 +452,7 @@ export function FileList({
               {getCategoryBadge(file.fileCategory, file.isPrimaryModel)}
               {file.isItemThumbnail && (
                 <Badge variant="secondary" className="text-xs">
-                  Thumbnail
+                  {tp('vault.fileList.thumbnail')}
                 </Badge>
               )}
             </div>
@@ -460,12 +467,12 @@ export function FileList({
     },
     {
       id: 'fileSize',
-      header: 'Size',
+      header: tc('columns.size'),
       accessorKey: 'fileSize',
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: tc('actions.any'),
       cell: ({ getValue }) => {
         const bytes = getValue() as number
         return (
@@ -479,20 +486,22 @@ export function FileList({
       ? [
           {
             id: 'applicability',
-            header: 'Applicability',
+            header: tp('vault.fileList.applicability'),
             accessorFn: (file: FileRecord) =>
               file.applicability ? 'conditional' : 'all',
             enableFiltering: true,
             filterType: 'select' as const,
             filterOptions: [
-              { label: 'All executions', value: 'all' },
-              { label: 'Conditional', value: 'conditional' },
+              { label: tp('vault.fileList.allExecutions'), value: 'all' },
+              { label: tp('vault.fileList.conditional'), value: 'conditional' },
             ],
             cell: ({ row }: { row: Row<FileRecord> }) => {
               const applicability = row.original.applicability
               if (!applicability) {
                 return (
-                  <span className="text-xs text-slate-500">All executions</span>
+                  <span className="text-xs text-slate-500">
+                    {tp('vault.fileList.allExecutions')}
+                  </span>
                 )
               }
               return (
@@ -521,7 +530,7 @@ export function FileList({
       : []),
     {
       id: 'fileVersion',
-      header: 'Version',
+      header: tc('columns.version'),
       accessorKey: 'fileVersion',
       enableSorting: true,
       enableFiltering: true,
@@ -534,7 +543,7 @@ export function FileList({
             v{file.fileVersion}
             {file.isLatestVersion && (
               <span className="ml-2 text-xs text-green-600 dark:text-green-400">
-                (latest)
+                {tp('vault.fileList.latest')}
               </span>
             )}
           </span>
@@ -543,7 +552,7 @@ export function FileList({
     },
     {
       id: 'uploadedAt',
-      header: 'Uploaded',
+      header: tc('columns.uploadedAt'),
       accessorKey: 'uploadedAt',
       enableSorting: true,
       cell: ({ getValue }) => {
@@ -557,13 +566,13 @@ export function FileList({
     },
     {
       id: 'isCheckedOut',
-      header: 'Status',
+      header: tc('columns.status'),
       accessorKey: 'isCheckedOut',
       enableFiltering: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Available', value: 'false' },
-        { label: 'Checked Out', value: 'true' },
+        { label: tp('vault.fileList.available'), value: 'false' },
+        { label: tp('vault.fileList.checkedOutStatus'), value: 'true' },
       ],
       cell: ({ getValue }) => {
         const isCheckedOut = getValue() as boolean
@@ -571,21 +580,23 @@ export function FileList({
           return (
             <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
               <Lock className="w-3 h-3" />
-              <span className="text-xs">Checked Out</span>
+              <span className="text-xs">
+                {tp('vault.fileList.checkedOutStatus')}
+              </span>
             </div>
           )
         }
         return (
           <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <Unlock className="w-3 h-3" />
-            <span className="text-xs">Available</span>
+            <span className="text-xs">{tp('vault.fileList.available')}</span>
           </div>
         )
       },
     },
     {
       id: 'fileCategory',
-      header: 'Category',
+      header: tc('columns.category'),
       accessorKey: 'fileCategory',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -607,7 +618,7 @@ export function FileList({
             onClick={() =>
               onPreviewFile ? onPreviewFile(file) : setPreviewFile(file)
             }
-            title="Preview"
+            title={tc('tabs.preview')}
           >
             <FileSearch className="w-4 h-4" />
           </Button>
@@ -617,7 +628,7 @@ export function FileList({
             variant="ghost"
             size="icon"
             onClick={() => onViewCAD(file.id, file.originalFileName)}
-            title="View in 3D"
+            title={tc('actions.viewIn3d')}
           >
             <Eye className="w-4 h-4" />
           </Button>
@@ -646,8 +657,8 @@ export function FileList({
             aria-pressed={file.isItemThumbnail === true}
             title={
               file.isItemThumbnail
-                ? 'Remove as thumbnail'
-                : 'Use as item thumbnail'
+                ? tp('vault.fileList.removeThumbnail')
+                : tp('vault.fileList.useThumbnail')
             }
             className={cn(
               file.isItemThumbnail && 'text-blue-600 dark:text-blue-400',
@@ -660,7 +671,7 @@ export function FileList({
           variant="ghost"
           size="icon"
           onClick={() => handleDownload(file)}
-          title="Download"
+          title={tc('actions.download')}
         >
           <Download className="w-4 h-4" />
         </Button>
@@ -670,7 +681,7 @@ export function FileList({
               variant="ghost"
               size="icon"
               onClick={() => handleCheckOut(file.id)}
-              title="Check Out"
+              title={tc('actions.checkOut')}
             >
               <Lock className="w-4 h-4" />
             </Button>
@@ -681,7 +692,7 @@ export function FileList({
               variant="ghost"
               size="icon"
               onClick={() => handleCheckIn(file.id)}
-              title="Check In"
+              title={tc('actions.checkIn')}
             >
               <Unlock className="w-4 h-4" />
             </Button>
@@ -690,7 +701,7 @@ export function FileList({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleForceUnlock(file.id)}
-                title="Force Unlock (Admin)"
+                title={tp('vault.fileList.forceUnlockAdmin')}
                 className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
               >
                 <Unlock className="w-4 h-4" />
@@ -704,7 +715,7 @@ export function FileList({
             size="icon"
             onClick={() => handleDelete(file.id)}
             disabled={file.isCheckedOut}
-            title="Delete"
+            title={tc('actions.delete')}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -718,14 +729,14 @@ export function FileList({
       {optionModel && activeMakes.length > 0 && (
         <div className="flex items-center justify-end gap-2">
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            Show files for
+            {tp('vault.fileList.showFilesFor')}
           </span>
           <Select value={selectedMakeCode} onValueChange={setSelectedMakeCode}>
             <SelectTrigger className="h-8 w-56 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All files</SelectItem>
+              <SelectItem value="all">{tc('filters.allFiles')}</SelectItem>
               {activeMakes.map((make) => (
                 <SelectItem key={make.code} value={make.code}>
                   {make.code}
@@ -742,11 +753,11 @@ export function FileList({
         getRowId={(row) => row.id}
         enableRowActions={true}
         renderRowActions={renderRowActions}
-        emptyMessage="No files attached to this item"
+        emptyMessage={tp('vault.fileList.emptyMessage')}
         emptyDescription={
           readOnly
-            ? 'No files are available in this version'
-            : 'Upload files to get started'
+            ? tp('vault.fileList.emptyDescriptionReadOnly')
+            : tp('vault.fileList.emptyDescription')
         }
       />
       <FilePreviewDialog

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertCircle, Plus } from 'lucide-react'
 import { ApiKeyTable } from './ApiKeyTable'
 import { ApiKeyFormDialog } from './ApiKeyFormDialog'
@@ -74,7 +75,9 @@ export function ApiKeyManager({
     } catch (err) {
       setErrorMessage(
         err instanceof ApiError ? err.message : 'The operation failed',
-      )
+        err instanceof ApiError
+          ? err.message
+          : tc('apiKeyManager.operationFailed'),
     } finally {
       setBusyKeyId(null)
     }
@@ -122,7 +125,7 @@ export function ApiKeyManager({
         >
           <Plus className="w-4 h-4 mr-2" />
           New key
-        </Button>
+          {tc('apiKeyManager.newKey')}
       </div>
 
       {errorMessage && (
@@ -183,18 +186,22 @@ export function ApiKeyManager({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rotate secret</DialogTitle>
+            <DialogTitle>{tc('dialogs.apiKeyRotate.title')}</DialogTitle>
             <DialogDescription>
               {rotateTarget
-                ? `"${rotateTarget.name}" keeps its scope and activity history, but its current secret stops working immediately. Every client using it will fail until updated.`
+                ? tc('dialogs.apiKeyRotate.description', {
+                    name: rotateTarget.name,
+                  })
                 : ''}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRotateTarget(null)}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
-            <Button onClick={handleRotate}>Rotate secret</Button>
-          </DialogFooter>
+            <Button onClick={handleRotate}>
+              {tc('dialogs.apiKeyRotate.confirm')}
+            </Button>
         </DialogContent>
       </Dialog>
 
@@ -208,19 +215,22 @@ export function ApiKeyManager({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Revoke API key</DialogTitle>
+            <DialogTitle>{tc('dialogs.apiKeyRevoke.title')}</DialogTitle>
             <DialogDescription>
               {revokeTarget
-                ? `"${revokeTarget.name}" (${revokeTarget.keyPrefix}…) stops working immediately and cannot be re-enabled. To pause a key temporarily, disable it instead.`
+                ? tc('dialogs.apiKeyRevoke.description', {
+                    name: revokeTarget.name,
+                    keyPrefix: revokeTarget.keyPrefix,
+                  })
                 : ''}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRevokeTarget(null)}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleRevoke}>
-              Revoke permanently
-            </Button>
+              {tc('dialogs.apiKeyRevoke.confirm')}
           </DialogFooter>
         </DialogContent>
       </Dialog>

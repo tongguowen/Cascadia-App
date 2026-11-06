@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -88,6 +89,8 @@ export const Route = createFileRoute('/software/')({
 })
 
 function SoftwareListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -120,10 +123,12 @@ function SoftwareListPage() {
     if (!sw.id) return
 
     confirm({
-      title: 'Delete Software',
-      description: `Are you sure you want to delete ${sw.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('software.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: sw.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -131,10 +136,13 @@ function SoftwareListPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Software deleted', `${sw.itemNumber} has been deleted`)
+          showSuccess(
+            t('software.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: sw.itemNumber }),
+          )
           await invalidate('software')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete software' })
+          handleError(error, { title: t('software.deleteFailed') })
         }
       },
     })
@@ -160,7 +168,7 @@ function SoftwareListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Software
+              {t('software.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -169,7 +177,7 @@ function SoftwareListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Firmware and software configuration items with versioned source
+            {t('software.subtitle')}
           </p>
         </div>
         <Link
@@ -178,7 +186,7 @@ function SoftwareListPage() {
         >
           <Button disabled={!isEditable && context.type !== 'main'}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Software
+            {t('software.create')}
           </Button>
         </Link>
       </div>
@@ -188,18 +196,18 @@ function SoftwareListPage() {
         itemType="Software"
         filters={filters}
         total={total}
-        totalLabel="Total"
+        totalLabel={t('software.total')}
       />
 
       {/* Software Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Software</CardTitle>
+          <CardTitle>{t('software.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'item' : 'items'} in the system
+            {t('software.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

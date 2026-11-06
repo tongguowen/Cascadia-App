@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronDown, X } from 'lucide-react'
 import type { Design } from '@cascadia/commons/types/design'
 import { cn } from '@/utils'
@@ -48,10 +49,13 @@ export function DesignMultiSelector({
   designs,
   value,
   onChange,
-  placeholder = 'Select designs...',
+  placeholder,
   disabled = false,
   className,
 }: DesignMultiSelectorProps) {
+  const { t: tp } = useTranslation('pages')
+  const resolvedPlaceholder =
+    placeholder ?? tp('versioning.designMultiSelector.defaultPlaceholder')
   const [open, setOpen] = useState(false)
 
   // Sort designs by code for consistent ordering
@@ -97,7 +101,7 @@ export function DesignMultiSelector({
         >
           <div className="flex flex-wrap gap-1 items-center flex-1">
             {selectedDesigns.length === 0 ? (
-              <span className="text-muted-foreground">{placeholder}</span>
+              <span className="text-muted-foreground">{resolvedPlaceholder}</span>
             ) : (
               selectedDesigns.map((design) => (
                 <Badge
@@ -123,7 +127,7 @@ export function DesignMultiSelector({
         <div className="max-h-[300px] overflow-y-auto p-2">
           {designs.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">
-              No designs available
+              {tp('versioning.designMultiSelector.noDesigns')}
             </div>
           ) : (
             <>
@@ -140,7 +144,7 @@ export function DesignMultiSelector({
               {/* Library designs (if any) - shown separately */}
               {libraryDesigns.length > 0 && regularDesigns.length > 0 && (
                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-2 pt-2">
-                  Libraries
+                  {tp('versioning.designMultiSelector.librariesHeading')}
                 </div>
               )}
               {libraryDesigns.map((design) => (

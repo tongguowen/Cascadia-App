@@ -9,6 +9,7 @@
  * columns, so the two structures of a design read alike.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -83,18 +84,6 @@ function indexElements(
   return into
 }
 
-/** A realization runs from the element to the item that realizes it. */
-const REALIZATION_SUSPECT_LABELS: SuspectReasonLabels = {
-  source_revised: 'Element revised',
-  target_revised: 'Realizing item revised',
-}
-
-/** An allocation runs from the requirement to the element. */
-const ALLOCATION_SUSPECT_LABELS: SuspectReasonLabels = {
-  source_revised: 'Requirement revised',
-  target_revised: 'Element revised',
-}
-
 function collectIds(
   nodes: Array<BOMTreeNode>,
   into = new Set<string>(),
@@ -148,6 +137,8 @@ export function ArchitectureTab({
   versionContext,
   isHistoricalView,
 }: ArchitectureTabProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const {
     data: architecture,
     isPending,
@@ -188,6 +179,21 @@ export function ArchitectureTab({
       ? 'main'
       : getVersionContextLabel(versionContext)
 
+  const realizationSuspectLabels = useMemo<SuspectReasonLabels>(
+    () => ({
+      source_revised: tp('designs.architecture.suspectElementRevised'),
+      target_revised: tp('designs.architecture.suspectRealizingItemRevised'),
+    }),
+    [tp],
+  )
+  const allocationSuspectLabels = useMemo<SuspectReasonLabels>(
+    () => ({
+      source_revised: tp('designs.architecture.suspectRequirementRevised'),
+      target_revised: tp('designs.architecture.suspectElementRevised'),
+    }),
+    [tp],
+  )
+
   // Where a new element is created: this design, under the row clicked, on
   // the branch being viewed when there is one.
   const newElementSearch = (parentId?: string) => ({
@@ -201,7 +207,7 @@ export function ArchitectureTab({
     () => [
       {
         id: 'element',
-        label: 'Element',
+        label: tc('columns.element'),
         width: 'flex-[2] min-w-[220px]',
         renderCell: (node) => (
           <>
@@ -220,7 +226,7 @@ export function ArchitectureTab({
       },
       {
         id: 'kind',
-        label: 'Kind',
+        label: tc('columns.kind'),
         width: 'w-28 flex-shrink-0',
         renderCell: (node) => (
           <Badge variant="outline" className="text-xs">
@@ -230,31 +236,31 @@ export function ArchitectureTab({
       },
       {
         id: 'realizedBy',
-        label: 'Realized by',
+        label: tp('designs.architecture.realizedColumn'),
         width: 'flex-[2] min-w-[180px]',
         renderCell: (node) => (
           <LinkChips
             links={elementById.get(node.itemId)?.realizedBy ?? []}
-            labels={REALIZATION_SUSPECT_LABELS}
-            empty="not yet realized"
+            labels={realizationSuspectLabels}
+            empty={tp('designs.architecture.noRealization')}
           />
         ),
       },
       {
         id: 'requirements',
-        label: 'Requirements',
+        label: tp('designs.architecture.requirementsColumn'),
         width: 'flex-[2] min-w-[180px]',
         renderCell: (node) => (
           <LinkChips
             links={elementById.get(node.itemId)?.allocatedRequirements ?? []}
-            labels={ALLOCATION_SUSPECT_LABELS}
-            empty="—"
+            labels={allocationSuspectLabels}
+            empty={tp('designs.architecture.noRequirements')}
           />
         ),
       },
       {
         id: 'rev',
-        label: 'Rev',
+        label: tc('columns.rev'),
         width: 'w-14 flex-shrink-0',
         align: 'center',
         renderCell: (node) => (
@@ -263,7 +269,7 @@ export function ArchitectureTab({
       },
       {
         id: 'state',
-        label: 'State',
+        label: tc('columns.state'),
         width: 'w-28 flex-shrink-0',
         renderCell: (node) => (
           <StateBadge itemType="SystemElement" state={node.state} />
@@ -279,7 +285,9 @@ export function ArchitectureTab({
             <Link
               to="/system-elements/new"
               search={newElementSearch(node.itemId)}
-              title={`Add a child element under ${node.itemNumber}`}
+              title={tp('designs.architecture.addChildTitle', {
+                itemNumber: node.itemNumber,
+              })}
               className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-slate-700 dark:hover:text-white"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -287,14 +295,22 @@ export function ArchitectureTab({
           ),
       },
     ],
-    [designId, elementById, isHistoricalView, versionContext],
+    [
+      elementById,
+      isHistoricalView,
+      versionContext,
+      tp,
+      tc,
+      realizationSuspectLabels,
+      allocationSuspectLabels,
+    ],
   )
 
   if (isPending) {
     return (
       <Card>
         <CardContent className="py-12 text-center text-slate-500">
-          Loading the architecture…
+          {tp('designs.architecture.loading')}
         </CardContent>
       </Card>
     )
@@ -303,7 +319,7 @@ export function ArchitectureTab({
     return (
       <Card>
         <CardContent className="py-12 text-center text-red-600 dark:text-red-400">
-          The architecture could not be loaded.
+          {tp('designs.architecture.loadError')}
         </CardContent>
       </Card>
     )
@@ -316,20 +332,28 @@ export function ArchitectureTab({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <CardTitle>Architecture</CardTitle>
+            <CardTitle>{tc('tabs.architecture')}</CardTitle>
             <CardDescription>
-              {totals.elements} element{totals.elements === 1 ? '' : 's'} in{' '}
-              {designCode} · {totals.realized} realized · {totals.allocated}{' '}
-              with requirements
+              {tp('designs.architecture.description', {
+                elements: totals.elements,
+                elementsSuffix: totals.elements === 1 ? '' : 's',
+                designCode,
+                realized: totals.realized,
+                allocated: totals.allocated,
+              })}
               {totals.suspect > 0 && (
                 <span className="ml-1 text-amber-600 dark:text-amber-400">
-                  · {totals.suspect} suspect link
-                  {totals.suspect === 1 ? '' : 's'}
+                  {tp('designs.architecture.suspectSuffix', {
+                    count: totals.suspect,
+                    suffix: totals.suspect === 1 ? '' : 's',
+                  })}
                 </span>
               )}
               {versionContext.type !== 'main' && (
                 <span className="ml-2 text-amber-600 dark:text-amber-400">
-                  (viewing {contextLabel})
+                  {tp('designs.architecture.viewingContext', {
+                    context: contextLabel,
+                  })}
                 </span>
               )}
             </CardDescription>
@@ -342,7 +366,7 @@ export function ArchitectureTab({
                 onClick={() => setView('tree')}
               >
                 <ListTree className="h-4 w-4 mr-1" />
-                Tree
+                {tp('designs.architecture.tree')}
               </Button>
               <Button
                 variant={view === 'graph' ? 'secondary' : 'ghost'}
@@ -350,7 +374,7 @@ export function ArchitectureTab({
                 onClick={() => setView('graph')}
               >
                 <GitFork className="h-4 w-4 mr-1" />
-                Graph
+                {tp('designs.architecture.graph')}
               </Button>
             </div>
             {view === 'tree' && roots.length > 0 && (
@@ -359,7 +383,7 @@ export function ArchitectureTab({
                   variant="outline"
                   size="sm"
                   onClick={() => setExpandedNodes(collectIds(roots))}
-                  title="Expand all"
+                  title={tc('actions.expandAll')}
                 >
                   <ChevronsUpDown className="h-4 w-4" />
                 </Button>
@@ -367,7 +391,7 @@ export function ArchitectureTab({
                   variant="outline"
                   size="sm"
                   onClick={() => setExpandedNodes(new Set())}
-                  title="Collapse all"
+                  title={tc('actions.collapseAll')}
                 >
                   <ChevronsDownUp className="h-4 w-4" />
                 </Button>
@@ -377,7 +401,7 @@ export function ArchitectureTab({
               <Link to="/system-elements/new" search={newElementSearch()}>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  New element
+                  {tp('designs.architecture.newElement')}
                 </Button>
               </Link>
             )}
@@ -388,8 +412,8 @@ export function ArchitectureTab({
         {roots.length === 0 ? (
           <div className="text-center py-8 text-slate-500 dark:text-slate-400">
             {versionContext.type === 'main'
-              ? 'This design has no system elements yet. Create the system, then decompose it into segments, subsystems and modules; allocate requirements to them before any part exists.'
-              : 'This design has no system elements at this context.'}
+              ? tp('designs.architecture.emptyMain')
+              : tp('designs.architecture.emptyContext')}
           </div>
         ) : view === 'graph' ? (
           <ArchitectureGraphView architecture={architecture} />

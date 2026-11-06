@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Loader2, ShieldCheck } from 'lucide-react'
 import type { Resource } from '@/query'
 import type { SuspectReason } from '@cascadia/commons/items/suspect-reason'
@@ -50,15 +51,6 @@ interface BulkAffirmResult {
   }>
 }
 
-const OUTCOME_TEXT: Record<
-  Exclude<BulkAffirmResult['results'][number]['outcome'], 'affirmed'>,
-  string
-> = {
-  not_found: 'no longer exist',
-  forbidden: 'are not yours to affirm',
-  not_suspectable: 'carry no affirmation',
-}
-
 /**
  * Affirm one or more trace links and refresh what lists them.
  *
@@ -71,6 +63,8 @@ export function useAffirmLinks(options: {
   invalidates: ReadonlyArray<Resource>
   onAffirmed?: () => void
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError } = useErrorHandler()
   const { addToast } = useToast()
   const [pendingIds, setPendingIds] = useState<ReadonlySet<string>>(
@@ -90,7 +84,18 @@ export function useAffirmLinks(options: {
     },
     invalidates: options.invalidates,
     onSuccess: (result, relationshipIds) => {
-      const byOutcome = new Map<keyof typeof OUTCOME_TEXT, number>()
+      const outcomeText: Record<
+        Exclude<BulkAffirmResult['results'][number]['outcome'], 'affirmed'>,
+        string
+      > = {
+        not_found: tc('suspect.outcomeNotFound'),
+        forbidden: tc('suspect.outcomeForbidden'),
+        not_suspectable: tc('suspect.outcomeNotSuspectable'),
+      }
+      const byOutcome = new Map<
+        Exclude<BulkAffirmResult['results'][number]['outcome'], 'affirmed'>,
+        number
+      >()
       for (const row of result.results) {
         if (row.outcome === 'affirmed') continue
         byOutcome.set(row.outcome, (byOutcome.get(row.outcome) ?? 0) + 1)
@@ -100,10 +105,13 @@ export function useAffirmLinks(options: {
           variant: 'warning',
           title:
             result.affirmed > 0
-              ? `Affirmed ${result.affirmed} of ${relationshipIds.length} links`
-              : 'No links were affirmed',
+              ? tc('suspect.toastAffirmedPartial', {
+                  affirmed: result.affirmed,
+                  total: relationshipIds.length,
+                })
+              : tc('suspect.toastNoneAffirmed'),
           description: [...byOutcome]
-            .map(([outcome, count]) => `${count} ${OUTCOME_TEXT[outcome]}`)
+            .map(([outcome, count]) => `${count} ${outcomeText[outcome]}`)
             .join('; '),
         })
       }
@@ -121,12 +129,12 @@ export function useAffirmLinks(options: {
       try {
         await mutateAsync(relationshipIds)
       } catch (error) {
-        handleError(error, { title: 'Could not affirm link' })
+        handleError(error, { title: tp('requirements.affirmLinkFailedTitle') })
       } finally {
         setPendingIds(new Set())
       }
     },
-    [mutateAsync, handleError],
+    [mutateAsync, handleError, tp, tc],
   )
 
   return { affirm, pendingIds, isPending: mutation.isPending }
@@ -142,6 +150,7 @@ export function SuspectBadge({
   labels: SuspectReasonLabels
   className?: string
 }) {
+  const { t: tc } = useTranslation('common')
   return (
     <Badge
       variant="warning"
@@ -149,7 +158,7 @@ export function SuspectBadge({
       title={reasons.map((reason) => labels[reason]).join('; ')}
     >
       <AlertTriangle className="h-3 w-3 mr-1" />
-      Suspect
+      {tc('suspect.badge')}
     </Badge>
   )
 }
@@ -168,6 +177,7 @@ export function AffirmButton({
   title: string
   variant?: 'outline' | 'ghost'
 }) {
+  const { t: tc } = useTranslation('common')
   const pending = pendingIds.has(relationshipId)
   return (
     <Button
@@ -183,7 +193,7 @@ export function AffirmButton({
       ) : (
         <ShieldCheck className="h-4 w-4 mr-1" />
       )}
-      Affirm
+      {tc('suspect.affirm')}
     </Button>
   )
 }
@@ -203,6 +213,7 @@ export function AffirmAllButton({
   onAffirm: (relationshipIds: Array<string>) => void
   title: string
 }) {
+  const { t: tc } = useTranslation('common')
   if (relationshipIds.length < 2) return null
   return (
     <Button
@@ -218,7 +229,7 @@ export function AffirmAllButton({
       ) : (
         <ShieldCheck className="h-4 w-4 mr-1" />
       )}
-      Affirm all suspect ({relationshipIds.length})
+      {tc('suspect.affirmAll', { count: relationshipIds.length })}
     </Button>
   )
 }

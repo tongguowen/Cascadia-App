@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { Plus } from 'lucide-react'
@@ -60,6 +61,8 @@ export const Route = createFileRoute('/designs/')({
 })
 
 function DesignsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -100,10 +103,10 @@ function DesignsListPage() {
 
   const handleArchiveDesign = (design: Design) => {
     confirm({
-      title: 'Archive Design',
-      description: `Are you sure you want to archive ${design.code}? The design will no longer appear in lists but data will be preserved.`,
-      actionLabel: 'Archive',
-      cancelLabel: 'Cancel',
+      title: t('designs.archiveTitle'),
+      description: t('designs.archiveDescription', { code: design.code }),
+      actionLabel: tc('actions.archive'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -111,10 +114,13 @@ function DesignsListPage() {
             method: 'POST',
           })
 
-          showSuccess('Design archived', `${design.code} has been archived`)
+          showSuccess(
+            t('designs.archivedTitle'),
+            `${design.code} has been archived`,
+          )
           await invalidate('designs')
         } catch (error) {
-          handleError(error, { title: 'Failed to archive design' })
+          handleError(error, { title: t('designs.archiveFailed') })
         }
       },
     })
@@ -126,10 +132,10 @@ function DesignsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Designs
+            {t('designs.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage your design configurations, families, and libraries
+            {t('designs.subtitle')}
           </p>
         </div>
         <Link
@@ -142,7 +148,7 @@ function DesignsListPage() {
         >
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Design
+            {t('designs.create')}
           </Button>
         </Link>
       </div>
@@ -151,13 +157,13 @@ function DesignsListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total</CardDescription>
+            <CardDescription>{t('designs.total')}</CardDescription>
             <CardTitle className="text-3xl">{total}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Engineering</CardDescription>
+            <CardDescription>{t('designs.engineering')}</CardDescription>
             <CardTitle className="text-3xl text-cyan-600 dark:text-cyan-400">
               {counts?.design ?? 0}
             </CardTitle>
@@ -165,7 +171,7 @@ function DesignsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Families</CardDescription>
+            <CardDescription>{t('designs.families')}</CardDescription>
             <CardTitle className="text-3xl text-amber-600 dark:text-amber-400">
               {counts?.family ?? 0}
             </CardTitle>
@@ -173,7 +179,7 @@ function DesignsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Libraries</CardDescription>
+            <CardDescription>{t('designs.libraries')}</CardDescription>
             <CardTitle className="text-3xl text-purple-600 dark:text-purple-400">
               {counts?.library ?? 0}
             </CardTitle>
@@ -186,12 +192,20 @@ function DesignsListPage() {
         <CardHeader>
           <CardTitle>
             {searchParams.programId
-              ? `${programs.find((p) => p.id === searchParams.programId)?.name ?? 'Program'} Designs`
-              : 'All Designs'}
+              ? t('designs.tableTitleProgram', {
+                  programName:
+                    programs.find((p) => p.id === searchParams.programId)
+                      ?.name ?? t('designs.tableTitleProgramFallback'),
+                })
+              : t('designs.tableTitleAll')}
           </CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'design' : 'designs'}
-            {searchParams.programId ? ' in this program' : ' in the system'}
+            {t('designs.tableDescription', {
+              count: total,
+              scope: searchParams.programId
+                ? t('designs.scopeInProgram')
+                : t('designs.scopeInSystem'),
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>

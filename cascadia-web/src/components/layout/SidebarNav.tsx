@@ -2,9 +2,9 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
-  AlertTriangle,
   BarChart3,
   Bot,
   Box,
@@ -22,7 +22,6 @@ import {
   Home,
   KeyRound,
   Layers,
-  ListChecks,
   Network,
   Package,
   Radio,
@@ -31,7 +30,6 @@ import {
   Shield,
   Users,
   Webhook,
-  Wrench,
 } from 'lucide-react'
 import { SidebarNavItem } from './SidebarNavItem'
 import { SidebarSection } from './SidebarSection'
@@ -57,6 +55,7 @@ export function SidebarNav({
   currentPath,
   iconSize,
 }: SidebarNavProps) {
+  const { t } = useTranslation('nav')
   const { canAccess: canAccessSystem, canManage: canManageSystem } =
     useSystemAccess()
   const [adminExpanded, setAdminExpanded] = useState(false)
@@ -82,7 +81,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/"
         icon={Home}
-        label="Dashboard"
+        label={t('dashboard')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -91,12 +90,12 @@ export function SidebarNav({
       />
 
       {/* Organization Section */}
-      <SectionHeader label="Organization" isOpen={isOpen} />
+      <SectionHeader label={t('organization')} isOpen={isOpen} />
 
       <SidebarNavItem
         to="/programs"
         icon={Briefcase}
-        label="Programs"
+        label={t('programs')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -105,7 +104,7 @@ export function SidebarNav({
 
       <SidebarSection
         icon={Box}
-        label="Designs"
+        label={t('designs')}
         basePath="/designs"
         isOpen={isOpen}
         isExpanded={designsExpanded}
@@ -118,7 +117,7 @@ export function SidebarNav({
         <NavSubItem
           to="/designs"
           icon={Box}
-          label="All Designs"
+          label={t('allDesigns')}
           onClick={onNavClick}
           activeOptions={{ exact: true }}
           testId="nav-designs"
@@ -126,19 +125,19 @@ export function SidebarNav({
         <NavSubItem
           to="/designs/workspaces"
           icon={GitFork}
-          label="My Workspaces"
+          label={t('myWorkspaces')}
           onClick={onNavClick}
         />
         <Slot name="designs-nav-items" props={{ onNavClick }} />
       </SidebarSection>
 
       {/* Items Section */}
-      <SectionHeader label="Items" isOpen={isOpen} />
+      <SectionHeader label={t('items')} isOpen={isOpen} />
 
       <SidebarNavItem
         to="/change-orders"
         icon={GitBranch}
-        label="Change Orders"
+        label={t('changeOrders')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -148,7 +147,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/parts"
         icon={Package}
-        label="Parts"
+        label={t('parts')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -158,7 +157,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/software"
         icon={Cpu}
-        label="Software"
+        label={t('software')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -168,26 +167,19 @@ export function SidebarNav({
       <SidebarNavItem
         to="/documents"
         icon={FileText}
-        label="Documents"
+        label={t('documents')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
         testId="nav-documents"
       />
 
-      <SidebarNavItem
-        to="/requirements"
-        icon={ListChecks}
-        label="Requirements"
-        isOpen={isOpen}
-        iconSize={iconSize}
-        onClick={onNavClick}
-      />
+      {/* Watchlink：侧栏隐藏需求/问题/工单/实物零件（路由仍在，仅不展示入口） */}
 
       <SidebarNavItem
         to="/system-elements"
         icon={Network}
-        label="System Elements"
+        label={t('systemElements')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -196,7 +188,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/test-plans"
         icon={ClipboardList}
-        label="Test Plans"
+        label={t('testPlans')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -206,7 +198,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/test-cases"
         icon={FlaskConical}
-        label="Test Cases"
+        label={t('testCases')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -214,48 +206,18 @@ export function SidebarNav({
       />
 
       <SidebarNavItem
-        to="/issues"
-        icon={AlertTriangle}
-        label="Issues"
-        isOpen={isOpen}
-        iconSize={iconSize}
-        onClick={onNavClick}
-        testId="nav-issues"
-      />
-
-      <SidebarNavItem
         to="/tasks"
         icon={CheckSquare}
-        label="Tasks"
+        label={t('tasks')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
-      />
-
-      <SidebarNavItem
-        to="/work-orders"
-        icon={Wrench}
-        label="Work Orders"
-        isOpen={isOpen}
-        iconSize={iconSize}
-        onClick={onNavClick}
-        testId="nav-work-orders"
-      />
-
-      <SidebarNavItem
-        to="/physical-parts"
-        icon={Package}
-        label="Physical Parts"
-        isOpen={isOpen}
-        iconSize={iconSize}
-        onClick={onNavClick}
-        testId="nav-physical-parts"
       />
 
       <SidebarNavItem
         to="/work-instructions"
         icon={ClipboardCheck}
-        label="Work Instructions"
+        label={t('workInstructions')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -265,7 +227,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/tools"
         icon={Hammer}
-        label="Tools"
+        label={t('tools')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -275,7 +237,7 @@ export function SidebarNav({
       <SidebarNavItem
         to="/files"
         icon={HardDrive}
-        label="Files"
+        label={t('files')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -283,12 +245,12 @@ export function SidebarNav({
       />
 
       {/* Analytics Section */}
-      <SectionHeader label="Analytics" isOpen={isOpen} />
+      <SectionHeader label={t('analytics')} isOpen={isOpen} />
 
       <SidebarNavItem
         to="/reports"
         icon={BarChart3}
-        label="Reports"
+        label={t('reports')}
         isOpen={isOpen}
         iconSize={iconSize}
         onClick={onNavClick}
@@ -301,12 +263,12 @@ export function SidebarNav({
           navigation offers. */}
       {canAccessSystem && (
         <>
-          <SectionHeader label="System" isOpen={isOpen} />
+          <SectionHeader label={t('system')} isOpen={isOpen} />
 
           <SidebarNavItem
             to="/lifecycles"
             icon={RotateCcw}
-            label="Lifecycles"
+            label={t('lifecycles')}
             isOpen={isOpen}
             iconSize={iconSize}
             onClick={onNavClick}
@@ -315,7 +277,7 @@ export function SidebarNav({
           <SidebarNavItem
             to="/users"
             icon={Users}
-            label="Users"
+            label={t('users')}
             isOpen={isOpen}
             iconSize={iconSize}
             onClick={onNavClick}
@@ -326,7 +288,7 @@ export function SidebarNav({
           {canManageSystem && (
             <SidebarSection
               icon={Settings}
-              label="Administration"
+              label={t('administration')}
               basePath="/admin"
               isOpen={isOpen}
               isExpanded={adminExpanded}
@@ -338,50 +300,50 @@ export function SidebarNav({
               <NavSubItem
                 to="/admin"
                 icon={Settings}
-                label="Settings"
+                label={t('settings')}
                 onClick={onNavClick}
                 activeOptions={{ exact: true }}
               />
               <NavSubItem
                 to="/admin/roles"
                 icon={Shield}
-                label="Roles & Permissions"
+                label={t('rolesPermissions')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/item-types"
                 icon={Layers}
-                label="Item Types"
+                label={t('itemTypes')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/api-keys"
                 icon={KeyRound}
-                label="API Keys"
+                label={t('apiKeys')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/jobs"
                 icon={Activity}
-                label="Jobs"
+                label={t('jobs')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/events"
                 icon={Radio}
-                label="Domain Events"
+                label={t('domainEvents')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/webhooks"
                 icon={Webhook}
-                label="Webhooks"
+                label={t('webhooks')}
                 onClick={onNavClick}
               />
               <NavSubItem
                 to="/admin/ai"
                 icon={Bot}
-                label="AI Assistant"
+                label={t('aiAssistant')}
                 onClick={onNavClick}
               />
             </SidebarSection>

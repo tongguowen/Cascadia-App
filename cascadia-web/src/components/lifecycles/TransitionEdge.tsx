@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { memo, useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -324,7 +325,7 @@ function TransitionEdgeComponent({
                 }}
                 className="absolute -right-2 -top-2 p-1 rounded-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-cyan-50 dark:hover:bg-cyan-900/30"
                 title="Edit transition"
-              >
+                title={tc('tooltips.editTransition')}
                 <Edit2 className="h-3 w-3 text-slate-500 dark:text-slate-400" />
               </button>
             )}

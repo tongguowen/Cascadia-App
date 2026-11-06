@@ -3,6 +3,7 @@
 
 import { useForm, useStore } from '@tanstack/react-form'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { documentSchema } from '@cascadia/commons/items/types/document'
@@ -104,10 +105,10 @@ export function DocumentForm({
             <FormField
               label="Design"
               required
+              label={tc('fields.design')}
+              required
               error={field.state.meta.errors[0]}
-              helpText="The design this document belongs to"
-              className="md:col-span-2"
-            >
+              helpText={tp('documents.form.designHelp')}
               <div className="flex items-center gap-4">
                 <DesignSelector
                   designs={designs}
@@ -132,15 +133,17 @@ export function DocumentForm({
           <FormField
             label="Target Branch"
             required={branchRequired}
+            label={tc('fields.targetBranch')}
+            required={branchRequired}
             error={
               branchRequired && !selectedBranchId
-                ? 'Please select a branch to create this document on'
+                ? tp('documents.form.branchSelectRequired')
                 : undefined
             }
             helpText={
               branchRequired
-                ? 'Select a change-order or workspace branch for the new document'
-                : 'Optional: Create on a workspace branch for private development'
+                ? tp('documents.form.branchHelpRequired')
+                : tp('documents.form.branchHelpOptional')
             }
             className="md:col-span-2"
           >
@@ -150,26 +153,21 @@ export function DocumentForm({
               onChange={setSelectedBranchId}
               showMainOption={!branchRequired}
               placeholder={
-                branchRequired ? 'Select branch...' : 'Main branch (default)'
+                branchRequired
+                  ? tc('labels.selectBranch')
+                  : tc('labels.mainBranchDefault')
               }
             />
             {branchRequired && (
               <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm rounded-md">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  This design is under change control. New documents must be
-                  created on an ECO or workspace branch.
-                </span>
+                <span>{tp('documents.form.changeControlNotice')}</span>
               </div>
             )}
             {!branchRequired && !selectedBranchId && (
               <div className="flex items-start gap-2 mt-2 p-3 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm rounded-md">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  No branch selected - document will be created on the main
-                  branch. Select a workspace branch for private development
-                  work.
-                </span>
+                <span>{tp('documents.form.mainBranchNotice')}</span>
               </div>
             )}
           </FormField>
@@ -185,6 +183,7 @@ export function DocumentForm({
               onChange={field.handleChange}
               onBlur={field.handleBlur}
               error={field.state.meta.errors[0]}
+              label={tc('fields.itemNumber')}
               data-testid="document-item-number"
             />
           )}
@@ -194,7 +193,7 @@ export function DocumentForm({
         <form.Field name="name">
           {(field) => (
             <FormField
-              label="Name"
+              label={tc('fields.name')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -203,7 +202,7 @@ export function DocumentForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Technical Specification"
+                placeholder={tp('documents.form.namePlaceholder')}
                 error={!!field.state.meta.errors.length}
                 data-testid="document-name"
               />
@@ -215,9 +214,7 @@ export function DocumentForm({
         <form.Field name="description">
           {(field) => (
             <FormField
-              label="Description"
-              error={field.state.meta.errors[0]}
-              className="md:col-span-2"
+              label={tc('fields.description')}
             >
               <Textarea
                 name={field.name}
@@ -226,7 +223,7 @@ export function DocumentForm({
                 onBlur={field.handleBlur}
                 placeholder="Detailed description of the document..."
                 rows={4}
-                error={!!field.state.meta.errors.length}
+                placeholder={tp('documents.form.descriptionPlaceholder')}
               />
             </FormField>
           )}
@@ -237,13 +234,13 @@ export function DocumentForm({
           {(field) => (
             <FormField label="File Name" error={field.state.meta.errors[0]}>
               <Input
-                name={field.name}
+            <FormField label={tc('fields.fileName')} error={field.state.meta.errors[0]}>
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
                 placeholder="specification.pdf"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('documents.form.fileNamePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -253,13 +250,13 @@ export function DocumentForm({
           {(field) => (
             <FormField label="MIME Type" error={field.state.meta.errors[0]}>
               <Input
-                name={field.name}
+            <FormField label={tc('fields.mimeType')} error={field.state.meta.errors[0]}>
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
                 placeholder="application/pdf"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('documents.form.mimePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -270,7 +267,7 @@ export function DocumentForm({
             <FormField
               label="File Size (bytes)"
               error={field.state.meta.errors[0]}
-            >
+              label={tc('fields.fileSize')}
               <Input
                 name={field.name}
                 value={field.state.value ?? ''}
@@ -292,7 +289,7 @@ export function DocumentForm({
           {(field) => (
             <FormField label="Storage Path" error={field.state.meta.errors[0]}>
               <Input
-                name={field.name}
+            <FormField label={tc('fields.storagePath')} error={field.state.meta.errors[0]}>
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
@@ -323,6 +320,8 @@ export function DocumentForm({
           >
             Cancel
           </Button>
+            {tc('actions.cancel')}
+          </Button>
         )}
         <Button
           type="submit"
@@ -330,12 +329,10 @@ export function DocumentForm({
           data-testid="document-submit"
         >
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : document?.id
-              ? 'Update Document'
-              : 'Create Document'}
-        </Button>
-      </div>
+              ? tp('documents.form.updateSubmit')
+              : tp('documents.form.createSubmit')}
     </form>
   )
 }

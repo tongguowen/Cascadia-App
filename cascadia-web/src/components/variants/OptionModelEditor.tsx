@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { OPTION_CODE_PATTERN } from '@cascadia/commons/types/variants'
 import { ConditionPicker } from './ConditionPicker'
 import type {
@@ -25,6 +26,10 @@ export function OptionModelEditor({
   onChange: (next: OptionModel) => void
   isEditing: boolean
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const ph = (key: string) =>
+    tp(`variants.placeholders.${key}` as 'variants.placeholders.familyCodeExample')
   const setFamilies = (families: Array<OptionFamily>) =>
     onChange({ ...value, families })
 
@@ -80,7 +85,9 @@ export function OptionModelEditor({
     <div className="space-y-6">
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold">Option families</h4>
+          <h4 className="text-sm font-semibold">
+            {tp('parts.variantsTab.optionFamiliesHeading')}
+          </h4>
           {isEditing && (
             <Button
               type="button"
@@ -109,12 +116,12 @@ export function OptionModelEditor({
             >
               <div className="grid grid-cols-[1fr_2fr_auto_auto] gap-2 items-end">
                 <div>
-                  <Label className="text-xs">Code</Label>
+                  <Label className="text-xs">{tc('fields.code')}</Label>
                   {isEditing ? (
                     <Input
                       className={`h-8 text-sm font-mono ${codeInvalid ? 'border-red-500' : ''}`}
                       value={family.code}
-                      placeholder="color"
+                      placeholder={ph('familyCodeExample')}
                       onChange={(e) =>
                         updateFamily(index, {
                           code: e.target.value.toLowerCase(),
@@ -126,12 +133,12 @@ export function OptionModelEditor({
                   )}
                 </div>
                 <div>
-                  <Label className="text-xs">Name</Label>
+                  <Label className="text-xs">{tc('fields.name')}</Label>
                   {isEditing ? (
                     <Input
                       className="h-8 text-sm"
                       value={family.name}
-                      placeholder="Colour"
+                      placeholder={ph('familyNameExample')}
                       onChange={(e) =>
                         updateFamily(index, { name: e.target.value })
                       }
@@ -185,7 +192,7 @@ export function OptionModelEditor({
                 {isEditing && (
                   <Input
                     className="h-7 w-40 text-xs"
-                    placeholder="Add value, press Enter"
+                    placeholder={ph('addValueEnter')}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
@@ -203,7 +210,9 @@ export function OptionModelEditor({
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-semibold">Constraints</h4>
+          <h4 className="text-sm font-semibold">
+            {tp('parts.variantsTab.constraintsHeading')}
+          </h4>
           {isEditing && value.families.length > 0 && (
             <Button
               type="button"
@@ -267,12 +276,12 @@ export function OptionModelEditor({
             </div>
             <div className="flex items-end gap-2">
               <div className="flex-1">
-                <Label className="text-xs">Message</Label>
+                <Label className="text-xs">{tc('fields.message')}</Label>
                 {isEditing ? (
                   <Input
                     className="h-8 text-sm"
                     value={constraint.message}
-                    placeholder="Without a display only 2 or 3 buttons fit"
+                    placeholder={ph('constraintMessageExample')}
                     onChange={(e) =>
                       setConstraint(index, { message: e.target.value })
                     }

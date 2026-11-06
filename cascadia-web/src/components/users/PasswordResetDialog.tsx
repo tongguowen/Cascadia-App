@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Button,
   Dialog,
@@ -33,6 +34,7 @@ export function PasswordResetDialog({
   onClose,
   onSave,
 }: PasswordResetDialogProps) {
+  const { t: tc } = useTranslation('common')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -42,17 +44,17 @@ export function PasswordResetDialog({
     if (!user) return
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+      setError(tc('dialogs.passwordReset.errorMinLength'))
       return
     }
 
     if (password.length > 128) {
-      setError('Password must not exceed 128 characters')
+      setError(tc('dialogs.passwordReset.errorMaxLength'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(tc('dialogs.passwordReset.errorMismatch'))
       return
     }
 
@@ -68,7 +70,7 @@ export function PasswordResetDialog({
       setError(
         saveError instanceof Error
           ? saveError.message
-          : 'Failed to reset password',
+          : tc('dialogs.passwordReset.errorFailed'),
       )
     } finally {
       setIsSubmitting(false)
@@ -88,18 +90,19 @@ export function PasswordResetDialog({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && handleClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Reset Password</DialogTitle>
+          <DialogTitle>{tc('dialogs.passwordReset.title')}</DialogTitle>
           <DialogDescription>
-            Set a new password for {user.name || user.email}. This will sign
-            them out of all active sessions.
+            {tc('dialogs.passwordReset.description', {
+              userName: user.name || user.email,
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-6 space-y-4">
           <FormField
-            label="New Password"
+            label={tc('dialogs.passwordReset.newPasswordLabel')}
             required
-            helpText="8 to 128 characters"
+            helpText={tc('dialogs.passwordReset.passwordHelp')}
           >
             <Input
               type="password"
@@ -112,7 +115,10 @@ export function PasswordResetDialog({
             />
           </FormField>
 
-          <FormField label="Confirm Password" required>
+          <FormField
+            label={tc('dialogs.passwordReset.confirmPasswordLabel')}
+            required
+          >
             <Input
               type="password"
               value={confirmPassword}
@@ -137,10 +143,12 @@ export function PasswordResetDialog({
             onClick={handleClose}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? 'Resetting...' : 'Reset Password'}
+            {isSubmitting
+              ? tc('actions.resetting')
+              : tc('actions.resetPassword')}
           </Button>
         </DialogFooter>
       </DialogContent>

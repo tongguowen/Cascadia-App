@@ -3,6 +3,7 @@
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, Loader2, Save } from 'lucide-react'
 import { resolveLifecycleType } from '@cascadia/commons/lifecycles/normalize'
@@ -39,6 +40,8 @@ export const Route = createFileRoute('/lifecycles/$id')({
 })
 
 function EditLifecyclePage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const { id } = Route.useParams()
@@ -65,7 +68,8 @@ function EditLifecyclePage() {
   }, [saved])
 
   useEffect(() => {
-    if (loadError) handleError(loadError, { title: 'Failed to load lifecycle' })
+    if (loadError)
+      handleError(loadError, { title: t('lifecycles.edit.loadFailedTitle') })
   }, [loadError, handleError])
 
   if (loading) {
@@ -73,7 +77,7 @@ function EditLifecyclePage() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
         <span className="ml-2 text-slate-600 dark:text-slate-400">
-          Loading lifecycle...
+          {t('lifecycles.edit.loading')}
         </span>
       </div>
     )
@@ -86,14 +90,15 @@ function EditLifecyclePage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center gap-4 text-center">
               <AlertCircle className="h-12 w-12 text-red-500" />
-              <h2 className="text-xl font-semibold">Lifecycle Not Found</h2>
+              <h2 className="text-xl font-semibold">
+                {t('lifecycles.edit.notFoundTitle')}
+              </h2>
               <p className="text-slate-600 dark:text-slate-400">
-                The lifecycle you&apos;re looking for doesn&apos;t exist or has
-                been deleted.
+                {t('lifecycles.edit.notFoundDescription')}
               </p>
               <Button onClick={() => navigate({ to: '/lifecycles' })}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Lifecycles
+                {t('lifecycles.edit.backToList')}
               </Button>
             </div>
           </CardContent>
@@ -122,8 +127,8 @@ function EditLifecyclePage() {
 
   const handleSave = async () => {
     if (!definition.name?.trim()) {
-      handleError(new Error('Please enter a name for the lifecycle'), {
-        title: 'Validation Error',
+      handleError(new Error(t('lifecycles.form.nameRequired')), {
+        title: t('lifecycles.form.validationTitle'),
       })
       return
     }
@@ -142,9 +147,9 @@ function EditLifecyclePage() {
       })
 
       setHasChanges(false)
-      showSuccess('Lifecycle saved', 'Lifecycle has been saved successfully')
+      showSuccess(t('lifecycles.edit.savedTitle'), t('lifecycles.edit.savedDescription'))
     } catch (error) {
-      handleError(error, { title: 'Failed to update lifecycle' })
+      handleError(error, { title: t('lifecycles.edit.updateFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -155,17 +160,19 @@ function EditLifecyclePage() {
       case 'Driving':
         return (
           <Badge variant="outline" className="bg-cyan-50 dark:bg-cyan-950">
-            Driving
+            {t('lifecycles.edit.typeDriving')}
           </Badge>
         )
       case 'Driven':
         return (
           <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950">
-            Driven
+            {t('lifecycles.edit.typeDriven')}
           </Badge>
         )
       default:
-        return <Badge variant="outline">Free</Badge>
+        return (
+          <Badge variant="outline">{t('lifecycles.edit.typeFree')}</Badge>
+        )
     }
   }
 
@@ -191,15 +198,17 @@ function EditLifecyclePage() {
                   {getLifecycleTypeBadge()}
                 </div>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  {definition.states?.length || 0} states,{' '}
-                  {definition.transitions?.length || 0} transitions
+                  {t('lifecycles.edit.stateCount', {
+                    states: definition.states?.length || 0,
+                    transitions: definition.transitions?.length || 0,
+                  })}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {hasChanges && (
                 <span className="text-sm text-amber-600 dark:text-amber-400">
-                  Unsaved changes
+                  {t('lifecycles.edit.unsavedChanges')}
                 </span>
               )}
               <Button
@@ -207,7 +216,7 @@ function EditLifecyclePage() {
                 disabled={isSubmitting || !hasChanges}
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isSubmitting ? tc('actions.saving') : tc('actions.save')}
               </Button>
             </div>
           </div>
@@ -219,7 +228,9 @@ function EditLifecyclePage() {
           <div className="w-96 border-r bg-white dark:bg-slate-950 overflow-y-auto p-4 space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Lifecycle Type</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.lifecycleType')}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <LifecycleTypeSelector
@@ -231,12 +242,14 @@ function EditLifecyclePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Basic Information</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.basicInformation')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-xs">
-                    Name *
+                    {tc('fields.name')} *
                   </Label>
                   <Input
                     id="name"
@@ -244,13 +257,13 @@ function EditLifecyclePage() {
                     onChange={(e) =>
                       handleChange({ ...definition, name: e.target.value })
                     }
-                    placeholder="e.g., Part Lifecycle, ECO Workflow"
+                    placeholder={t('lifecycles.form.namePlaceholder')}
                     className="h-8 text-sm"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Mode</Label>
+                  <Label className="text-xs">{tc('fields.mode')}</Label>
                   <Select
                     value={definition.workflowType}
                     onValueChange={(value: WorkflowType) =>
@@ -261,15 +274,19 @@ function EditLifecyclePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="strict">Strict</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
+                      <SelectItem value="strict">
+                        {t('lifecycles.form.modeStrict')}
+                      </SelectItem>
+                      <SelectItem value="flexible">
+                        {t('lifecycles.form.modeFlexible')}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="description" className="text-xs">
-                    Description
+                    {tc('fields.description')}
                   </Label>
                   <textarea
                     id="description"
@@ -281,7 +298,7 @@ function EditLifecyclePage() {
                       })
                     }
                     className="w-full h-20 px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 resize-none"
-                    placeholder="What types of items use this lifecycle?"
+                    placeholder={t('lifecycles.form.descriptionPlaceholder')}
                   />
                 </div>
 
@@ -299,7 +316,7 @@ function EditLifecyclePage() {
                     className="rounded"
                   />
                   <Label htmlFor="isActive" className="text-sm">
-                    Active
+                    {t('lifecycles.table.active')}
                   </Label>
                 </div>
               </CardContent>
@@ -308,7 +325,9 @@ function EditLifecyclePage() {
             {lifecycleType !== 'Driving' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Revision Scheme</CardTitle>
+                  <CardTitle className="text-sm">
+                    {t('lifecycles.form.revisionScheme')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <RevisionSchemeSelector
@@ -316,11 +335,11 @@ function EditLifecyclePage() {
                     onChange={(revisionScheme) =>
                       handleChange({ ...definition, revisionScheme })
                     }
-                    label="Default scheme"
+                    label={t('lifecycles.form.defaultScheme')}
                     allowNone={lifecycleType !== 'Driven'}
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Used by every state unless its phase defines an override.
+                    {t('lifecycles.form.revisionSchemeHelp')}
                   </p>
                 </CardContent>
               </Card>
@@ -330,7 +349,9 @@ function EditLifecyclePage() {
             {lifecycleType === 'Driven' && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">ECO Drivers</CardTitle>
+                  <CardTitle className="text-sm">
+                    {t('lifecycles.form.ecoDrivers')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <DriverSelector
@@ -343,12 +364,14 @@ function EditLifecyclePage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Statistics</CardTitle>
+                <CardTitle className="text-sm">
+                  {t('lifecycles.form.statistics')}
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    States
+                    {t('lifecycles.edit.statisticsStates')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.length || 0}
@@ -356,7 +379,7 @@ function EditLifecyclePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Transitions
+                    {t('lifecycles.form.transitions')}
                   </span>
                   <span className="font-medium">
                     {definition.transitions?.length || 0}
@@ -364,16 +387,16 @@ function EditLifecyclePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Initial State
+                    {t('lifecycles.form.initialState')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.find((s) => s.isInitial)?.name ||
-                      'None'}
+                      t('lifecycles.form.none')}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">
-                    Final States
+                    {t('lifecycles.form.finalStates')}
                   </span>
                   <span className="font-medium">
                     {definition.states?.filter((s) => s.isFinal).length || 0}
@@ -387,11 +410,13 @@ function EditLifecyclePage() {
           <div className="flex-1 flex flex-col overflow-hidden">
             {lifecycleType !== 'Driving' && (
               <div className="p-4 border-b bg-white dark:bg-slate-950">
-                <h2 className="text-lg font-semibold">States</h2>
+                <h2 className="text-lg font-semibold">
+                  {t('lifecycles.form.statesTitle')}
+                </h2>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   {lifecycleType === 'Driven'
-                    ? 'Define the valid states for this lifecycle. ECOs will transition items between these states.'
-                    : 'Define the valid states for this lifecycle. Users can freely transition items between states.'}
+                    ? t('lifecycles.form.statesHelpDriven')
+                    : t('lifecycles.form.statesHelpFree')}
                 </p>
               </div>
             )}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Radio, RefreshCw } from 'lucide-react'
@@ -26,6 +27,8 @@ export const Route = createFileRoute('/admin/events')({
 })
 
 function EventsPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { addToast } = useToast()
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
@@ -95,24 +98,25 @@ function EventsPage() {
     for (const id of fresh) announced.current.add(id)
 
     addToast({
-      title:
-        fresh.length === 1
-          ? 'An event consumer is parked'
-          : `${fresh.length} event consumers are parked`,
-      description: `${fresh.join(', ')} — stopped retrying after repeated failures. Nothing behind the cursor is being handled, and the log cannot be pruned past it.`,
+      title: t('admin.events.parkedToastTitle', { count: fresh.length }),
+      description: t('admin.events.parkedToastDescription', {
+        ids: fresh.join(', '),
+      }),
       variant: 'warning',
       duration: 10000,
     })
-  }, [parkedKey, addToast])
+  }, [parkedKey, addToast, t])
 
   const confirmForget = (consumer: EventConsumerStatus) => {
     confirm({
-      title: `Forget ${consumer.id}?`,
+      title: t('admin.events.forgetTitle', { id: consumer.id }),
       description:
         consumer.lag > 0
-          ? `This deletes the cursor row, abandoning the ${consumer.lag.toLocaleString()} event(s) it has not handled. They will never be delivered to it. If the consumer is re-registered it restarts wherever its code declares — which for most consumers means treating everything now in the log as already delivered. Use this for a consumer no process owns any more, not to unstick a working one.`
-          : 'This deletes the cursor row. The consumer is up to date, so nothing is lost today, but a re-registered consumer restarts wherever its code declares rather than where this cursor sat.',
-      actionLabel: 'Forget the cursor',
+          ? t('admin.events.forgetDescriptionWithLag', {
+              lag: consumer.lag.toLocaleString(),
+            })
+          : t('admin.events.forgetDescriptionNoLag'),
+      actionLabel: t('admin.events.forgetAction'),
       variant: 'destructive',
       onConfirm: () => forget.mutate(consumer.id),
     })
@@ -132,7 +136,7 @@ function EventsPage() {
         <div className="flex items-center gap-2">
           <Radio size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Domain Events
+            {t('admin.events.title')}
           </h1>
         </div>
         <Button
@@ -144,7 +148,7 @@ function EventsPage() {
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`}
           />
-          Refresh
+          {t('admin.events.refresh')}
         </Button>
       </div>
 
@@ -155,20 +159,23 @@ function EventsPage() {
       )}
 
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
-        <Stat label="Head of log" value={latestSeq.toLocaleString()} />
-        <Stat label="Consumers" value={consumers.length} />
         <Stat
-          label="Behind"
+          label={t('admin.events.latestSeq')}
+          value={latestSeq.toLocaleString()}
+        />
+        <Stat label={t('admin.events.consumers')} value={consumers.length} />
+        <Stat
+          label={t('admin.events.behind')}
           value={behind}
           tone={behind > 0 ? 'warn' : 'calm'}
         />
         <Stat
-          label="Parked"
+          label={t('admin.events.parked')}
           value={parked}
           tone={parked > 0 ? 'bad' : 'calm'}
         />
         <Stat
-          label="Abandoned"
+          label={t('admin.events.abandoned')}
           value={abandoned}
           tone={abandoned > 0 ? 'bad' : 'calm'}
         />
@@ -194,20 +201,25 @@ function EventsPage() {
 
       <section className="mt-8">
         <h2 className="mb-1 text-lg font-semibold text-slate-900 dark:text-white">
-          Event types this build emits
+          {t('admin.events.eventTypesTitle')}
         </h2>
         <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
-          The catalog an extension can subscribe to. A type absent here is a
-          type nothing in this instance publishes.
+          {t('admin.events.eventTypesDescription')}
         </p>
         <div className="overflow-hidden rounded-lg border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-800">
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-left text-xs text-slate-500 dark:bg-slate-900 dark:text-slate-400">
               <tr>
-                <th className="px-4 py-2 font-medium">Type</th>
-                <th className="px-4 py-2 font-medium">Subject</th>
-                <th className="px-4 py-2 font-medium">v</th>
-                <th className="px-4 py-2 font-medium">Description</th>
+                <th className="px-4 py-2 font-medium">{tc('columns.type')}</th>
+                <th className="px-4 py-2 font-medium">
+                  {t('admin.events.colSubject')}
+                </th>
+                <th className="px-4 py-2 font-medium">
+                  {t('admin.events.colVersion')}
+                </th>
+                <th className="px-4 py-2 font-medium">
+                  {tc('columns.description')}
+                </th>
               </tr>
             </thead>
             <tbody>

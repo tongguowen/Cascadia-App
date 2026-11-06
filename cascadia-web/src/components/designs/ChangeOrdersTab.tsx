@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -38,6 +39,8 @@ export function ChangeOrdersTab({
   isHistoricalView,
   onCreateChangeOrder: onCreateChangeOrder,
 }: ChangeOrdersTabProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const {
@@ -45,7 +48,7 @@ export function ChangeOrdersTab({
     isPending: loading,
     error: loadError,
   } = useQuery(designChangeOrdersQuery(designId))
-  const error = loadError ? 'Failed to load change orders.' : null
+  const error = loadError ? tp('designs.changeOrdersTab.loadFailed') : null
 
   // Filter ECOs by status
   const filteredChangeOrders = useMemo(() => {
@@ -109,7 +112,7 @@ export function ChangeOrdersTab({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">{tc('filters.all')}</SelectItem>
               {(coLifecycle?.states ?? []).map((state) => (
                 <SelectItem key={state.id} value={state.id}>
                   {state.name}
@@ -121,7 +124,7 @@ export function ChangeOrdersTab({
         {onCreateChangeOrder && (
           <Button onClick={onCreateChangeOrder} disabled={isHistoricalView}>
             <Plus className="h-4 w-4 mr-2" />
-            New ECO
+            {tp('designs.changeOrdersTab.newEco')}
           </Button>
         )}
       </div>
@@ -132,7 +135,7 @@ export function ChangeOrdersTab({
           <CardContent className="py-4">
             <p className="text-amber-700 dark:text-amber-300">{error}</p>
             <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
-              This feature requires the ECOs API endpoint to be implemented.
+              {tp('designs.changeOrdersTab.apiNotReady')}
             </p>
           </CardContent>
         </Card>
@@ -168,15 +171,23 @@ export function ChangeOrdersTab({
                       <p className="text-slate-600 dark:text-slate-400 mt-1">
                         {changeOrder.reasonForChange ||
                           changeOrder.name ||
-                          'No description'}
+                          tp('designs.changeOrdersTab.noDescription')}
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                        <span>{changeOrder.itemCount} items</span>
+                        <span>
+                          {tp('designs.changeOrdersTab.itemCount', {
+                            count: changeOrder.itemCount,
+                          })}
+                        </span>
                         <span>{changeOrder.owner.name}</span>
                         <span>
                           {changeOrder.releasedAt
-                            ? `Released ${getTimeSince(changeOrder.releasedAt)}`
-                            : `Started ${getTimeSince(changeOrder.createdAt)}`}
+                            ? tp('designs.changeOrdersTab.releasedAgo', {
+                                time: getTimeSince(changeOrder.releasedAt),
+                              })
+                            : tp('designs.changeOrdersTab.startedAgo', {
+                                time: getTimeSince(changeOrder.createdAt),
+                              })}
                         </span>
                       </div>
                     </div>
@@ -187,7 +198,7 @@ export function ChangeOrdersTab({
                   <Link to={`/change-orders/${changeOrder.id}` as any}>
                     <Button variant="outline" size="sm">
                       <ExternalLink className="h-3 w-3 mr-1" />
-                      View ECO
+                      {tp('designs.changeOrdersTab.viewEco')}
                     </Button>
                   </Link>
                 </div>
@@ -201,8 +212,8 @@ export function ChangeOrdersTab({
             <CardContent className="py-8">
               <div className="text-center text-slate-500 dark:text-slate-400">
                 {changeOrders.length === 0
-                  ? 'No change orders found for this design.'
-                  : 'No change orders match the selected filter.'}
+                  ? tp('designs.changeOrdersTab.emptyTitle')
+                  : tp('designs.changeOrdersTab.emptyFilter')}
               </div>
             </CardContent>
           </Card>

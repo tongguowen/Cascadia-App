@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Archive,
   CheckCircle2,
@@ -10,7 +11,6 @@ import {
   Lock,
   Tag,
 } from 'lucide-react'
-import { TAG_TYPES } from '@cascadia/commons/versioning/branch-types'
 import type { VersionContext } from '@cascadia/commons/versioning/version-context'
 import type { ComparisonTargets } from '@cascadia/commons/thread/types'
 import { cn } from '@/utils'
@@ -25,13 +25,6 @@ interface ContextSelectorProps {
 
 type TabType = 'tags' | 'branches' | 'commits'
 
-const tagTypeLabels: Record<string, string> = {
-  baseline: 'Baselines',
-  release: 'Releases',
-  milestone: 'Milestones',
-  [TAG_TYPES.changeOrderRelease]: 'Change Order Releases',
-}
-
 /**
  * Tabbed context selector for picking tags, branches, or commits
  * for thread comparison.
@@ -43,6 +36,11 @@ export function ContextSelector({
   onChange,
   label,
 }: ContextSelectorProps) {
+  const { t: tc } = useTranslation('common')
+  const cs = (key: string, options?: Record<string, unknown>) =>
+    tc(`thread.contextSelector.${key}`, options)
+  const tagTypeLabel = (type: string) =>
+    cs(`tagGroups.${type}`, { defaultValue: type })
   const [activeTab, setActiveTab] = useState<TabType>('tags')
 
   // Group tags by type
@@ -98,7 +96,7 @@ export function ContextSelector({
           )}
         >
           <Tag className="h-4 w-4" />
-          Tags ({targets.tags.length})
+          {cs('tags')} ({targets.tags.length})
         </button>
         <button
           type="button"
@@ -111,7 +109,7 @@ export function ContextSelector({
           )}
         >
           <GitBranch className="h-4 w-4" />
-          Branches ({targets.branches.length})
+          {cs('branches')} ({targets.branches.length})
         </button>
         <button
           type="button"
@@ -124,7 +122,7 @@ export function ContextSelector({
           )}
         >
           <GitCommit className="h-4 w-4" />
-          Commits ({targets.recentCommits.length})
+          {cs('commits')} ({targets.recentCommits.length})
         </button>
       </div>
 
@@ -146,7 +144,7 @@ export function ContextSelector({
             >
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="font-medium">Released (main)</span>
+                <span className="font-medium">{cs('releasedMain')}</span>
               </div>
               {isSelected({ type: 'released', designId }) && (
                 <CheckCircle2 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
@@ -157,7 +155,7 @@ export function ContextSelector({
             {Object.entries(tagsByType).map(([type, typeTags]) => (
               <div key={type}>
                 <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-500 uppercase">
-                  {tagTypeLabels[type] ?? type}
+                  {tagTypeLabel(type)}
                 </div>
                 {typeTags.map((tag) => {
                   const context: VersionContext = { type: 'tag', tagId: tag.id }
@@ -191,8 +189,7 @@ export function ContextSelector({
 
             {targets.tags.length === 0 && (
               <div className="px-3 py-8 text-center text-sm text-slate-500">
-                No tags available. Use "Released (main)" to compare against the
-                current state.
+                {cs('noTags')}
               </div>
             )}
           </div>
@@ -259,7 +256,7 @@ export function ContextSelector({
 
             {targets.branches.length === 0 && (
               <div className="px-3 py-8 text-center text-sm text-slate-500">
-                No branches available.
+                {cs('noBranches')}
               </div>
             )}
           </div>
@@ -304,7 +301,7 @@ export function ContextSelector({
 
             {targets.recentCommits.length === 0 && (
               <div className="px-3 py-8 text-center text-sm text-slate-500">
-                No commits available.
+                {cs('noCommits')}
               </div>
             )}
           </div>
@@ -315,9 +312,9 @@ export function ContextSelector({
       {value && (
         <div className="text-xs text-slate-500 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3 text-green-600 dark:text-green-400" />
-          Selected:{' '}
+          {cs('selected')}{' '}
           <span className="font-medium">
-            {value.type === 'released' && 'Released (main)'}
+            {value.type === 'released' && cs('releasedMain')}
             {value.type === 'branch' &&
               targets.branches.find((b) => b.id === value.branchId)?.name}
             {value.type === 'tag' &&

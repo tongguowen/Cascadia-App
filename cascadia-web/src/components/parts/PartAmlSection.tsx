@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, Star, Trash2 } from 'lucide-react'
 import {
@@ -102,6 +103,8 @@ export function PartAmlSection({
     if (!manufacturer.trim() || !mpn.trim()) {
       handleError(new Error('Manufacturer and MPN are required'))
       return
+      handleError(new Error(tp('parts.detail.aml.manufacturerMpnRequired')))
+      return
     }
     setSaving(true)
     try {
@@ -118,9 +121,10 @@ export function PartAmlSection({
           isPreferred: sources.length === 0,
         }),
       })
-      showSuccess('Source added', `${manufacturer} ${mpn} added to the AML`)
-      setAddOpen(false)
-      resetForm()
+      showSuccess(
+        tp('parts.detail.aml.sourceAddedTitle'),
+        tp('parts.detail.aml.sourceAddedDescription', { manufacturer, mpn }),
+      )
       await invalidate('manufacturer-parts')
     } catch (error) {
       handleError(error)
@@ -164,8 +168,11 @@ export function PartAmlSection({
       showSuccess(
         'Source removed',
         `${source.manufacturerPart.manufacturer} ${source.manufacturerPart.mpn} removed from the AML`,
-      )
-      await invalidate('manufacturer-parts')
+        tp('parts.detail.aml.sourceRemovedTitle'),
+        tp('parts.detail.aml.sourceRemovedDescription', {
+          manufacturer: source.manufacturerPart.manufacturer,
+          mpn: source.manufacturerPart.mpn,
+        }),
     } catch (error) {
       handleError(error)
     }
@@ -177,33 +184,34 @@ export function PartAmlSection({
         <div>
           <CardTitle>Approved Sources</CardTitle>
           <CardDescription>
-            Manufacturer parts approved to satisfy this part (AML)
-          </CardDescription>
+          <CardTitle>{tp('parts.detail.aml.title')}</CardTitle>
+          <CardDescription>{tp('parts.detail.aml.description')}</CardDescription>
         </div>
         {!readOnly && (
           <Button size="sm" onClick={() => setAddOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
-            Add Source
-          </Button>
-        )}
+            {tp('parts.detail.aml.addSource')}
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading sources…</p>
         ) : sources.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No approved sources yet. Purchased parts should list at least one
-            manufacturer part.
+            {tp('parts.detail.aml.loading')}
           </p>
-        ) : (
+        ) : sources.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {tp('parts.detail.aml.empty')}
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8"></TableHead>
                 <TableHead>Manufacturer</TableHead>
                 <TableHead>MPN</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{tc('columns.manufacturer')}</TableHead>
+                <TableHead>{tc('columns.mpn')}</TableHead>
+                <TableHead>{tc('columns.description')}</TableHead>
+                <TableHead>{tc('columns.status')}</TableHead>
                 {!readOnly && <TableHead className="w-10"></TableHead>}
               </TableRow>
             </TableHeader>
@@ -215,8 +223,8 @@ export function PartAmlSection({
                       type="button"
                       title={
                         source.isPreferred
-                          ? 'Preferred source'
-                          : 'Make preferred'
+                          ? tp('parts.detail.aml.preferredSource')
+                          : tp('parts.detail.aml.makePreferred')
                       }
                       disabled={readOnly}
                       onClick={() => handlePreferred(source.id)}
@@ -258,7 +266,9 @@ export function PartAmlSection({
                           STATUS_BADGE_VARIANT[source.qualificationStatus]
                         }
                       >
-                        {source.qualificationStatus}
+                        {tp(
+                          `parts.detail.aml.qualification.${source.qualificationStatus}`,
+                        )}
                       </Badge>
                     ) : (
                       <Select
@@ -274,9 +284,15 @@ export function PartAmlSection({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="proposed">Proposed</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="obsolete">Obsolete</SelectItem>
+                          <SelectItem value="proposed">
+                            {tp('parts.detail.aml.qualification.proposed')}
+                          </SelectItem>
+                          <SelectItem value="approved">
+                            {tp('parts.detail.aml.qualification.approved')}
+                          </SelectItem>
+                          <SelectItem value="obsolete">
+                            {tp('parts.detail.aml.qualification.obsolete')}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -286,7 +302,7 @@ export function PartAmlSection({
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Remove from AML"
+                        title={tp('parts.detail.aml.removeFromAml')}
                         onClick={() => handleRemove(source)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -303,17 +319,17 @@ export function PartAmlSection({
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Approved Source</DialogTitle>
+            <DialogTitle>{tp('parts.detail.aml.addDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Identify the manufacturer part that satisfies this part. If a
-              record with the same manufacturer and MPN already exists it is
-              reused.
-            </DialogDescription>
-          </DialogHeader>
+              {tp('parts.detail.aml.addDialogDescription')}
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-sm font-medium">Manufacturer *</label>
+                <Input
+                <label className="text-sm font-medium">
+                  {tp('parts.detail.aml.manufacturerRequired')}
+                </label>
                 <Input
                   value={manufacturer}
                   onChange={(e) => setManufacturer(e.target.value)}
@@ -321,7 +337,9 @@ export function PartAmlSection({
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">MPN *</label>
+                <label className="text-sm font-medium">
+                  {tp('parts.detail.aml.mpnRequired')}
+                </label>
                 <Input
                   value={mpn}
                   onChange={(e) => setMpn(e.target.value)}
@@ -330,15 +348,19 @@ export function PartAmlSection({
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Description</label>
-              <Textarea
-                value={description}
+              <label className="text-sm font-medium">
+                {tc('fields.description')}
+              </label>
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
               />
             </div>
             <div>
               <label className="text-sm font-medium">Datasheet URL</label>
+              <Input
+              <label className="text-sm font-medium">
+                {tp('parts.detail.aml.datasheetUrl')}
+              </label>
               <Input
                 value={datasheetUrl}
                 onChange={(e) => setDatasheetUrl(e.target.value)}
@@ -348,12 +370,12 @@ export function PartAmlSection({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button onClick={handleAdd} disabled={saving}>
-              {saving ? 'Adding…' : 'Add Source'}
-            </Button>
-          </DialogFooter>
+              {saving
+                ? tc('actions.adding')
+                : tp('parts.detail.aml.addSource')}
         </DialogContent>
       </Dialog>
     </Card>

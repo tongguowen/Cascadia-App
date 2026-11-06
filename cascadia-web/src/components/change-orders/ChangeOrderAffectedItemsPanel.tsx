@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle,
@@ -153,6 +154,11 @@ export function ChangeOrderAffectedItemsPanel({
 }: ChangeOrderAffectedItemsPanelProps) {
   const { theme } = useTheme()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const { t: ti } = useTranslation('itemTypes')
+  const ap = (key: string, opts?: Record<string, unknown>) =>
+    tp(`changeOrders.affectedItemsPanel.${key}`, opts)
   const invalidate = useInvalidateResources()
   const [activeTab, setActiveTab] = useState<'tree' | 'table' | 'graph'>('tree')
 
@@ -472,7 +478,7 @@ export function ChangeOrderAffectedItemsPanel({
 
       await invalidate('change-orders')
     } catch (error) {
-      handleError(error, { title: 'Failed to remove affected item' })
+      handleError(error, { title: tp('changeOrders.removeAffectedItemFailedTitle') })
     }
   }
 
@@ -493,7 +499,7 @@ export function ChangeOrderAffectedItemsPanel({
         await invalidate('change-orders')
         return true
       } catch (error) {
-        handleError(error, { title: 'Failed to set initial revision' })
+        handleError(error, { title: tp('changeOrders.setInitialRevisionFailedTitle') })
         return false
       } finally {
         setSavingInitialRevisionId(null)
@@ -525,8 +531,9 @@ export function ChangeOrderAffectedItemsPanel({
     () => [
       {
         id: 'itemNumber',
-        header: 'Item Number',
-        accessorFn: (row) => row.affectedItemDetails?.itemNumber || '(New)',
+        header: ap('columnItemNumber'),
+        accessorFn: (row) =>
+          row.affectedItemDetails?.itemNumber || ap('newItemLabel'),
         enableSorting: true,
         enableFiltering: true,
         cell: ({ getValue }) => (
@@ -538,7 +545,7 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'name',
-        header: 'Name',
+        header: ap('columnName'),
         accessorFn: (row) => row.affectedItemDetails?.name || '-',
         enableSorting: true,
         enableFiltering: true,
@@ -550,7 +557,7 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'itemType',
-        header: 'Type',
+        header: ap('columnType'),
         accessorFn: (row) => row.affectedItemDetails?.itemType || '-',
         enableSorting: true,
         enableFiltering: true,
@@ -561,15 +568,20 @@ export function ChangeOrderAffectedItemsPanel({
               .map((i) => i.affectedItemDetails?.itemType)
               .filter(Boolean),
           ),
-        ].map((t) => ({ label: t!, value: t! })),
+        ].map((t) => ({
+          label: ti(t === 'TestCase' ? 'Test Case' : t!),
+          value: t!,
+        })),
         cell: ({ getValue }) => (
-          <Badge variant="secondary">{getValue() as string}</Badge>
+          <Badge variant="secondary">
+            {ti(getValue() as string)}
+          </Badge>
         ),
         meta: { width: '100px' },
       },
       {
         id: 'design',
-        header: 'Design',
+        header: ap('columnDesign'),
         accessorKey: 'designCode',
         enableSorting: true,
         enableFiltering: true,
@@ -587,27 +599,30 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'changeAction',
-        header: 'Action',
+        header: ap('columnAction'),
         accessorKey: 'changeAction',
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect' as const,
-        filterOptions: [
-          { label: 'Release', value: 'release' },
-          { label: 'Revise', value: 'revise' },
-          { label: 'Obsolete', value: 'obsolete' },
-          { label: 'Add', value: 'add' },
-          { label: 'Remove', value: 'remove' },
-        ],
+        filterOptions: (
+          ['release', 'revise', 'obsolete', 'add', 'remove'] as const
+        ).map((value) => ({
+          label: tc(`enum.ecoChangeAction.${value}`),
+          value,
+        })),
         cell: ({ getValue }) => {
           const action = getValue() as string
-          return <Badge variant={actionColors[action]}>{action}</Badge>
+          return (
+            <Badge variant={actionColors[action]}>
+              {tc(`enum.ecoChangeAction.${action}`, { defaultValue: action })}
+            </Badge>
+          )
         },
         meta: { width: '100px' },
       },
       {
         id: 'current',
-        header: 'Current',
+        header: ap('columnCurrent'),
         accessorFn: (row) =>
           row.currentState && row.currentRevision
             ? `${row.currentState} ${row.currentRevision}`
@@ -617,7 +632,7 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'target',
-        header: 'Target',
+        header: ap('columnTarget'),
         accessorFn: (row) =>
           row.targetState && row.targetRevision
             ? `${row.targetState} ${row.targetRevision}`
@@ -627,7 +642,7 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'initialRevisionOverride',
-        header: 'Initial Revision',
+        header: ap('columnInitialRevision'),
         accessorFn: (row) =>
           row.initialRevisionOverride ?? row.targetRevision ?? '',
         enableSorting: true,
@@ -650,13 +665,19 @@ export function ChangeOrderAffectedItemsPanel({
                 defaultValue={saved}
                 placeholder={
                   !saved && affected.targetRevision
-                    ? `Default (${affected.targetRevision})`
-                    : 'Lifecycle default'
+                    ? ap('initialRevisionPlaceholder', {
+                        revision: affected.targetRevision,
+                      })
+                    : ap('lifecycleDefaultPlaceholder')
                 }
                 disabled={savingInitialRevisionId === affected.id}
                 className="h-8 w-32 font-mono text-xs"
-                aria-label={`Initial revision for ${affected.affectedItemDetails?.itemNumber ?? 'affected item'}`}
-                title="Leave blank to use the lifecycle default"
+                aria-label={ap('initialRevisionAria', {
+                  itemNumber:
+                    affected.affectedItemDetails?.itemNumber ??
+                    ap('newItemLabel'),
+                })}
+                title={tp('changeOrders.workflowEditor.useLifecycleDefaultTitle')}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') event.currentTarget.blur()
                   if (event.key === 'Escape') {
@@ -685,8 +706,10 @@ export function ChangeOrderAffectedItemsPanel({
           ) : (
             <span className="text-xs text-slate-500">
               {affected.targetRevision
-                ? `Default (${affected.targetRevision})`
-                : 'Default'}
+                ? ap('initialRevisionDefaultWithRev', {
+                    revision: affected.targetRevision,
+                  })
+                : ap('initialRevisionDefault')}
             </span>
           )
         },
@@ -694,12 +717,12 @@ export function ChangeOrderAffectedItemsPanel({
       },
       {
         id: 'status',
-        header: 'Status',
-        accessorFn: () => 'OK',
+        header: ap('columnStatus'),
+        accessorFn: () => ap('statusOk'),
         cell: () => (
           <Badge variant="success">
             <CheckCircle className="h-3 w-3 mr-1" />
-            OK
+            {ap('statusOk')}
           </Badge>
         ),
         meta: { width: '80px' },
@@ -711,6 +734,9 @@ export function ChangeOrderAffectedItemsPanel({
       isEditable,
       isSystemAdmin,
       savingInitialRevisionId,
+      tc,
+      ti,
+      tp,
     ],
   )
 
@@ -741,12 +767,7 @@ export function ChangeOrderAffectedItemsPanel({
           data-testid="eco-restricted-notice"
         >
           <Lock className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            This change order affects designs outside your programs. Those
-            entries are not shown, and it cannot be submitted or released from
-            here. Ask your administrator for access to the other programs this
-            change order touches.
-          </span>
+          <span>{ap('restrictedNotice')}</span>
         </div>
       )}
 
@@ -754,21 +775,21 @@ export function ChangeOrderAffectedItemsPanel({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Affected Items
+            {ap('title')}
           </h2>
           <div className="flex items-center gap-2">
             <Badge variant="outline">
-              {totalDesigns} design{totalDesigns !== 1 ? 's' : ''}
+              {ap('designCount', { count: totalDesigns })}
             </Badge>
             <Badge variant="outline">
-              {totalAffectedItems} item{totalAffectedItems !== 1 ? 's' : ''}
+              {ap('itemCount', { count: totalAffectedItems })}
             </Badge>
           </div>
         </div>
         {isEditable && (
           <Button onClick={() => setAddDesignDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Design
+            {ap('addDesign')}
           </Button>
         )}
       </div>
@@ -784,12 +805,9 @@ export function ChangeOrderAffectedItemsPanel({
             ),
         ) && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-100">
-            <p className="font-medium">Imported baseline revisions</p>
+            <p className="font-medium">{ap('importedBaselineTitle')}</p>
             <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
-              In Table View, an administrator may enter the existing formal
-              revision for each item&apos;s first release. Leave it blank to use
-              the lifecycle default. The values lock when the ECO leaves its
-              initial state.
+              {ap('importedBaselineDescription')}
             </p>
           </div>
         )}
@@ -802,15 +820,15 @@ export function ChangeOrderAffectedItemsPanel({
         <TabsList>
           <TabsTrigger value="tree" className="gap-2">
             <FolderTree className="h-4 w-4" />
-            Tree View
+            {tc('tabs.treeView')}
           </TabsTrigger>
           <TabsTrigger value="graph" className="gap-2">
             <GitBranch className="h-4 w-4" />
-            Graph View
+            {tc('tabs.graphView')}
           </TabsTrigger>
           <TabsTrigger value="table" className="gap-2">
             <TableIcon className="h-4 w-4" />
-            Table View
+            {tc('tabs.tableView')}
           </TabsTrigger>
         </TabsList>
 
@@ -846,12 +864,12 @@ export function ChangeOrderAffectedItemsPanel({
                 <div className="text-center text-slate-500 dark:text-slate-400">
                   <FolderTree className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="mb-4">
-                    No designs are affected by this ECO yet.
+                    {ap('noDesignsYet')}
                   </p>
                   {isEditable && (
                     <Button onClick={() => setAddDesignDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Design
+                      {ap('addDesign')}
                     </Button>
                   )}
                 </div>
@@ -871,23 +889,26 @@ export function ChangeOrderAffectedItemsPanel({
                 <div className="flex items-center justify-center py-12">
                   <RefreshCw className="h-6 w-6 animate-spin mr-2 text-slate-400" />
                   <span className="text-slate-500">
-                    Loading structure graph...
+                    {ap('loadingGraph')}
                   </span>
                 </div>
               ) : designs.length === 0 ? (
                 <div className="text-center py-8">
                   <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
                   <p className="text-slate-500 dark:text-slate-400">
-                    No designs added to this ECO yet
+                    {ap('noDesignsInGraph')}
                   </p>
                   <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">
-                    Add a design to see the BOM structure graph
+                    {ap('noDesignsInGraphHint')}
                   </p>
                 </div>
               ) : (
                 <FullscreenGraphWrapper
-                  title="Affected Items Graph"
-                  subtitle={`${graphNodes.length - 1} item${graphNodes.length - 1 !== 1 ? 's' : ''} (${affectedItems.length} affected)`}
+                  title={tp('changeOrders.workflowEditor.affectedItemsGraphTitle')}
+                  subtitle={ap('graphSubtitle', {
+                    count: graphNodes.length - 1,
+                    affected: affectedItems.length,
+                  })}
                   inlineHeight="600px"
                   headerControls={
                     <Button
@@ -897,26 +918,28 @@ export function ChangeOrderAffectedItemsPanel({
                       disabled={graphLoading}
                     >
                       <RefreshCw className="h-4 w-4 mr-1" />
-                      Refresh
+                      {ap('refresh')}
                     </Button>
                   }
                   footer={
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-slate-600 dark:text-slate-400">
                         <span>
-                          Showing BOM structure with {graphNodes.length - 1}{' '}
-                          item{graphNodes.length - 1 !== 1 ? 's' : ''}
+                          {ap('graphFooterStructure', {
+                            count: graphNodes.length - 1,
+                          })}
                         </span>
                         <span className="ml-2 text-cyan-600 dark:text-cyan-400">
-                          ({affectedItems.length} affected)
+                          {ap('graphFooterAffected', {
+                            count: affectedItems.length,
+                          })}
                         </span>
                         <span className="ml-2 text-slate-400">
-                          • Greyed items are not in ECO
+                          {ap('graphFooterGreyed')}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Use mouse wheel to zoom, drag to pan. Click item numbers
-                        to navigate.
+                        {ap('graphFooterHint')}
                       </p>
                     </div>
                   }
@@ -957,8 +980,8 @@ export function ChangeOrderAffectedItemsPanel({
             exportFilename={`eco-${changeOrder?.itemNumber || changeOrderId}-affected-items`}
             enablePagination={affectedItemRows.length > 25}
             defaultPageSize={25}
-            emptyMessage="No affected items yet"
-            emptyDescription="Use the Tree View to browse designs and add items to this change order"
+            emptyMessage={ap('emptyTableMessage')}
+            emptyDescription={ap('emptyTableDescription')}
             enableContextMenu
             renderContextMenuItems={(row) => {
               const details = row.original.affectedItemDetails
@@ -980,7 +1003,7 @@ export function ChangeOrderAffectedItemsPanel({
                       }
                     >
                       <Eye className="mr-2 h-4 w-4" />
-                      View
+                      {tc('actions.view')}
                     </ContextMenuItem>
                   )}
                   {isEditable && (
@@ -991,7 +1014,7 @@ export function ChangeOrderAffectedItemsPanel({
                         onClick={() => handleRemoveItem(row.original.id!)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Remove
+                        {tc('actions.remove')}
                       </ContextMenuItem>
                     </>
                   )}

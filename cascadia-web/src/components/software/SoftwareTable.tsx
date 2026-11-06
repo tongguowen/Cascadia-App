@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import type { Software } from '@cascadia/commons/items/types/software'
 import type {
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface SoftwareTableProps {
   items: Array<Software>
@@ -75,20 +77,21 @@ export function SoftwareTable({
 }: SoftwareTableProps) {
   // State filter options and badges come from the Software lifecycle's
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
   const { data: lifecycle } = useLifecyclePhases('Software')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<Software>> = [
     {
       id: 'itemNumber',
-      header: 'Item Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -104,16 +107,16 @@ export function SoftwareTable({
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: t('columns.rev'),
       accessorKey: 'revision',
       enableFiltering: false,
       cell: ({ getValue }) => (
@@ -122,7 +125,7 @@ export function SoftwareTable({
     },
     {
       id: 'softwareType',
-      header: 'Type',
+      header: t('columns.type'),
       accessorKey: 'softwareType',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -141,11 +144,11 @@ export function SoftwareTable({
     },
     {
       id: 'version',
-      header: 'Version',
+      header: t('columns.version'),
       accessorKey: 'version',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => {
         const value = getValue() as string | undefined
         return value ? <span className="font-mono text-sm">{value}</span> : '-'
@@ -153,7 +156,7 @@ export function SoftwareTable({
     },
     {
       id: 'targetHardware',
-      header: 'Target Hardware',
+      header: t('columns.targetHardware'),
       accessorKey: 'targetHardware',
       enableFiltering: true,
       filterType: 'text',
@@ -162,7 +165,7 @@ export function SoftwareTable({
     },
     {
       id: 'sourceMode',
-      header: 'Source',
+      header: t('columns.source'),
       accessorKey: 'sourceMode',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -182,7 +185,7 @@ export function SoftwareTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -205,7 +208,7 @@ export function SoftwareTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -213,14 +216,14 @@ export function SoftwareTable({
             <DropdownMenuItem asChild>
               <Link to="/software/$id" params={{ id: sw.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(sw)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -231,7 +234,7 @@ export function SoftwareTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -251,7 +254,7 @@ export function SoftwareTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(sw)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -262,7 +265,7 @@ export function SoftwareTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

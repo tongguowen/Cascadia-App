@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowUpDown,
@@ -132,7 +133,7 @@ export function ReportViewer({ report }: ReportViewerProps) {
         const boolValue = value as boolean
         return boolValue ? 'Yes' : 'No'
       }
-
+        return boolValue ? tp('reports.viewer.yes') : tp('reports.viewer.no')
       case 'email':
         return String(value)
 
@@ -166,6 +167,8 @@ export function ReportViewer({ report }: ReportViewerProps) {
             />
             Refresh
           </Button>
+            {tp('reports.viewer.refresh')}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -173,9 +176,7 @@ export function ReportViewer({ report }: ReportViewerProps) {
             disabled={isFetching || !result}
           >
             <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
+            {tc('actions.exportCsv')}
       </div>
 
       {/* Stats Cards */}
@@ -187,7 +188,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
               <div>
                 <p className="text-sm text-gray-500">Total Rows</p>
                 <p className="text-xl font-semibold">{result.totalRows}</p>
-              </div>
+                <p className="text-sm text-gray-500">
+                  {tp('reports.viewer.totalRows')}
+                </p>
             </div>
           </Card>
           <Card className="p-4">
@@ -196,7 +199,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
               <div>
                 <p className="text-sm text-gray-500">Columns</p>
                 <p className="text-xl font-semibold">{result.columns.length}</p>
-              </div>
+                <p className="text-sm text-gray-500">
+                  {tp('reports.viewer.columns')}
+                </p>
             </div>
           </Card>
           <Card className="p-4">
@@ -205,7 +210,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
               <div>
                 <p className="text-sm text-gray-500">Execution Time</p>
                 <p className="text-xl font-semibold">{result.durationMs}ms</p>
-              </div>
+                <p className="text-sm text-gray-500">
+                  {tp('reports.viewer.executionTime')}
+                </p>
             </div>
           </Card>
           <Card className="p-4">
@@ -214,7 +221,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
               <div>
                 <p className="text-sm text-gray-500">Active Filters</p>
                 <p className="text-xl font-semibold">
-                  {report.filters?.length || 0}
+                <p className="text-sm text-gray-500">
+                  {tp('reports.viewer.activeFilters')}
+                </p>
                 </p>
               </div>
             </div>
@@ -229,7 +238,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
             <LoadingSpinner size="lg" />
             <p className="mt-4 text-gray-500">Executing report...</p>
           </div>
-        </Card>
+            <p className="mt-4 text-gray-500">
+              {tp('reports.viewer.executing')}
+            </p>
       )}
 
       {/* Error State */}
@@ -244,6 +255,8 @@ export function ReportViewer({ report }: ReportViewerProps) {
           >
             Try Again
           </Button>
+            {tc('actions.tryAgain')}
+          </Button>
         </Card>
       )}
 
@@ -252,11 +265,7 @@ export function ReportViewer({ report }: ReportViewerProps) {
         <Card className="overflow-hidden">
           {result.rows.length === 0 ? (
             <div className="p-12 text-center">
-              <p className="text-gray-500">
-                No data found matching the report criteria.
-              </p>
-            </div>
-          ) : (
+              <p className="text-gray-500">{tp('reports.viewer.noData')}</p>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -292,8 +301,13 @@ export function ReportViewer({ report }: ReportViewerProps) {
             <div className="px-4 py-3 border-t bg-gray-50 dark:bg-gray-800 text-sm text-gray-500">
               Showing {result.rows.length} of {result.totalRows} results
               {result.pagination.hasMore && ' (more results available)'}
-            </div>
-          )}
+              {tp('reports.viewer.pagination', {
+                shown: result.rows.length,
+                total: result.totalRows,
+              })}
+              {result.pagination.hasMore
+                ? tp('reports.viewer.moreResultsSuffix')
+                : ''}
         </Card>
       )}
 
@@ -301,31 +315,49 @@ export function ReportViewer({ report }: ReportViewerProps) {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Report Details</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <h3 className="text-lg font-semibold mb-4">
+          {tp('reports.viewer.detailsTitle')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Item Type</p>
-            <Badge variant="secondary" className="mt-1">
-              {report.itemType}
+            <p className="text-sm text-gray-500">
+              {tp('reports.viewer.itemType')}
+            </p>
             </Badge>
           </div>
           <div>
             <p className="text-sm text-gray-500">Visibility</p>
             <Badge
+            <p className="text-sm text-gray-500">
+              {tp('reports.viewer.visibility')}
+            </p>
+            <Badge
               variant={report.isPublic ? 'default' : 'outline'}
               className="mt-1"
             >
-              {report.isPublic ? 'Public' : 'Private'}
+              {report.isPublic
+                ? tp('reports.public')
+                : tp('reports.private')}
             </Badge>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Filters</p>
+            <p className="text-sm text-gray-500">
+              {tp('reports.viewer.filtersLabel')}
+            </p>
             <p className="font-medium">
-              {report.filters?.length || 0} configured
+              {tp('reports.viewer.configuredCount', {
+                count: report.filters?.length || 0,
+              })}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Sort Order</p>
+            <p className="text-sm text-gray-500">
+              {tp('reports.viewer.sortOrder')}
+            </p>
             <p className="font-medium">
-              {report.sorts?.length || 0} configured
+              {tp('reports.viewer.configuredCount', {
+                count: report.sorts?.length || 0,
+              })}
             </p>
           </div>
         </div>
@@ -333,9 +365,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
         {/* Filter Summary */}
         {report.filters && report.filters.length > 0 && (
           <div className="mt-4 pt-4 border-t">
-            <p className="text-sm text-gray-500 mb-2">Active Filters:</p>
-            <div className="flex flex-wrap gap-2">
-              {report.filters.map((filter, index) => (
+            <p className="text-sm text-gray-500 mb-2">
+              {tp('reports.viewer.activeFiltersHeading')}
+            </p>
                 <Badge key={index} variant="outline">
                   {filter.fieldPath} {filter.operator}{' '}
                   {filter.value || '(empty)'}
@@ -350,7 +382,9 @@ export function ReportViewer({ report }: ReportViewerProps) {
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-gray-500 mb-2">Sort Order:</p>
             <div className="flex flex-wrap gap-2">
-              {report.sorts.map((sort, index) => (
+            <p className="text-sm text-gray-500 mb-2">
+              {tp('reports.viewer.sortOrderHeading')}
+            </p>
                 <Badge key={index} variant="outline">
                   <ArrowUpDown className="w-3 h-3 mr-1" />
                   {sort.fieldPath} ({sort.direction})

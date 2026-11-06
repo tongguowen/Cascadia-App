@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   Background,
@@ -61,15 +62,14 @@ interface ThreadComparisonDialogProps {
 
 type WizardStep = 'configure' | 'comparing' | 'results'
 
-const domainOptions: Array<{
+const DOMAIN_OPTIONS: Array<{
   value: ThreadDomain
-  label: string
   Icon: typeof Cog
 }> = [
-  { value: 'requirements', label: 'Requirements', Icon: FileText },
-  { value: 'engineering', label: 'Engineering', Icon: Cog },
-  { value: 'manufacturing', label: 'Manufacturing', Icon: Factory },
-  { value: 'validation', label: 'Validation', Icon: FlaskConical },
+  { value: 'requirements', Icon: FileText },
+  { value: 'engineering', Icon: Cog },
+  { value: 'manufacturing', Icon: Factory },
+  { value: 'validation', Icon: FlaskConical },
 ]
 
 /**
@@ -83,6 +83,9 @@ export function ThreadComparisonDialog({
   itemName,
   designId,
 }: ThreadComparisonDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const cmp = (key: string, options?: Record<string, unknown>) =>
+    tc(`thread.comparison.${key}`, options)
   const { theme } = useTheme()
   // Wizard state
   const [step, setStep] = useState<WizardStep>('configure')
@@ -223,7 +226,9 @@ export function ThreadComparisonDialog({
       setEdges(edgesWithDiff)
       setStep('results')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Comparison failed')
+      setError(
+        err instanceof Error ? err.message : cmp('comparisonFailed'),
+      )
       setStep('configure')
     }
   }, [
@@ -263,14 +268,14 @@ export function ThreadComparisonDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitCompare className="h-5 w-5" />
-            Compare Thread Versions
+            {cmp('title')}
           </DialogTitle>
           <DialogDescription>
-            Compare the digital thread for{' '}
+            {cmp('descriptionIntro')}{' '}
             <span className="font-medium text-slate-900 dark:text-slate-100">
               {itemNumber}
             </span>
-            {itemName && <> ({itemName})</>} at different version contexts.
+            {itemName ? ` (${itemName})` : ''} {cmp('descriptionAtContexts')}
           </DialogDescription>
         </DialogHeader>
 
@@ -281,7 +286,7 @@ export function ThreadComparisonDialog({
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                 <span className="ml-2 text-slate-500">
-                  Loading version contexts...
+                  {cmp('loadingContexts')}
                 </span>
               </div>
             ) : targets ? (
@@ -292,7 +297,7 @@ export function ThreadComparisonDialog({
                   designId={designId}
                   value={beforeContext}
                   onChange={setBeforeContext}
-                  label="Before (baseline)"
+                  label={cmp('beforeBaseline')}
                 />
 
                 {/* After Context */}
@@ -301,14 +306,16 @@ export function ThreadComparisonDialog({
                   designId={designId}
                   value={afterContext}
                   onChange={setAfterContext}
-                  label="After (compare to)"
+                  label={cmp('afterCompareTo')}
                 />
 
                 {/* Domains */}
                 <div className="space-y-3">
-                  <Label className="text-sm font-medium">Include Domains</Label>
+                  <Label className="text-sm font-medium">
+                    {tc('labels.includeDomains')}
+                  </Label>
                   <div className="flex flex-wrap gap-3">
-                    {domainOptions.map(({ value, label, Icon }) => (
+                    {DOMAIN_OPTIONS.map(({ value, Icon }) => (
                       <label
                         key={value}
                         className={cn(
@@ -323,14 +330,16 @@ export function ThreadComparisonDialog({
                           onCheckedChange={() => toggleDomain(value)}
                         />
                         <Icon className="h-4 w-4" />
-                        <span className="text-sm">{label}</span>
+                        <span className="text-sm">
+                          {tc(`thread.domains.${value}`)}
+                        </span>
                       </label>
                     ))}
                   </div>
                   {includeDomains.length === 0 && (
                     <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
                       <AlertCircle className="h-4 w-4" />
-                      Select at least one domain
+                      {cmp('selectOneDomain')}
                     </p>
                   )}
                 </div>
@@ -344,14 +353,14 @@ export function ThreadComparisonDialog({
                     }
                   />
                   <span className="text-sm text-slate-600 dark:text-slate-400">
-                    Show only changed items (hide unchanged)
+                    {cmp('showOnlyChanges')}
                   </span>
                 </label>
               </>
             ) : (
               <div className="text-center py-8 text-slate-500">
                 <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-400" />
-                <p>Failed to load version contexts.</p>
+                <p>{cmp('failedLoadContexts')}</p>
                 {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
               </div>
             )}
@@ -371,11 +380,9 @@ export function ThreadComparisonDialog({
           <div className="py-12 flex flex-col items-center justify-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
             <p className="text-slate-600 dark:text-slate-400">
-              Comparing threads...
+              {cmp('comparing')}
             </p>
-            <p className="text-sm text-slate-500">
-              Analyzing changes between version contexts
-            </p>
+            <p className="text-sm text-slate-500">{cmp('analyzing')}</p>
           </div>
         )}
 
@@ -385,14 +392,14 @@ export function ThreadComparisonDialog({
             {/* Context labels */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
               <div>
-                <span className="text-xs text-slate-500">Before:</span>
+                <span className="text-xs text-slate-500">{cmp('before')}</span>
                 <p className="text-sm font-medium">
                   {result.beforeContext.label}
                 </p>
               </div>
               <GitCompare className="h-5 w-5 text-slate-400" />
               <div className="text-right">
-                <span className="text-xs text-slate-500">After:</span>
+                <span className="text-xs text-slate-500">{cmp('after')}</span>
                 <p className="text-sm font-medium">
                   {result.afterContext.label}
                 </p>
@@ -432,18 +439,18 @@ export function ThreadComparisonDialog({
           {step === 'configure' && (
             <>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button onClick={runComparison} disabled={!canCompare}>
                 <GitCompare className="h-4 w-4 mr-2" />
-                Compare
+                {tc('thread.compare')}
               </Button>
             </>
           )}
 
           {step === 'comparing' && (
             <Button variant="outline" onClick={() => setStep('configure')}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           )}
 
@@ -455,10 +462,10 @@ export function ThreadComparisonDialog({
                 className="mr-auto"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Reconfigure
+                {tc('actions.reconfigure')}
               </Button>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Close
+                {tc('actions.close')}
               </Button>
             </>
           )}

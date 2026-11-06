@@ -1,0 +1,41 @@
+{
+  "panel": {
+    "title": "Cascadia 对话",
+    "thinking": "思考中…",
+    "historyAria": "查看历史",
+    "newConversationAria": "新对话",
+    "closeAria": "关闭",
+    "historyTitle": "对话历史",
+    "loading": "加载中…",
+    "noConversations": "暂无对话",
+    "newConversation": "新对话",
+    "emptyTitle": "需要什么帮助？",
+    "emptyDescription": "可询问 PLM 数据、查找对象或了解工作流程。",
+    "genericError": "发生错误",
+    "openAria": "打开 Cascadia 对话",
+    "closePanelAria": "关闭 Cascadia 对话"
+  },
+  "confirmation": {
+    "create": "创建",
+    "update": "更新",
+    "delete": "删除",
+    "transition": "转换",
+    "relationship": "添加关系",
+    "confirm": "确认",
+    "cancel": "取消",
+    "confirmed": "已确认",
+    "cancelled": "已取消",
+    "confirmAction": "确认操作",
+    "typeLabel": "类型：",
+    "nameLabel": "名称：",
+    "designLabel": "设计空间：",
+    "changeOrderLabel": "工程变更单："
+  },
+  "input": {
+    "placeholder": "提问或请求执行操作…",
+    "stopAria": "停止生成",
+    "searchAria": "搜索（Ctrl+Enter）",
+    "searchTitle": "搜索（Ctrl+Enter）",
+    "sendAria": "发送消息"
+  }
+}

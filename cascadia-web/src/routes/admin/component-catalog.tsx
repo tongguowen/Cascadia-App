@@ -4,6 +4,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   CheckCircle2,
@@ -42,6 +43,8 @@ export const Route = createFileRoute('/admin/component-catalog')({
 })
 
 function ComponentCatalogPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
@@ -71,7 +74,7 @@ function ComponentCatalogPage() {
   const totalEntries = entryPage?.total ?? 0
 
   const handleDeleteEntry = async (id: string) => {
-    if (!confirm('Delete this catalog entry?')) return
+    if (!confirm(t('admin.componentCatalog.deleteEntryConfirm'))) return
     try {
       await apiFetch(`/api/v1/admin/component-catalog/${id}`, {
         method: 'DELETE',
@@ -94,11 +97,10 @@ function ComponentCatalogPage() {
         <Database className="w-8 h-8 text-slate-700 dark:text-slate-300" />
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Component Catalog
+            {t('admin.componentCatalog.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage the reference library of real, purchasable components and raw
-            stock materials
+            {t('admin.componentCatalog.subtitle')}
           </p>
         </div>
       </div>
@@ -108,7 +110,7 @@ function ComponentCatalogPage() {
         <div className="w-64 flex-shrink-0 overflow-y-auto border-r border-slate-200 dark:border-slate-700 pr-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              Categories
+              {t('admin.componentCatalog.categories')}
             </h3>
             <Button
               variant="ghost"
@@ -154,7 +156,7 @@ function ComponentCatalogPage() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
-                placeholder="Search components..."
+                placeholder={t('admin.componentCatalog.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -280,9 +282,11 @@ function ComponentCatalogPage() {
                       </td>
                       <td className="py-2 px-3">
                         {entry.verified ? (
-                          <Badge variant="default">Verified</Badge>
+                          <Badge variant="default">{tc('badges.verified')}</Badge>
                         ) : (
-                          <Badge variant="secondary">Unverified</Badge>
+                          <Badge variant="secondary">
+                            {tc('badges.unverified')}
+                          </Badge>
                         )}
                       </td>
                       <td className="py-2 px-3 text-right">
@@ -440,6 +444,8 @@ function EntryDialog({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const isEditing = !!entry
   const invalidate = useInvalidateResources()
   const [saving, setSaving] = useState(false)
@@ -536,15 +542,15 @@ function EntryDialog({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Name *</Label>
+              <Label>{t('admin.componentCatalog.nameRequired')}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="NEMA 17 Stepper Motor (17HS4401)"
+                placeholder={t('admin.componentCatalog.namePlaceholder')}
               />
             </div>
             <div>
-              <Label>Category *</Label>
+              <Label>{t('admin.componentCatalog.categoryRequired')}</Label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
@@ -561,18 +567,18 @@ function EntryDialog({
           </div>
 
           <div>
-            <Label>Description</Label>
+            <Label>{tc('fields.description')}</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Dense, keyword-rich description for search..."
+              placeholder={t('admin.componentCatalog.descriptionPlaceholder')}
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Entry Type</Label>
+              <Label>{t('admin.componentCatalog.entryType')}</Label>
               <select
                 value={entryType}
                 onChange={(e) =>
@@ -593,33 +599,33 @@ function EntryDialog({
                   className="rounded border-slate-300 dark:border-slate-700"
                 />
                 <span className="text-sm text-slate-700 dark:text-slate-300">
-                  Verified
+                  {tc('badges.verified')}
                 </span>
               </label>
             </div>
           </div>
 
           <div>
-            <Label>Tags (comma-separated)</Label>
+            <Label>{tc('labels.tagsCommaSeparated')}</Label>
             <Input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="metric, stainless, M3, fastener"
+              placeholder={t('admin.componentCatalog.tagsPlaceholder')}
             />
           </div>
 
           <div>
-            <Label>Design Notes (LLM guidance)</Label>
+            <Label>{t('admin.componentCatalog.designNotesLlm')}</Label>
             <Textarea
               value={designNotes}
               onChange={(e) => setDesignNotes(e.target.value)}
-              placeholder="Pair with A4988 driver. Mount with M3x8 screws on 31mm bolt circle."
+              placeholder={t('admin.componentCatalog.designNotesPlaceholder')}
               rows={2}
             />
           </div>
 
           <div>
-            <Label>Suppliers (JSON)</Label>
+            <Label>{t('admin.componentCatalog.suppliersJson')}</Label>
             <Textarea
               value={suppliersJson}
               onChange={(e) => setSuppliersJson(e.target.value)}
@@ -629,7 +635,7 @@ function EntryDialog({
           </div>
 
           <div>
-            <Label>Dimensions (JSON)</Label>
+            <Label>{t('admin.componentCatalog.dimensionsJson')}</Label>
             <Textarea
               value={dimensionsJson}
               onChange={(e) => setDimensionsJson(e.target.value)}
@@ -639,7 +645,7 @@ function EntryDialog({
           </div>
 
           <div>
-            <Label>Mounting Features (JSON)</Label>
+            <Label>{t('admin.componentCatalog.mountingFeaturesJson')}</Label>
             <Textarea
               value={mountingFeaturesJson}
               onChange={(e) => setMountingFeaturesJson(e.target.value)}
@@ -649,7 +655,7 @@ function EntryDialog({
           </div>
 
           <div>
-            <Label>Electrical (JSON)</Label>
+            <Label>{t('admin.componentCatalog.electricalJson')}</Label>
             <Textarea
               value={electricalJson}
               onChange={(e) => setElectricalJson(e.target.value)}
@@ -659,7 +665,7 @@ function EntryDialog({
           </div>
 
           <div>
-            <Label>Specs (JSON key-value)</Label>
+            <Label>{t('admin.componentCatalog.specsJsonKeyValue')}</Label>
             <Textarea
               value={specsJson}
               onChange={(e) => setSpecsJson(e.target.value)}
@@ -670,7 +676,7 @@ function EntryDialog({
 
           {entryType === 'raw_stock' && (
             <div>
-              <Label>Stock Sizes (JSON)</Label>
+              <Label>{t('admin.componentCatalog.stockSizesJson')}</Label>
               <Textarea
                 value={stockSizesJson}
                 onChange={(e) => setStockSizesJson(e.target.value)}
@@ -683,7 +689,7 @@ function EntryDialog({
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -726,6 +732,7 @@ interface BulkImportResult {
 }
 
 function ImportDialog({ onClose }: { onClose: () => void }) {
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [files, setFiles] = useState<Array<FileRow>>([])
   const [isDragging, setIsDragging] = useState(false)
@@ -939,7 +946,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
-            Close
+            {tc('actions.close')}
           </Button>
           <Button
             onClick={handleImport}
@@ -1010,6 +1017,8 @@ function CategoryDialog({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -1060,7 +1069,7 @@ function CategoryDialog({
 
         <div className="space-y-4">
           <div>
-            <Label>Name *</Label>
+            <Label>{t('admin.componentCatalog.nameRequired')}</Label>
             <Input
               value={name}
               onChange={(e) => {
@@ -1078,7 +1087,7 @@ function CategoryDialog({
             />
           </div>
           <div>
-            <Label>Slug *</Label>
+            <Label>{t('admin.componentCatalog.slugRequired')}</Label>
             <Input
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
@@ -1086,7 +1095,7 @@ function CategoryDialog({
             />
           </div>
           <div>
-            <Label>Parent Category</Label>
+            <Label>{t('admin.componentCatalog.parentCategory')}</Label>
             <select
               value={parentId}
               onChange={(e) => setParentId(e.target.value)}
@@ -1104,7 +1113,7 @@ function CategoryDialog({
 
         <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={saving || !name || !slug}>
             {saving && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}

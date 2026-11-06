@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Image as ImageIcon, X } from 'lucide-react'
 import { Badge, Button } from '@/components/ui'
 
@@ -16,6 +17,7 @@ interface PendingImageStripProps {
  * becomes the item's thumbnail.
  */
 export function PendingImageStrip({ files, onRemove }: PendingImageStripProps) {
+  const { t: tp } = useTranslation('pages')
   const previews = useObjectUrls(files)
   if (files.length === 0) return null
 
@@ -27,7 +29,7 @@ export function PendingImageStrip({ files, onRemove }: PendingImageStripProps) {
       <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
         <ImageIcon className="h-4 w-4" />
         <span>
-          Attached when you save — the first image becomes the thumbnail.
+          {tp('variants.pendingImages.attachHint')}
         </span>
       </div>
       <ul className="flex flex-wrap gap-2">
@@ -48,7 +50,7 @@ export function PendingImageStrip({ files, onRemove }: PendingImageStripProps) {
             </span>
             {index === 0 && (
               <Badge variant="outline" className="text-[10px]">
-                Thumbnail
+                {tp('variants.pendingImages.thumbnail')}
               </Badge>
             )}
             <Button
@@ -56,7 +58,9 @@ export function PendingImageStrip({ files, onRemove }: PendingImageStripProps) {
               variant="ghost"
               size="icon"
               className="h-6 w-6"
-              aria-label={`Remove ${file.name}`}
+              aria-label={tp('variants.pendingImages.removeFile', {
+                fileName: file.name,
+              })}
               onClick={() => onRemove(index)}
             >
               <X className="h-3 w-3" />

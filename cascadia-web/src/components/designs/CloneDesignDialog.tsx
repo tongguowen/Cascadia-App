@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { CheckCircle2, Copy, Loader2, XCircle } from 'lucide-react'
@@ -48,6 +49,7 @@ export function CloneDesignDialog({
   sourceDesignCode,
   sourceDesignName,
 }: CloneDesignDialogProps) {
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
@@ -81,7 +83,9 @@ export function CloneDesignDialog({
   const result = job?.result ?? null
   const error =
     submitError ??
-    (job?.status === 'failed' ? (job.error ?? 'Clone failed') : null)
+    (job?.status === 'failed'
+      ? (job.error ?? tc('dialogs.cloneDesign.cloneFailed'))
+      : null)
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -120,7 +124,9 @@ export function CloneDesignDialog({
       setPhase('cloning')
     } catch (err) {
       setPhase('failed')
-      setSubmitError((err as Error).message || 'Failed to start clone')
+      setSubmitError(
+        (err as Error).message || tc('dialogs.cloneDesign.failedToStart'),
+      )
     }
   }
 
@@ -155,12 +161,12 @@ export function CloneDesignDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Copy className="h-5 w-5" />
-            Clone Design
+            {tc('dialogs.cloneDesign.title')}
           </DialogTitle>
           <DialogDescription>
-            Create a copy of{' '}
-            <span className="font-medium">{sourceDesignCode}</span> with all its
-            items and relationships.
+            {tc('dialogs.cloneDesign.description', {
+              designCode: sourceDesignCode,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -168,41 +174,43 @@ export function CloneDesignDialog({
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="code">Design Code</Label>
+                <Label htmlFor="code">{tc('labels.designCode')}</Label>
                 <Input
                   id="code"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="e.g., HULL-3"
+                  placeholder={tc('dialogs.cloneDesign.codePlaceholder')}
                   required
                   disabled={isFormDisabled}
                   pattern="[A-Z0-9\-]+"
-                  title="Uppercase letters, numbers, and hyphens only"
+                  title={tc('dialogs.cloneDesign.codePatternTitle')}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Must be unique. Uppercase letters, numbers, and hyphens only.
+                  {tc('dialogs.cloneDesign.codeHint')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{tc('columns.name')}</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Hull Assembly 3"
+                  placeholder={tc('dialogs.cloneDesign.namePlaceholder')}
                   required
                   disabled={isFormDisabled}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
+                <Label htmlFor="description">
+                  {tc('labels.descriptionOptional')}
+                </Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description of the cloned design..."
+                  placeholder={tc('dialogs.cloneDesign.descriptionPlaceholder')}
                   rows={3}
                   disabled={isFormDisabled}
                 />
@@ -221,12 +229,12 @@ export function CloneDesignDialog({
                   htmlFor="suffixItemNumbers"
                   className="text-sm font-normal cursor-pointer"
                 >
-                  Suffix item numbers with design code
+                  {tc('dialogs.cloneDesign.suffixItemNumbers')}
                 </Label>
               </div>
               {suffixItemNumbers && code && (
                 <p className="text-xs text-slate-500 dark:text-slate-400 ml-6">
-                  e.g., PN-000001-{code}
+                  {tc('dialogs.cloneDesign.suffixExample', { code })}
                 </p>
               )}
 
@@ -245,16 +253,16 @@ export function CloneDesignDialog({
                 onClick={handleClose}
                 disabled={status === 'submitting'}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button type="submit" disabled={status === 'submitting'}>
                 {status === 'submitting' ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Starting...
+                    {tc('actions.starting')}
                   </>
                 ) : (
-                  'Clone Design'
+                  tc('actions.cloneDesign')
                 )}
               </Button>
             </DialogFooter>
@@ -266,10 +274,10 @@ export function CloneDesignDialog({
             </div>
             <div className="text-center">
               <p className="font-medium text-slate-900 dark:text-slate-100">
-                Cloning design...
+                {tc('dialogs.cloneDesign.cloning')}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                {progressMessage || 'Please wait'}
+                {progressMessage || tc('dialogs.cloneDesign.pleaseWait')}
               </p>
             </div>
             <Progress value={progress} className="h-2" />
@@ -284,19 +292,18 @@ export function CloneDesignDialog({
             </div>
             <div className="text-center">
               <p className="font-medium text-lg text-slate-900 dark:text-slate-100">
-                Clone Complete
+                {tc('dialogs.cloneDesign.complete')}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Created{' '}
-                <span className="font-medium text-slate-900 dark:text-slate-100">
-                  {result.designCode}
-                </span>
+                {tc('dialogs.cloneDesign.created', {
+                  designCode: result.designCode,
+                })}
               </p>
             </div>
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Items cloned:
+                  {tc('dialogs.cloneDesign.itemsCloned')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.itemsCloned}
@@ -304,7 +311,7 @@ export function CloneDesignDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Relationships cloned:
+                  {tc('dialogs.cloneDesign.relationshipsCloned')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.relationshipsCloned}
@@ -312,7 +319,7 @@ export function CloneDesignDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Traceability links created:
+                  {tc('dialogs.cloneDesign.traceabilityLinks')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.derivedFromCreated}
@@ -320,7 +327,7 @@ export function CloneDesignDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  File references:
+                  {tc('dialogs.cloneDesign.fileReferences')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.filesReferenced}
@@ -329,7 +336,7 @@ export function CloneDesignDialog({
             </div>
             <DialogFooter className="sm:justify-center">
               <Button onClick={handleNavigateToNewDesign}>
-                Go to New Design
+                {tc('actions.goToNewDesign')}
               </Button>
             </DialogFooter>
           </div>
@@ -340,7 +347,7 @@ export function CloneDesignDialog({
             </div>
             <div className="text-center">
               <p className="font-medium text-lg text-slate-900 dark:text-slate-100">
-                Clone Failed
+                {tc('dialogs.cloneDesign.failed')}
               </p>
               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                 {error}
@@ -348,9 +355,9 @@ export function CloneDesignDialog({
             </div>
             <DialogFooter className="sm:justify-center">
               <Button variant="outline" onClick={handleTryAgain}>
-                Try Again
+                {tc('actions.tryAgain')}
               </Button>
-              <Button onClick={handleClose}>Close</Button>
+              <Button onClick={handleClose}>{tc('actions.close')}</Button>
             </DialogFooter>
           </div>
         ) : null}

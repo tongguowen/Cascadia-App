@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { z } from 'zod'
@@ -27,6 +28,8 @@ export const Route = createFileRoute('/system-elements/new')({
 })
 
 function NewSystemElementPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -75,7 +78,7 @@ function NewSystemElementPage() {
         search: branchId ? { branch: branchId } : {},
       })
     } catch (error) {
-      handleError(error, { title: 'Failed to create system element' })
+      handleError(error, { title: tp('systemElements.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)

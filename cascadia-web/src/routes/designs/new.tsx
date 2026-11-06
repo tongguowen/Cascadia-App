@@ -4,6 +4,7 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { z } from 'zod'
 import type { CreateDesignInput, Design } from '@cascadia/commons/types/design'
@@ -35,6 +36,8 @@ export const Route = createFileRoute('/designs/new')({
 
 function NewDesignPage() {
   const navigate = useNavigate()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const { data: programs = [] } = useQuery(programListQuery())
@@ -65,7 +68,7 @@ function NewDesignPage() {
       // Navigate to the new design's detail page
       navigate({ to: '/designs/$id', params: { id: result.data.design.id } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create design' })
+      handleError(error, { title: tp('designs.form.createFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -86,10 +89,10 @@ function NewDesignPage() {
         </Link>
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Create New Design
+            {tp('designs.form.createTitle')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Enter the details for the new design
+            {tp('designs.form.createSubtitle')}
           </p>
         </div>
       </div>
@@ -97,10 +100,8 @@ function NewDesignPage() {
       {/* Form Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Design Details</CardTitle>
-          <CardDescription>
-            All fields marked with * are required.
-          </CardDescription>
+          <CardTitle>{tp('designs.form.detailsTitle')}</CardTitle>
+          <CardDescription>{tc('labels.requiredFieldsHint')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DesignForm

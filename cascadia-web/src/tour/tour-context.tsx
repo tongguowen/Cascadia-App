@@ -11,7 +11,8 @@ import {
 } from 'react'
 import { driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
-import { tourSteps } from './tour-steps'
+import { getTourSteps } from './tour-steps'
+import i18n from '@/i18n'
 import type { Driver } from 'driver.js'
 import type { ReactNode } from 'react'
 
@@ -48,16 +49,16 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const driverInstance = driver({
       showProgress: true,
       showButtons: ['next', 'previous', 'close'],
-      steps: tourSteps,
+      steps: getTourSteps(),
       popoverClass: 'cascadia-tour-popover',
       overlayColor: 'rgba(0, 0, 0, 0.75)',
       stagePadding: 8,
       stageRadius: 8,
       animate: true,
       allowClose: true,
-      doneBtnText: 'Get Started',
-      nextBtnText: 'Next',
-      prevBtnText: 'Previous',
+      doneBtnText: i18n.t('buttons.done', { ns: 'tour' }),
+      nextBtnText: i18n.t('buttons.next', { ns: 'tour' }),
+      prevBtnText: i18n.t('buttons.previous', { ns: 'tour' }),
       onDestroyStarted: () => {
         // Mark tour as completed when user finishes or closes
         localStorage.setItem(TOUR_STORAGE_KEY, 'true')

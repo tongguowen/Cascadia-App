@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { DesignHeaderNode } from './DesignHeaderNode'
 import type { Edge, Node } from '@xyflow/react'
 import type {
@@ -202,15 +203,16 @@ function ProgramHistoryGraphViewInner({
   designIds,
 }: ProgramHistoryGraphViewProps) {
   const { theme } = useTheme()
+  const { t: tc } = useTranslation('common')
+  const graphT = (key: string, options?: Record<string, unknown>) =>
+    tc(`graphs.${key}`, options)
 
   const {
     data: graphData = null,
     isPending: loading,
     error: loadError,
   } = useQuery(programHistoryGraphQuery<ProgramGraphData>(programId, designIds))
-  const error = loadError
-    ? 'Failed to load program history graph. Please try again.'
-    : null
+  const error = loadError ? graphT('failedProgramHistory') : null
 
   // Process nodes and edges
   const { nodes, allEdges } = useMemo(() => {
@@ -436,7 +438,9 @@ function ProgramHistoryGraphViewInner({
       <div className="flex items-center justify-center h-[500px] bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-800">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-          <p className="text-sm text-slate-500">Loading program history...</p>
+          <p className="text-sm text-slate-500">
+            {graphT('loadingProgramHistory')}
+          </p>
         </div>
       </div>
     )
@@ -457,10 +461,11 @@ function ProgramHistoryGraphViewInner({
     return (
       <div className="flex items-center justify-center h-[500px] bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-800">
         <div className="flex flex-col items-center gap-3 text-center px-4">
-          <p className="text-slate-500 dark:text-slate-400">No commits yet</p>
+          <p className="text-slate-500 dark:text-slate-400">
+            {graphT('programHistoryNoCommits')}
+          </p>
           <p className="text-sm text-slate-400 dark:text-slate-500">
-            Commits will appear here once changes are made to designs in this
-            program
+            {graphT('programHistoryNoCommitsHint')}
           </p>
         </div>
       </div>
@@ -471,22 +476,30 @@ function ProgramHistoryGraphViewInner({
     <div className="flex items-center gap-4 text-xs flex-wrap">
       <div className="flex items-center gap-1.5">
         <div className="w-3 h-3 rounded-full bg-green-500" />
-        <span className="text-slate-600 dark:text-slate-400">main</span>
+        <span className="text-slate-600 dark:text-slate-400">
+          {graphT('legendMain')}
+        </span>
       </div>
       <div className="flex items-center gap-1.5">
         <div className="w-3 h-3 rounded-full bg-orange-500" />
-        <span className="text-slate-600 dark:text-slate-400">Change order</span>
+        <span className="text-slate-600 dark:text-slate-400">
+          {graphT('legendChangeOrder')}
+        </span>
       </div>
       <div className="flex items-center gap-1.5">
         <div className="w-6 h-0.5 bg-slate-400" />
-        <span className="text-slate-600 dark:text-slate-400">parent</span>
+        <span className="text-slate-600 dark:text-slate-400">
+          {graphT('legendParent')}
+        </span>
       </div>
       <div className="flex items-center gap-1.5">
         <div
           className="w-6 h-0.5 bg-orange-500"
           style={{ borderStyle: 'dashed' }}
         />
-        <span className="text-slate-600 dark:text-slate-400">merge</span>
+        <span className="text-slate-600 dark:text-slate-400">
+          {graphT('legendMerge')}
+        </span>
       </div>
     </div>
   )
@@ -504,7 +517,7 @@ function ProgramHistoryGraphViewInner({
 
   return (
     <FullscreenGraphWrapper
-      title="Program History"
+      title={graphT('programHistoryTitle')}
       subtitle={subtitle}
       inlineHeight="600px"
       footer={legend}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { KeyRound, Lock, Search, Users } from 'lucide-react'
@@ -18,7 +19,10 @@ export const Route = createFileRoute('/admin/users')({
 })
 
 function UsersPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
+  const title = t('admin.users.title')
   const [searchQuery, setSearchQuery] = useState('')
   const {
     data: users = [],
@@ -50,10 +54,10 @@ function UsersPage() {
         <div className="flex items-center gap-2 mb-6">
           <Users size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            User Management
+            {title}
           </h1>
         </div>
-        <p className="text-muted-foreground">Loading users...</p>
+        <p className="text-muted-foreground">{t('admin.users.loading')}</p>
       </div>
     )
   }
@@ -64,7 +68,7 @@ function UsersPage() {
         <div className="flex items-center gap-2 mb-6">
           <Users size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            User Management
+            {title}
           </h1>
         </div>
         <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
@@ -80,11 +84,11 @@ function UsersPage() {
         <div className="flex items-center gap-2">
           <Users size={32} className="text-cyan-600 dark:text-cyan-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            User Management
+            {title}
           </h1>
         </div>
         <Badge variant="secondary">
-          {users.length} {users.length === 1 ? 'User' : 'Users'}
+          {t('users.total')}: {users.length}
         </Badge>
       </div>
 
@@ -93,7 +97,7 @@ function UsersPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or email..."
+            placeholder={t('admin.users.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -108,19 +112,19 @@ function UsersPage() {
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700">
                 <th className="text-left p-4 font-medium text-slate-600 dark:text-slate-400">
-                  Name
+                  {tc('columns.name')}
                 </th>
                 <th className="text-left p-4 font-medium text-slate-600 dark:text-slate-400">
-                  Email
+                  {tc('columns.email')}
                 </th>
                 <th className="text-left p-4 font-medium text-slate-600 dark:text-slate-400">
-                  Status
+                  {tc('columns.status')}
                 </th>
                 <th className="text-left p-4 font-medium text-slate-600 dark:text-slate-400">
-                  Roles
+                  {tc('columns.roles')}
                 </th>
                 <th className="text-right p-4 font-medium text-slate-600 dark:text-slate-400">
-                  Actions
+                  {tc('columns.actions')}
                 </th>
               </tr>
             </thead>
@@ -140,17 +144,19 @@ function UsersPage() {
                     {isLocked(user) ? (
                       <Badge variant="destructive" className="gap-1">
                         <Lock className="h-3 w-3" />
-                        Locked
+                        {t('admin.users.locked')}
                       </Badge>
                     ) : user.active ? (
                       <Badge
                         variant="secondary"
                         className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                       >
-                        Active
+                        {t('admin.users.active')}
                       </Badge>
                     ) : (
-                      <Badge variant="secondary">Inactive</Badge>
+                      <Badge variant="secondary">
+                        {t('users.inactive')}
+                      </Badge>
                     )}
                   </td>
                   <td className="p-4">
@@ -173,7 +179,7 @@ function UsersPage() {
                       onClick={() => setResetUser(user)}
                     >
                       <KeyRound className="h-3.5 w-3.5 mr-1.5" />
-                      Reset Password
+                      {t('admin.users.resetPassword')}
                     </Button>
                   </td>
                 </tr>

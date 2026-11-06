@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { PackageCheck, ScanLine, Trash2 } from 'lucide-react'
@@ -59,6 +60,8 @@ export function WorkOrderMaterialsSection({
   workOrderId,
   readOnly = false,
 }: WorkOrderMaterialsSectionProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [query, setQuery] = useState('')
@@ -125,11 +128,11 @@ export function WorkOrderMaterialsSection({
         body: JSON.stringify(body),
       })
       showSuccess(
-        'Material recorded',
+        tp('workOrders.materials.materialRecordedTitle'),
         selectedPart.trackingMode === 'serial'
-          ? `${selectedPart.itemNumber} · SN ${identity.trim()}`
+          ? `${selectedPart.itemNumber} · ${tp('workOrders.materials.serialLink', { serial: identity.trim() })}`
           : selectedPart.trackingMode === 'lot'
-            ? `${selectedPart.itemNumber} · Lot ${identity.trim()} × ${quantity}`
+            ? `${selectedPart.itemNumber} · ${tp('workOrders.materials.lotLink', { lot: identity.trim() })} × ${quantity}`
             : `${selectedPart.itemNumber} × ${quantity}`,
       )
       // Keep the part selected for repeated scanning; clear the identity.
@@ -149,10 +152,12 @@ export function WorkOrderMaterialsSection({
         { method: 'DELETE' },
       )
       showSuccess(
-        'Material removed',
+        tp('workOrders.materials.materialRemovedTitle'),
         line.serialNumber
-          ? `SN ${line.serialNumber} returned to stock`
-          : (line.partItemNumber ?? 'Line removed'),
+          ? tp('workOrders.materials.materialRemovedSerial', {
+              serial: line.serialNumber,
+            })
+          : (line.partItemNumber ?? tp('workOrders.materials.lineRemoved')),
       )
       await invalidate('work-orders')
     } catch (error) {
@@ -166,10 +171,9 @@ export function WorkOrderMaterialsSection({
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Materials</CardTitle>
+          <CardTitle>{tp('workOrders.materials.title')}</CardTitle>
           <CardDescription>
-            What this work order actually consumed — serials and lots recorded
-            here are the traceability record
+            {tp('workOrders.materials.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -183,10 +187,10 @@ export function WorkOrderMaterialsSection({
                     </span>
                     <Badge>
                       {selectedPart.trackingMode === 'serial'
-                        ? 'Serial'
+                        ? tp('workOrders.materials.trackingSerial')
                         : selectedPart.trackingMode === 'lot'
-                          ? 'Lot'
-                          : 'Bulk'}
+                          ? tp('workOrders.materials.trackingLot')
+                          : tp('workOrders.materials.trackingBulk')}
                     </Badge>
                     <Button
                       variant="ghost"
@@ -197,7 +201,7 @@ export function WorkOrderMaterialsSection({
                         setQuery('')
                       }}
                     >
-                      Change
+                      {tp('workOrders.materials.changePart')}
                     </Button>
                   </div>
                   {selectedPart.trackingMode !== 'none' && (
@@ -210,8 +214,8 @@ export function WorkOrderMaterialsSection({
                         }}
                         placeholder={
                           selectedPart.trackingMode === 'serial'
-                            ? 'Scan or type serial number…'
-                            : 'Lot number…'
+                            ? tp('workOrders.materials.serialPlaceholder')
+                            : tp('workOrders.materials.lotPlaceholder')
                         }
                         autoFocus
                       />
@@ -230,7 +234,9 @@ export function WorkOrderMaterialsSection({
                   )}
                   <Button onClick={handleConsume} disabled={saving}>
                     <ScanLine className="mr-1 h-4 w-4" />
-                    {saving ? 'Recording…' : 'Record'}
+                    {saving
+                      ? tp('workOrders.materials.recording')
+                      : tp('workOrders.materials.record')}
                   </Button>
                 </div>
               ) : (
@@ -238,7 +244,7 @@ export function WorkOrderMaterialsSection({
                   <Input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search part to consume…"
+                    placeholder={tp('workOrders.materials.searchPartPlaceholder')}
                   />
                   {suggestions.length > 0 && (
                     <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
@@ -266,15 +272,15 @@ export function WorkOrderMaterialsSection({
 
           {lines.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No materials recorded yet.
+              {tp('workOrders.materials.empty')}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Part</TableHead>
-                  <TableHead>Identity</TableHead>
-                  <TableHead>Qty</TableHead>
+                  <TableHead>{tc('columns.part')}</TableHead>
+                  <TableHead>{tp('workOrders.materials.identity')}</TableHead>
+                  <TableHead>{tc('columns.qty')}</TableHead>
                   {!readOnly && <TableHead className="w-10"></TableHead>}
                 </TableRow>
               </TableHeader>
@@ -290,7 +296,9 @@ export function WorkOrderMaterialsSection({
                       )}
                       {line.kind === 'bulk' && line.partRevision && (
                         <Badge variant="outline" className="ml-2">
-                          Rev {line.partRevision}
+                          {tp('workOrders.materials.revBadge', {
+                            revision: line.partRevision,
+                          })}
                         </Badge>
                       )}
                     </TableCell>
@@ -301,7 +309,9 @@ export function WorkOrderMaterialsSection({
                           params={{ id: line.targetItemId }}
                           className="underline-offset-2 hover:underline"
                         >
-                          SN {line.serialNumber}
+                          {tp('workOrders.materials.serialLink', {
+                            serial: line.serialNumber,
+                          })}
                         </Link>
                       ) : line.kind === 'lot' && line.lotNumber ? (
                         <Link
@@ -309,7 +319,9 @@ export function WorkOrderMaterialsSection({
                           params={{ id: line.targetItemId }}
                           className="underline-offset-2 hover:underline"
                         >
-                          Lot {line.lotNumber}
+                          {tp('workOrders.materials.lotLink', {
+                            lot: line.lotNumber,
+                          })}
                         </Link>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -321,7 +333,7 @@ export function WorkOrderMaterialsSection({
                         <Button
                           variant="ghost"
                           size="sm"
-                          title="Remove line"
+                          title={tp('workOrders.materials.removeLine')}
                           onClick={() => handleRemove(line)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -348,6 +360,7 @@ function ProducedUnitsCard({
   workOrderId: string
   readOnly: boolean
 }) {
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [serialsText, setSerialsText] = useState('')
@@ -368,8 +381,10 @@ function ProducedUnitsCard({
         body: JSON.stringify({ serialNumbers }),
       })
       showSuccess(
-        'Units recorded',
-        `${serialNumbers.length} serial${serialNumbers.length === 1 ? '' : 's'} recorded as built by this work order`,
+        tp('workOrders.materials.unitsRecordedTitle'),
+        tp('workOrders.materials.unitsRecordedDescription', {
+          count: serialNumbers.length,
+        }),
       )
       setSerialsText('')
       await invalidate('work-orders')
@@ -385,10 +400,9 @@ function ProducedUnitsCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Produced Units</CardTitle>
+        <CardTitle>{tp('workOrders.materials.producedTitle')}</CardTitle>
         <CardDescription>
-          Serials built by this work order — each gets an as-built pin to the
-          exact part revision and joins the genealogy chain
+          {tp('workOrders.materials.producedDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -400,17 +414,19 @@ function ProducedUnitsCard({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleProduce()
               }}
-              placeholder="Scan or enter serials (comma-separated for several)…"
+              placeholder={tp('workOrders.materials.serialsPlaceholder')}
             />
             <Button onClick={handleProduce} disabled={saving}>
               <PackageCheck className="mr-1 h-4 w-4" />
-              {saving ? 'Recording…' : 'Record'}
+              {saving
+                ? tp('workOrders.materials.recording')
+                : tp('workOrders.materials.record')}
             </Button>
           </div>
         )}
         {units.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No produced units recorded yet.
+            {tp('workOrders.materials.producedEmpty')}
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -421,7 +437,10 @@ function ProducedUnitsCard({
                 params={{ id: unit.unitItemId }}
               >
                 <Badge variant="outline" className="font-mono">
-                  SN {unit.serialNumber} · {unit.physicalPartNumber}
+                  {tp('workOrders.materials.producedBadge', {
+                    serial: unit.serialNumber,
+                    number: unit.physicalPartNumber,
+                  })}
                 </Badge>
               </Link>
             ))}

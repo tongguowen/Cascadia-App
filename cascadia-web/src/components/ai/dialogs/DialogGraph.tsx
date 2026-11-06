@@ -21,6 +21,7 @@ import {
   ReactFlow,
 } from '@xyflow/react'
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { DialogDataGrid } from './DialogDataGrid'
 import type { Edge, Node, NodeProps } from '@xyflow/react'
 import type {
@@ -192,6 +193,7 @@ function GraphCanvas({ payload, onNavigate }: DialogGraphProps) {
 }
 
 export function DialogGraph({ payload, onNavigate }: DialogGraphProps) {
+  const { t: tc } = useTranslation('common')
   if (!payload.table) {
     return <GraphCanvas payload={payload} onNavigate={onNavigate} />
   }
@@ -199,8 +201,8 @@ export function DialogGraph({ payload, onNavigate }: DialogGraphProps) {
   return (
     <Tabs defaultValue="graph" className="flex h-full flex-col">
       <TabsList className="self-start">
-        <TabsTrigger value="graph">Graph</TabsTrigger>
-        <TabsTrigger value="table">Table</TabsTrigger>
+        <TabsTrigger value="graph">{tc('tabs.graph')}</TabsTrigger>
+        <TabsTrigger value="table">{tc('tabs.tableView')}</TabsTrigger>
       </TabsList>
       <TabsContent value="graph" className="min-h-0 flex-1">
         <GraphCanvas payload={payload} onNavigate={onNavigate} />

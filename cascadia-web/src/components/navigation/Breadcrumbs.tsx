@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronRight } from 'lucide-react'
@@ -19,6 +20,7 @@ import { lifecycleByItemTypeQuery } from '@/query'
  * On detail pages, shows clickable links to parent entities.
  */
 export function Breadcrumbs() {
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const search = useSearch({ strict: false })
 
@@ -134,7 +136,7 @@ export function Breadcrumbs() {
             items={programs}
             selectedId={selectedProgramId}
             onSelect={handleProgramSelect}
-            placeholder="All Programs"
+            placeholder={t('breadcrumbs.allPrograms')}
           />
 
           {/* Design dropdown (not shown on /designs page) */}
@@ -146,7 +148,7 @@ export function Breadcrumbs() {
                 items={sortedDesigns}
                 selectedId={selectedDesignId}
                 onSelect={handleDesignSelect}
-                placeholder="All Designs"
+                placeholder={t('breadcrumbs.allDesigns')}
               />
 
               {/* Version context selector - next breadcrumb after design */}

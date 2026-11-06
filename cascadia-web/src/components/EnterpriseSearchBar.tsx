@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Loader2, Search } from 'lucide-react'
@@ -57,6 +58,7 @@ function getShortcutHint(): string {
 }
 
 export function EnterpriseSearchBar() {
+  const { t } = useTranslation('common')
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -195,7 +197,7 @@ export function EnterpriseSearchBar() {
         <Input
           ref={inputRef}
           type="text"
-          placeholder={`Search items...${shortcutHint}`}
+          placeholder={`${t('layout.searchPlaceholder')}${shortcutHint}`}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -217,7 +219,7 @@ export function EnterpriseSearchBar() {
           {results.results.length === 0 ? (
             <div className="p-8 text-center text-gray-500 dark:text-gray-400">
               <Search className="mx-auto mb-2" size={32} />
-              <p>No items found for "{query}"</p>
+              <p>{t('layout.searchNoResults', { query })}</p>
             </div>
           ) : (
             <div className="py-2">
@@ -293,7 +295,7 @@ export function EnterpriseSearchBar() {
                                       : 'text-gray-500 dark:text-gray-500',
                                   )}
                                 >
-                                  <span>Design:</span>
+                                  <span>{t('layout.searchDesignLabel')}</span>
                                   <span className="font-mono">
                                     {item.designCode}
                                   </span>
@@ -316,7 +318,7 @@ export function EnterpriseSearchBar() {
             onClick={navigateToResultsPage}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-cyan-600 dark:text-cyan-400 border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
-            View all results for "{query}"
+            {t('layout.viewAllResults', { query })}
             <ArrowRight size={14} />
           </button>
         </div>

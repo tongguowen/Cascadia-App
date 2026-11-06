@@ -3,6 +3,7 @@
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import type {
   CreateProgramInput,
@@ -27,6 +28,8 @@ export const Route = createFileRoute('/programs/new')({
 
 function NewProgramPage() {
   const navigate = useNavigate()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -49,7 +52,7 @@ function NewProgramPage() {
       // Navigate to the new program's detail page
       navigate({ to: '/programs/$id', params: { id: result.data.program.id } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create program' })
+      handleError(error, { title: tp('programs.form.createFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -70,10 +73,10 @@ function NewProgramPage() {
         </Link>
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Create New Program
+            {tp('programs.form.createTitle')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Enter the details for the new program
+            {tp('programs.form.createSubtitle')}
           </p>
         </div>
       </div>
@@ -81,10 +84,8 @@ function NewProgramPage() {
       {/* Form Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Program Details</CardTitle>
-          <CardDescription>
-            All fields marked with * are required.
-          </CardDescription>
+          <CardTitle>{tp('programs.form.detailsTitle')}</CardTitle>
+          <CardDescription>{tc('labels.requiredFieldsHint')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ProgramForm

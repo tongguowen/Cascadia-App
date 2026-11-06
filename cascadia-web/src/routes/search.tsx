@@ -4,6 +4,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import type { DataGridColumn } from '@/components/ui'
 import type { SearchResultRow } from '@/query'
@@ -19,7 +20,7 @@ import {
 } from '@/components/ui'
 import { getStateBadgeVariant } from '@/components/bom/helpers'
 import {
-  ITEM_TYPE_OPTIONS,
+  getItemTypeOptions,
   getItemDetailPath,
   getItemTypeIcon,
   getItemTypeLabel,
@@ -66,6 +67,8 @@ export const Route = createFileRoute('/search')({
 })
 
 function SearchResultsPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const searchParams = Route.useSearch()
 
   const { data: programs = [] } = useQuery(programListQuery())
@@ -90,7 +93,7 @@ function SearchResultsPage() {
         accessorKey: 'itemType',
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: ITEM_TYPE_OPTIONS,
+        filterOptions: getItemTypeOptions(),
         meta: { width: '160px' },
         cell: ({ row }) => {
           const Icon = getItemTypeIcon(row.original.itemType)
@@ -211,20 +214,20 @@ function SearchResultsPage() {
     <PageContainer>
       <div>
         <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-          Search Results
+          {t('search.pageTitle')}
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-2">
           {term
-            ? `Items matching "${term}" across all item types`
-            : 'Search and filter items across all item types'}
+            ? t('search.pageSubtitleWithTerm', { term })
+            : t('search.pageSubtitleDefault')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Results</CardTitle>
+          <CardTitle>{t('search.resultsTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'item' : 'items'} found
+            {t('search.itemsFound', { count: total })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -238,9 +241,11 @@ function SearchResultsPage() {
               getItemDetailPath(row.itemType, row.id) ?? undefined
             }
             emptyMessage={
-              term ? `No items found for "${term}"` : 'No items found'
+              term
+                ? tc('layout.searchNoResults', { query: term })
+                : t('search.noItemsFound')
             }
-            emptyDescription="Try a different search term, or broaden the type, program, or design filters."
+            emptyDescription={t('search.emptyHint')}
             {...dataGridProps}
           />
         </CardContent>

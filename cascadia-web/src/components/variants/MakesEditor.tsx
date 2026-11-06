@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { formatPartDesignation } from '@cascadia/commons/types/variants'
 import type { Make, OptionModel } from '@cascadia/commons/types/variants'
 import {
@@ -39,6 +40,9 @@ export function MakesEditor({
   revision?: string
 }) {
   const update = (index: number, patch: Partial<Make>) =>
+  const { t: tc } = useTranslation('common')
+  const me = (key: string) =>
+    tp(`variants.makesEditor.${key}` as 'variants.makesEditor.executionsTitle')
     onChange(value.map((m, i) => (i === index ? { ...m, ...patch } : m)))
 
   const setSelection = (index: number, family: string, code: string) => {
@@ -51,7 +55,9 @@ export function MakesEditor({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold">Executions</h4>
-        {isEditing && (
+        <h4 className="text-sm font-semibold">
+          {tp('parts.variantsTab.executionsHeading')}
+        </h4>
           <Button
             type="button"
             variant="outline"
@@ -70,14 +76,13 @@ export function MakesEditor({
           >
             <Plus className="h-4 w-4 mr-1" />
             Execution
-          </Button>
+            {me('execution')}
         )}
       </div>
       {value.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">
           No executions yet. An execution is a named, complete set of
-          selections; save one from the configurator or add one here.
-        </p>
+          {me('emptyExecutions')}
       )}
       {value.map((make, index) => (
         <div
@@ -112,14 +117,14 @@ export function MakesEditor({
                 }
               />
               Active
-            </label>
+              {me('active')}
           </div>
           <div className="space-y-2">
             {isEditing ? (
               <Input
                 className="h-8 text-sm"
                 placeholder="Name, e.g. Black"
-                value={make.name}
+                placeholder={tp('variants.placeholders.makeNameHint')}
                 onChange={(e) => update(index, { name: e.target.value })}
               />
             ) : (
@@ -138,7 +143,7 @@ export function MakesEditor({
                     >
                       <SelectTrigger className="h-8 text-sm">
                         <SelectValue placeholder="Select…" />
-                      </SelectTrigger>
+                        <SelectValue placeholder={tc('placeholders.selectGeneric')} />
                       <SelectContent>
                         {family.values.map((v) => (
                           <SelectItem key={v.code} value={v.code}>
@@ -153,7 +158,7 @@ export function MakesEditor({
                         (v) => v.code === make.selections[family.code],
                       )?.label ?? (
                         <span className="text-amber-600">not selected</span>
-                      )}
+                        <span className="text-amber-600">{me('notSelected')}</span>
                     </div>
                   )}
                 </div>
@@ -170,7 +175,7 @@ export function MakesEditor({
                 onClick={() => onLoad(make)}
               >
                 Load
-              </Button>
+                {me('load')}
             )}
             {isEditing && (
               <Button
@@ -179,7 +184,7 @@ export function MakesEditor({
                 size="sm"
                 className="h-8 w-8 p-0 self-end"
                 aria-label="Remove execution"
-                onClick={() => onChange(value.filter((_, i) => i !== index))}
+                aria-label={me('removeExecution')}
               >
                 <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
               </Button>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
@@ -20,6 +21,8 @@ export const Route = createFileRoute('/reports/$id/edit')({
 })
 
 function EditReportPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -41,7 +44,7 @@ function EditReportPage() {
 
       navigate({ to: '/reports/$id/view', params: { id } })
     } catch (error) {
-      handleError(error, { title: 'Failed to update report' })
+      handleError(error, { title: tp('reports.form.updateFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }

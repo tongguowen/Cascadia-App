@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import {
@@ -30,6 +31,8 @@ export function WorkOrderQualificationSection({
 }: {
   workOrderId: string
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { data } = useQuery(workOrderQualificationQuery(workOrderId))
 
   const rows = data?.rows ?? []
@@ -42,11 +45,10 @@ export function WorkOrderQualificationSection({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
               <AlertTriangle className="h-4 w-4" />
-              Uncertified materials
+              {tp('workOrders.detail.qualificationUncertifiedTitle')}
             </CardTitle>
             <CardDescription>
-              Consumed instances with no documents and no requirement evidence —
-              attach certs on the instance page
+              {tp('workOrders.detail.qualificationUncertifiedDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -77,11 +79,10 @@ export function WorkOrderQualificationSection({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
-            Qualification
+            {tp('workOrders.detail.tabs.qualification')}
           </CardTitle>
           <CardDescription>
-            Requirements flowing into this build via the part and its consumed
-            materials, satisfied where certification evidence is linked
+            {tp('workOrders.detail.qualificationRollupDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,7 +97,7 @@ export function WorkOrderQualificationSection({
                 <TableRow>
                   <TableHead>Requirement</TableHead>
                   <TableHead>Via</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{tc('columns.status')}</TableHead>
                   <TableHead>Evidence</TableHead>
                 </TableRow>
               </TableHeader>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Search, X } from 'lucide-react'
 import { Badge, Button, FormField, Input } from '@/components/ui'
@@ -40,6 +41,7 @@ export function OutputPartField({
   error,
   disabled,
 }: OutputPartFieldProps) {
+  const { t: tc } = useTranslation('common')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<PartSearchResult | undefined>()
   const debounced = useDebouncedValue(query)
@@ -114,7 +116,7 @@ export function OutputPartField({
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by part number or name..."
+              placeholder={tc('placeholders.searchPartNumberOrName')}
               className="pl-9"
               error={!!error}
               disabled={disabled}

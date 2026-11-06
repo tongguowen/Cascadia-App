@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react'
 import { AddRelationshipDialog } from './AddRelationshipDialog'
@@ -58,12 +59,6 @@ interface Relationship {
   suspectReasons?: Array<SuspectReason>
 }
 
-// On this panel the link runs this item → the target.
-const SUSPECT_REASON_LABELS: SuspectReasonLabels = {
-  source_revised: 'this item revised since the link was affirmed',
-  target_revised: 'the target revised since the link was affirmed',
-}
-
 /** Whether a group of edges carries trace flags at all. */
 function hasTraceFlags(rels: Array<Relationship>): boolean {
   return rels.some((rel) => rel.suspect !== undefined)
@@ -86,6 +81,15 @@ export function RelationshipSection({
   itemType,
   readOnly = false,
 }: RelationshipSectionProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const suspectReasonLabels = useMemo<SuspectReasonLabels>(
+    () => ({
+      source_revised: tp('relationships.suspectSourceRevised'),
+      target_revised: tp('relationships.suspectTargetRevised'),
+    }),
+    [tp],
+  )
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -141,10 +145,10 @@ export function RelationshipSection({
 
   const handleRemoveRelationship = (relationshipId: string) => {
     confirm({
-      title: 'Remove Relationship',
-      description: 'Are you sure you want to remove this relationship?',
-      actionLabel: 'Remove',
-      cancelLabel: 'Cancel',
+      title: tp('relationships.removeTitle'),
+      description: tp('relationships.removeDescription'),
+      actionLabel: tp('relationships.remove'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -153,7 +157,9 @@ export function RelationshipSection({
           })
           await invalidate('relationships')
         } catch (error) {
-          handleError(error, { title: 'Failed to remove relationship' })
+          handleError(error, {
+            title: tp('relationships.removeFailedTitle'),
+          })
         }
       },
     })
@@ -192,19 +198,19 @@ export function RelationshipSection({
         <>
           <ContextMenuItem onClick={() => setEditingRelationship(row.original)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Edit
+            {tp('relationships.edit')}
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => handleRemoveRelationship(row.original.id)}
             className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Remove
+            {tp('relationships.remove')}
           </ContextMenuItem>
         </>
       )
     },
-    [readOnly],
+    [readOnly, tp, handleRemoveRelationship],
   )
 
   // Define columns for the DataGrid
@@ -212,7 +218,7 @@ export function RelationshipSection({
     () => [
       {
         id: 'findNumber',
-        header: 'Find #',
+        header: tp('relationships.findNumberShort'),
         accessorFn: (row) => row.findNumber,
         enableSorting: true,
         enableFiltering: true,
@@ -225,12 +231,12 @@ export function RelationshipSection({
       },
       {
         id: 'itemNumber',
-        header: 'Item Number',
+        header: tc('columns.itemNumber'),
         accessorFn: (row) => row.targetItem.itemNumber,
         enableSorting: true,
         enableFiltering: true,
         filterType: 'text' as const,
-        filterPlaceholder: 'Filter item number...',
+        filterPlaceholder: tp('relationships.filterItemNumber'),
         cell: ({ row }) => {
           const rel = row.original
           return (
@@ -247,7 +253,7 @@ export function RelationshipSection({
       },
       {
         id: 'revision',
-        header: 'Rev',
+        header: tc('columns.rev'),
         accessorFn: (row) => row.targetItem.revision,
         enableSorting: true,
         enableFiltering: false,
@@ -260,12 +266,12 @@ export function RelationshipSection({
       },
       {
         id: 'name',
-        header: 'Name',
+        header: tc('columns.name'),
         accessorFn: (row) => row.targetItem.name,
         enableSorting: true,
         enableFiltering: true,
         filterType: 'text' as const,
-        filterPlaceholder: 'Filter name...',
+        filterPlaceholder: tp('relationships.filterName'),
         cell: ({ getValue }) => {
           const value = getValue() as string | null
           return (
@@ -277,7 +283,7 @@ export function RelationshipSection({
       },
       {
         id: 'itemType',
-        header: 'Type',
+        header: tc('columns.type'),
         accessorFn: (row) => row.targetItem.itemType,
         enableSorting: true,
         enableFiltering: true,
@@ -292,7 +298,7 @@ export function RelationshipSection({
       },
       {
         id: 'state',
-        header: 'State',
+        header: tc('columns.state'),
         accessorFn: (row) => row.targetItem.state,
         enableSorting: true,
         enableFiltering: true,
@@ -309,7 +315,7 @@ export function RelationshipSection({
       },
       {
         id: 'quantity',
-        header: 'Qty',
+        header: tc('columns.qty'),
         accessorFn: (row) => (row.quantity ? parseFloat(row.quantity) : null),
         enableSorting: true,
         enableFiltering: true,
@@ -322,12 +328,12 @@ export function RelationshipSection({
       },
       {
         id: 'referenceDesignator',
-        header: 'Ref Designator',
+        header: tp('relationships.refDesignator'),
         accessorFn: (row) => row.referenceDesignator,
         enableSorting: true,
         enableFiltering: true,
         filterType: 'text' as const,
-        filterPlaceholder: 'Filter ref des...',
+        filterPlaceholder: tp('relationships.filterRefDes'),
         cell: ({ getValue }) => {
           const value = getValue() as string | null
           return (
@@ -339,7 +345,7 @@ export function RelationshipSection({
       },
       {
         id: 'trace',
-        header: 'Trace',
+        header: tp('relationships.trace'),
         accessorFn: (row) => (row.suspect ? 'suspect' : 'affirmed'),
         enableSorting: true,
         enableFiltering: false,
@@ -351,14 +357,14 @@ export function RelationshipSection({
             <div className="flex items-center gap-2">
               <SuspectBadge
                 reasons={suspectReasons}
-                labels={SUSPECT_REASON_LABELS}
+                labels={suspectReasonLabels}
               />
               <AffirmButton
                 relationshipId={id}
                 pendingIds={pendingIds}
                 onAffirm={affirm}
                 variant="ghost"
-                title="Record that this claim still holds for the versions its ends now name"
+                title={tp('relationships.affirmOneTitle')}
               />
             </div>
           )
@@ -378,7 +384,7 @@ export function RelationshipSection({
                 variant="ghost"
                 size="icon"
                 onClick={() => setEditingRelationship(row.original)}
-                aria-label="Edit relationship"
+                aria-label={tp('relationships.editRelationshipAria')}
               >
                 <Pencil className="h-4 w-4 text-slate-600 dark:text-slate-400" />
               </Button>
@@ -387,7 +393,7 @@ export function RelationshipSection({
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemoveRelationship(row.original.id)}
-                aria-label="Remove relationship"
+                aria-label={tp('relationships.removeRelationshipAria')}
               >
                 <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
               </Button>
@@ -395,7 +401,17 @@ export function RelationshipSection({
           ),
       },
     ],
-    [stateOptions, itemTypeOptions, readOnly, affirm, pendingIds],
+    [
+      stateOptions,
+      itemTypeOptions,
+      readOnly,
+      affirm,
+      pendingIds,
+      tp,
+      tc,
+      suspectReasonLabels,
+      handleRemoveRelationship,
+    ],
   )
 
   // The trace column is for trace claims; a BOM or document group shows the
@@ -409,10 +425,10 @@ export function RelationshipSection({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Relationships</CardTitle>
+          <CardTitle>{tp('relationships.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-slate-500">Loading relationships...</p>
+          <p className="text-sm text-slate-500">{tp('relationships.loading')}</p>
         </CardContent>
       </Card>
     )
@@ -423,7 +439,7 @@ export function RelationshipSection({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Relationships</CardTitle>
+            <CardTitle>{tp('relationships.title')}</CardTitle>
             {!readOnly && (
               <Button
                 type="button"
@@ -432,7 +448,7 @@ export function RelationshipSection({
                 onClick={handleAddNewType}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                New Relationship Type
+                {tp('relationships.newType')}
               </Button>
             )}
           </div>
@@ -441,7 +457,7 @@ export function RelationshipSection({
           {Object.keys(groupedRelationships).length === 0 ? (
             <div className="text-center py-6">
               <p className="text-sm text-slate-500 mb-4">
-                No relationships yet
+                {tp('relationships.empty')}
               </p>
               {!readOnly && (
                 <Button
@@ -451,7 +467,7 @@ export function RelationshipSection({
                   onClick={handleAddNewType}
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  Add First Relationship
+                  {tp('relationships.addFirst')}
                 </Button>
               )}
             </div>
@@ -485,7 +501,7 @@ export function RelationshipSection({
                           .map((rel) => rel.id)}
                         pendingIds={pendingIds}
                         onAffirm={affirm}
-                        title="Record that every suspect claim of this type still holds"
+                        title={tp('relationships.affirmAllTitle')}
                       />
                       {!readOnly && (
                         <Button
@@ -495,7 +511,7 @@ export function RelationshipSection({
                           onClick={() => handleAddToExistingType(type)}
                         >
                           <Plus className="h-4 w-4 mr-1" />
-                          Add
+                          {tp('relationships.add')}
                         </Button>
                       )}
                     </div>
@@ -515,8 +531,8 @@ export function RelationshipSection({
                         enableContextMenu
                         getRowUrl={getRowUrl}
                         renderContextMenuItems={renderContextMenuItems}
-                        emptyMessage="No relationships"
-                        emptyDescription="Add items to this relationship type"
+                        emptyMessage={tp('relationships.emptyGrid')}
+                        emptyDescription={tp('relationships.emptyGridDescription')}
                         exportFilename={`relationships-${type.toLowerCase()}`}
                       />
                     </div>

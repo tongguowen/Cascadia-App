@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CheckCircle, Edit2, Trash2, XCircle } from 'lucide-react'
 import type { LifecycleDefinition } from '@cascadia/commons/lifecycles/types'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -25,14 +26,19 @@ interface LifecycleTableProps {
 }
 
 export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
-  const columns: Array<DataGridColumn<LifecycleDefinition>> = [
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const lt = (key: string) => t(`lifecycles.table.${key}`)
+
+  const columns: Array<DataGridColumn<LifecycleDefinition>> = useMemo(
+    () => [
     {
       id: 'name',
-      header: 'Name',
+      header: lt('name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search lifecycles...',
+      filterPlaceholder: lt('searchLifecycles'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -48,11 +54,11 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
     },
     {
       id: 'description',
-      header: 'Description',
+      header: lt('description'),
       accessorKey: 'description',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search descriptions...',
+      filterPlaceholder: lt('searchDescriptions'),
       cell: ({ getValue }) => {
         const value = getValue() as string
         return (
@@ -64,33 +70,33 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
     },
     {
       id: 'statesCount',
-      header: 'States',
+      header: lt('states'),
       accessorFn: (row) => row.states.length,
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: tc('actions.any'),
       meta: { align: 'right' },
     },
     {
       id: 'changeActionsCount',
-      header: 'Change Actions',
+      header: lt('changeActions'),
       accessorFn: (row) => Object.keys(row.changeActionMappings || {}).length,
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: tc('actions.any'),
       meta: { align: 'right' },
     },
     {
       id: 'isActive',
-      header: 'Status',
+      header: lt('status'),
       accessorKey: 'isActive',
       enableFiltering: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Active', value: 'true' },
-        { label: 'Inactive', value: 'false' },
+        { label: lt('active'), value: 'true' },
+        { label: lt('inactive'), value: 'false' },
       ],
       cell: ({ getValue }) => {
         const isActive = getValue() as boolean
@@ -98,19 +104,21 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
           return (
             <Badge variant="success">
               <CheckCircle className="h-3 w-3 mr-1" />
-              Active
+              {lt('active')}
             </Badge>
           )
         }
         return (
           <Badge variant="secondary">
             <XCircle className="h-3 w-3 mr-1" />
-            Inactive
+            {lt('inactive')}
           </Badge>
         )
       },
     },
-  ]
+  ],
+    [lt, tc],
+  )
 
   const renderRowActions = (row: Row<LifecycleDefinition>) => {
     const lifecycle = row.original
@@ -122,7 +130,7 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
             <Edit2 className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{tc('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -130,7 +138,7 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
             <DropdownMenuItem asChild>
               <Link to="/lifecycles/$id" params={{ id: lifecycle.id }}>
                 <Edit2 className="mr-2 h-4 w-4" />
-                Edit lifecycle
+                {lt('editLifecycle')}
               </Link>
             </DropdownMenuItem>
           )}
@@ -142,7 +150,7 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {tc('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -164,12 +172,12 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
             className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            {tc('actions.delete')}
           </ContextMenuItem>
         </>
       )
     },
-    [onDelete],
+    [onDelete, tc],
   )
 
   const getRowUrl = useCallback((row: LifecycleDefinition) => {
@@ -186,8 +194,8 @@ export function LifecycleTable({ lifecycles, onDelete }: LifecycleTableProps) {
       enableContextMenu
       getRowUrl={getRowUrl}
       renderContextMenuItems={renderContextMenuItems}
-      emptyMessage="No lifecycles found"
-      emptyDescription="Create your first lifecycle to get started"
+      emptyMessage={lt('emptyMessage')}
+      emptyDescription={lt('emptyDescription')}
       exportFilename="lifecycles"
     />
   )

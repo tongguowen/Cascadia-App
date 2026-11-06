@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { RotateCcw, Tag } from 'lucide-react'
 import {
   FILE_CATEGORY_OPTIONS,
@@ -42,6 +43,8 @@ export function FileCategoryMenu({
   onChange,
   disabled,
 }: FileCategoryMenuProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const isManual = categorySource === 'manual'
 
   return (
@@ -51,17 +54,21 @@ export function FileCategoryMenu({
           variant="ghost"
           size="icon"
           disabled={disabled}
-          title="Change category"
+          title={tp('vault.categoryMenu.changeCategory')}
         >
           <Tag className="w-4 h-4" />
-          <span className="sr-only">Change category</span>
+          <span className="sr-only">
+            {tp('vault.categoryMenu.changeCategory')}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
-          Category
+          {tp('vault.categoryMenu.category')}
           <span className="ml-2 font-normal text-xs text-slate-500 dark:text-slate-400">
-            {isManual ? 'set manually' : 'auto-detected'}
+            {isManual
+              ? tp('vault.categoryMenu.setManually')
+              : tp('vault.categoryMenu.autoDetected')}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -82,7 +89,7 @@ export function FileCategoryMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onChange(null)}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Reset to auto-detected
+              {tc('actions.resetAutoCategory')}
             </DropdownMenuItem>
           </>
         )}

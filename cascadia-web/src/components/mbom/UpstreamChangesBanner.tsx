@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertTriangle,
@@ -42,6 +43,8 @@ interface DismissOutcome {
 export function UpstreamChangesBanner({
   designId,
 }: UpstreamChangesBannerProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [expanded, setExpanded] = useState(false)
   const { handleError } = useErrorHandler()
 
@@ -98,8 +101,11 @@ export function UpstreamChangesBanner({
       handleError(outcome.failure, {
         title:
           outcome.dismissed === 0
-            ? 'Could not dismiss upstream changes'
-            : `Dismissed ${outcome.dismissed} of ${outcome.total} upstream changes`,
+            ? tp('mbom.upstreamChanges.dismissFailed')
+            : tp('mbom.upstreamChanges.dismissPartial', {
+                dismissed: outcome.dismissed,
+                total: outcome.total,
+              }),
       })
     },
   })
@@ -117,8 +123,7 @@ export function UpstreamChangesBanner({
       <div className="mb-6 px-4 py-3 flex items-center gap-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
         <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
         <p className="text-sm text-amber-800 dark:text-amber-200">
-          Could not check for upstream engineering changes. This MBOM may have
-          changes awaiting review that are not shown here.
+          {tp('mbom.upstreamChanges.checkFailed')}
         </p>
         <Button
           variant="outline"
@@ -130,7 +135,7 @@ export function UpstreamChangesBanner({
           <RefreshCw
             className={cn('h-4 w-4 mr-1', isFetching && 'animate-spin')}
           />
-          Retry
+          {tc('errorBoundary.retry')}
         </Button>
       </div>
     )
@@ -154,12 +159,13 @@ export function UpstreamChangesBanner({
           <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           <div>
             <h3 className="font-medium text-amber-800 dark:text-amber-200">
-              Upstream Engineering Changes Detected
+              {tp('mbom.upstreamChanges.title')}
             </h3>
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              {totalChangedItems} item{totalChangedItems !== 1 ? 's' : ''}{' '}
-              changed in {changes.length} source design
-              {changes.length !== 1 ? 's' : ''}
+              {tp('mbom.upstreamChanges.summary', {
+                itemCount: totalChangedItems,
+                designCount: changes.length,
+              })}
             </p>
           </div>
         </div>
@@ -175,7 +181,9 @@ export function UpstreamChangesBanner({
             ) : (
               <ChevronRight className="h-4 w-4 mr-1" />
             )}
-            {expanded ? 'Hide Details' : 'Review Changes'}
+            {expanded
+              ? tp('mbom.upstreamChanges.hideDetails')
+              : tp('mbom.upstreamChanges.reviewChanges')}
           </Button>
           <Button
             variant="outline"
@@ -207,7 +215,9 @@ export function UpstreamChangesBanner({
                   </span>
                   {change.sourceEcoNumber && (
                     <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded">
-                      via {change.sourceEcoNumber}
+                      {tp('mbom.upstreamChanges.viaEco', {
+                        eco: change.sourceEcoNumber,
+                      })}
                     </span>
                   )}
                 </div>
@@ -216,7 +226,8 @@ export function UpstreamChangesBanner({
                   params={{ id: change.sourceDesignId }}
                   className="text-sm text-cyan-600 dark:text-cyan-400 hover:underline flex items-center gap-1"
                 >
-                  View Source <ExternalLink className="h-3 w-3" />
+                  {tp('mbom.upstreamChanges.viewSource')}{' '}
+                  <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
 
@@ -226,19 +237,19 @@ export function UpstreamChangesBanner({
                   <thead className="bg-slate-50 dark:bg-slate-800">
                     <tr>
                       <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400">
-                        Item Number
+                        {tc('columns.itemNumber')}
                       </th>
                       <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400">
-                        Name
+                        {tc('columns.name')}
                       </th>
                       <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400">
-                        Type
+                        {tc('columns.type')}
                       </th>
                       <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400">
-                        Change
+                        {tp('mbom.upstreamChanges.changeColumn')}
                       </th>
                       <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400">
-                        Revision
+                        {tc('columns.revision')}
                       </th>
                     </tr>
                   </thead>
@@ -284,8 +295,7 @@ export function UpstreamChangesBanner({
           {/* Actions */}
           <div className="flex items-center gap-3 pt-2 border-t border-amber-200 dark:border-amber-800">
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              Dismissing records these changes as reviewed and clears the
-              banner. It does not update the MBOM.
+              {tp('mbom.upstreamChanges.dismissNotice')}
             </p>
             <Button
               variant="outline"
@@ -294,7 +304,9 @@ export function UpstreamChangesBanner({
               disabled={dismissAll.isPending}
               className="ml-auto shrink-0 border-amber-300 dark:border-amber-700"
             >
-              {dismissAll.isPending ? 'Dismissing…' : 'Dismiss All'}
+              {dismissAll.isPending
+                ? tp('mbom.upstreamChanges.dismissing')
+                : tp('mbom.upstreamChanges.dismissAll')}
             </Button>
           </div>
         </div>

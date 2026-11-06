@@ -4,6 +4,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   CheckCircle,
@@ -33,6 +34,8 @@ export const Route = createFileRoute('/admin/item-types/')({
 })
 
 function ItemTypesConfigPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const {
     data: configs = [],
@@ -52,7 +55,7 @@ function ItemTypesConfigPage() {
       await apiFetch('/api/v1/admin/reload-config', { method: 'POST' })
 
       await invalidate('admin')
-      setSuccessMessage('Configurations reloaded successfully')
+      setSuccessMessage(t('admin.itemTypes.reloadSuccess'))
       setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -65,7 +68,7 @@ function ItemTypesConfigPage() {
     return (
       <PageContainer>
         <p className="text-slate-600 dark:text-slate-400">
-          Loading configurations...
+          {t('admin.itemTypes.loading')}
         </p>
       </PageContainer>
     )
@@ -81,16 +84,16 @@ function ItemTypesConfigPage() {
           <Settings className="w-8 h-8 text-slate-700 dark:text-slate-300" />
           <div>
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Item Type Configuration
+              {t('admin.itemTypes.title')}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Assign the lifecycle that governs each item type
+              {t('admin.itemTypes.subtitle')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="secondary">
-            {configs.length} {configs.length === 1 ? 'Type' : 'Types'}
+            {t('admin.itemTypes.type', { count: configs.length })}
           </Badge>
           <Button
             variant="outline"
@@ -100,7 +103,7 @@ function ItemTypesConfigPage() {
             <RefreshCw
               className={`w-4 h-4 mr-2 ${reloading ? 'animate-spin' : ''}`}
             />
-            {reloading ? 'Reloading...' : 'Reload All'}
+            {reloading ? t('admin.itemTypes.reloading') : t('admin.itemTypes.reloadAll')}
           </Button>
         </div>
       </div>
@@ -161,7 +164,8 @@ function ItemTypesConfigPage() {
                   <div>
                     <CardTitle>{config.mergedConfig.label}</CardTitle>
                     <CardDescription>
-                      Type: <code className="text-xs">{config.itemType}</code>
+                      {t('admin.itemTypes.detail.typePrefix')}{' '}
+                      <code className="text-xs">{config.itemType}</code>
                     </CardDescription>
                   </div>
                 </div>
@@ -171,7 +175,7 @@ function ItemTypesConfigPage() {
                 >
                   <Button variant="outline" size="sm">
                     <Edit className="w-4 h-4 mr-2" />
-                    Configure
+                    {t('admin.itemTypes.configure')}
                   </Button>
                 </Link>
               </div>
@@ -179,10 +183,12 @@ function ItemTypesConfigPage() {
             <CardContent className="space-y-4">
               {/* Status badges */}
               <div className="flex gap-2">
-                <Badge variant="secondary">Code Definition</Badge>
+                <Badge variant="secondary">
+                  {tc('badges.codeDefinition')}
+                </Badge>
                 {config.hasRuntimeConfig && (
                   <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                    Runtime Override
+                    {t('admin.itemTypes.runtimeOverrideBadge')}
                     {config.runtimeConfig &&
                       ` (v${config.runtimeConfig.version})`}
                   </Badge>

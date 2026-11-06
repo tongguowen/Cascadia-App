@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Cog,
   ExternalLink,
@@ -20,6 +21,7 @@ import { DataGrid } from '@/components/ui/DataGrid'
 import { Badge, Checkbox } from '@/components/ui'
 import { cn } from '@/utils'
 import { ItemLink } from '@/components/items/ItemLink'
+import { translateItemTypeLabel } from '@/i18n'
 
 interface ImpactResultsTableProps {
   items: Array<ImpactedItem>
@@ -35,14 +37,6 @@ const domainIcons: Record<ThreadDomain, typeof Cog> = {
   physical: Package,
 }
 
-const domainLabels: Record<ThreadDomain, string> = {
-  requirements: 'Requirements',
-  engineering: 'Engineering',
-  manufacturing: 'Manufacturing',
-  validation: 'Validation',
-  physical: 'Physical',
-}
-
 const severityVariants: Record<
   ImpactSeverity,
   'destructive' | 'warning' | 'secondary' | 'outline'
@@ -51,13 +45,6 @@ const severityVariants: Record<
   high: 'warning',
   medium: 'secondary',
   low: 'outline',
-}
-
-const severityLabels: Record<ImpactSeverity, string> = {
-  critical: 'Critical',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
 }
 
 /**
@@ -69,7 +56,13 @@ export function ImpactResultsTable({
   onSelectionChange,
   className,
 }: ImpactResultsTableProps) {
+  const { t: tc } = useTranslation('common')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const domainLabel = (domain: ThreadDomain) =>
+    tc(`labels.domains.${domain}`)
+  const severityLabel = (severity: ImpactSeverity) =>
+    tc(`labels.severity.${severity}`)
 
   // Toggle selection of a single item
   const toggleSelection = (itemId: string) => {
@@ -106,7 +99,9 @@ export function ImpactResultsTable({
           <Checkbox
             checked={selectedIds.has(row.original.item.id)}
             onCheckedChange={() => toggleSelection(row.original.item.id)}
-            aria-label={`Select ${row.original.item.itemNumber}`}
+            aria-label={tc('dialogs.impact.table.selectItem', {
+              itemNumber: row.original.item.itemNumber,
+            })}
           />
         ),
         enableSorting: false,
@@ -116,7 +111,7 @@ export function ImpactResultsTable({
       // Item Number
       {
         id: 'itemNumber',
-        header: 'Item Number',
+        header: tc('columns.itemNumber'),
         accessorFn: (row) => row.item.itemNumber,
         cell: ({ row }) => {
           const item = row.original.item
@@ -143,12 +138,12 @@ export function ImpactResultsTable({
         enableSorting: true,
         enableFiltering: true,
         filterType: 'text',
-        filterPlaceholder: 'Filter by item number...',
+        filterPlaceholder: tc('dialogs.impact.table.filterItemNumber'),
       },
       // Name
       {
         id: 'name',
-        header: 'Name',
+        header: tc('columns.name'),
         accessorFn: (row) => row.item.name ?? '',
         cell: ({ row }) => (
           <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px] block">
@@ -162,7 +157,7 @@ export function ImpactResultsTable({
       // Type
       {
         id: 'itemType',
-        header: 'Type',
+        header: tc('columns.type'),
         accessorFn: (row) => row.item.itemType,
         cell: ({ row }) => (
           <span className="text-slate-700 dark:text-slate-300">
@@ -172,17 +167,17 @@ export function ImpactResultsTable({
         enableSorting: true,
         enableFiltering: true,
         filterType: 'select',
-        filterOptions: [
-          { label: 'Part', value: 'Part' },
-          { label: 'Requirement', value: 'Requirement' },
-          { label: 'Document', value: 'Document' },
-          { label: 'TestCase', value: 'TestCase' },
-        ],
+        filterOptions: (
+          ['Part', 'Requirement', 'Document', 'TestCase'] as const
+        ).map((value) => ({
+          label: translateItemTypeLabel(value),
+          value,
+        })),
       },
       // Domain
       {
         id: 'domain',
-        header: 'Domain',
+        header: tc('labels.domain'),
         accessorFn: (row) => row.domain,
         cell: ({ row }) => {
           const domain = row.original.domain
@@ -190,47 +185,52 @@ export function ImpactResultsTable({
           return (
             <div className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
               <Icon className="h-3.5 w-3.5" />
-              <span>{domainLabels[domain]}</span>
+              <span>{domainLabel(domain)}</span>
             </div>
           )
         },
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: [
-          { label: 'Requirements', value: 'requirements' },
-          { label: 'Engineering', value: 'engineering' },
-          { label: 'Manufacturing', value: 'manufacturing' },
-          { label: 'Validation', value: 'validation' },
-        ],
+        filterOptions: (
+          [
+            'requirements',
+            'engineering',
+            'manufacturing',
+            'validation',
+          ] as const
+        ).map((value) => ({
+          label: domainLabel(value),
+          value,
+        })),
       },
       // Severity
       {
         id: 'severity',
-        header: 'Severity',
+        header: tc('columns.severity'),
         accessorFn: (row) => row.severity,
         cell: ({ row }) => {
           const severity = row.original.severity
           return (
             <Badge variant={severityVariants[severity]}>
-              {severityLabels[severity]}
+              {severityLabel(severity)}
             </Badge>
           )
         },
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: [
-          { label: 'Critical', value: 'critical' },
-          { label: 'High', value: 'high' },
-          { label: 'Medium', value: 'medium' },
-          { label: 'Low', value: 'low' },
-        ],
+        filterOptions: (['critical', 'high', 'medium', 'low'] as const).map(
+          (value) => ({
+            label: severityLabel(value),
+            value,
+          }),
+        ),
       },
       // Impact Path
       {
         id: 'impactPath',
-        header: 'Impact Path',
+        header: tc('labels.impactPath'),
         accessorFn: (row) => row.impactPath.join(' → '),
         cell: ({ row }) => (
           <span className="text-xs text-slate-500 font-mono">
@@ -243,7 +243,7 @@ export function ImpactResultsTable({
       // Reason
       {
         id: 'reason',
-        header: 'Reason',
+        header: tc('labels.reason'),
         accessorFn: (row) => row.reason,
         cell: ({ row }) => (
           <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -256,7 +256,7 @@ export function ImpactResultsTable({
       // Required Action
       {
         id: 'requiredAction',
-        header: 'Required Action',
+        header: tc('labels.requiredAction'),
         accessorFn: (row) => row.requiredAction ?? '',
         cell: ({ row }) =>
           row.original.requiredAction ? (
@@ -270,7 +270,7 @@ export function ImpactResultsTable({
         enableFiltering: false,
       },
     ],
-    [selectedIds],
+    [selectedIds, tc],
   )
 
   return (
@@ -281,12 +281,15 @@ export function ImpactResultsTable({
           <Checkbox
             checked={selectedIds.size === items.length && items.length > 0}
             onCheckedChange={toggleAll}
-            aria-label="Select all items"
+            aria-label={tc('dialogs.impact.table.selectAll')}
           />
           <span className="text-sm text-slate-500">
             {selectedIds.size > 0
-              ? `${selectedIds.size} of ${items.length} selected`
-              : `${items.length} items`}
+              ? tc('dialogs.impact.table.selectedCount', {
+                  selected: selectedIds.size,
+                  total: items.length,
+                })
+              : tc('dialogs.impact.table.itemCount', { count: items.length })}
           </span>
         </div>
       )}
@@ -304,8 +307,8 @@ export function ImpactResultsTable({
         exportFilename="impact-analysis"
         defaultPageSize={20}
         pageSizeOptions={[10, 20, 50, 100]}
-        emptyMessage="No impacted items found"
-        emptyDescription="This change does not appear to impact any other items"
+        emptyMessage={tc('dialogs.impact.table.emptyMessage')}
+        emptyDescription={tc('dialogs.impact.table.emptyDescription')}
       />
     </div>
   )

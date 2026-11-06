@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ChevronDown,
   ChevronUp,
@@ -153,7 +154,7 @@ function StepBlockEditor({
             }, 300)
           }}
           placeholder="Enter instruction text..."
-          rows={3}
+          placeholder={tc('placeholders.enterInstructionText')}
           className="pr-10"
         />
         <Button
@@ -244,7 +245,7 @@ function StepBlockEditor({
         </div>
         <Input
           placeholder="Image caption (optional)"
-          className="mt-3"
+          placeholder={tc('placeholders.imageCaptionOptional')}
           value={localCaption}
           onChange={(e) => {
             const val = e.target.value
@@ -258,7 +259,7 @@ function StepBlockEditor({
         />
         <Input
           placeholder="Alt text for accessibility"
-          className="mt-2"
+          placeholder={tc('placeholders.altTextAccessibility')}
           value={localAlt}
           onChange={(e) => {
             const val = e.target.value

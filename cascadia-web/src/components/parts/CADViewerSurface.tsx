@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CADViewer } from './CADViewer'
 import { CADViewerToolbar } from './CADViewerToolbar'
 import { CADSelectionCaption, CADSelectionMenu } from './CADSelectionOverlay'
@@ -49,6 +50,7 @@ export function CADViewerSurface({
   /** Overlays drawn inside the viewport — the comparison panel, today. */
   children?: React.ReactNode
 }) {
+  const { t: tp } = useTranslation('pages')
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false)
 
   const body = (
@@ -88,10 +90,10 @@ export function CADViewerSurface({
         onNodeSelect={selection?.selectable ? selection.select : undefined}
         onLoad={viewer.onModelLoad}
         onError={(error) =>
-          onError(error, { title: 'Failed to load CAD model' })
+          onError(error, { title: tp('parts.detail.cadLoadFailedTitle') })
         }
         onComparisonError={(error) =>
-          onError(error, { title: 'Failed to load a model being compared' })
+          onError(error, { title: tp('parts.detail.cadCompareLoadFailedTitle') })
         }
       />
       {selection?.selectable && <CADSelectionCaption selection={selection} />}

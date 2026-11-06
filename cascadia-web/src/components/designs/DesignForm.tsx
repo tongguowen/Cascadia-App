@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react'
 import { useForm, useStore } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import type { CreateDesignInput, Design } from '@cascadia/commons/types/design'
@@ -141,7 +142,7 @@ export function DesignForm({
             <FormField
               label="Design Name"
               required
-              error={field.state.meta.errors[0]}
+              label={tp('designs.form.name')}
               className="md:col-span-2"
             >
               <Input
@@ -151,7 +152,7 @@ export function DesignForm({
                 onBlur={field.handleBlur}
                 placeholder="UAV Type 1 Configuration"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('designs.form.namePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -162,10 +163,10 @@ export function DesignForm({
             <FormField
               label="Design Code"
               required
+              label={tp('designs.form.code')}
+              required
               error={field.state.meta.errors[0]}
-              helpText="Unique identifier (uppercase, hyphens allowed)"
-            >
-              <Input
+              helpText={tc('labels.codeHelp')}
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) =>
@@ -174,7 +175,7 @@ export function DesignForm({
                 onBlur={field.handleBlur}
                 placeholder="UAV-T1"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('designs.form.codePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -185,9 +186,11 @@ export function DesignForm({
             <FormField
               label="Type"
               error={field.state.meta.errors[0]}
+              label={tc('fields.type')}
+              error={field.state.meta.errors[0]}
               helpText={
                 field.state.value === 'Family'
-                  ? 'A family groups related variant designs'
+                  ? tp('designs.form.familyTypeHelp')
                   : undefined
               }
             >
@@ -201,14 +204,18 @@ export function DesignForm({
                 disabled={isEditMode}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={tc('labels.selectType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Engineering">Engineering</SelectItem>
-                  <SelectItem value="Family">Family</SelectItem>
-                  <SelectItem value="Library">Library</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectItem value="Engineering">
+                    {tp('designs.form.designTypeEngineering')}
+                  </SelectItem>
+                  <SelectItem value="Family">
+                    {tp('designs.form.designTypeFamily')}
+                  </SelectItem>
+                  <SelectItem value="Library">
+                    {tp('designs.form.designTypeLibrary')}
+                  </SelectItem>
             </FormField>
           )}
         </form.Field>
@@ -219,7 +226,9 @@ export function DesignForm({
             <FormField
               label="Program"
               error={field.state.meta.errors[0]}
-              helpText="Optional program association"
+              label={tc('fields.program')}
+              error={field.state.meta.errors[0]}
+              helpText={tp('designs.form.programHelp')}
             >
               <Select
                 value={field.state.value || 'none'}
@@ -228,12 +237,10 @@ export function DesignForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select program (optional)" />
+                  <SelectValue placeholder={tc('labels.selectProgramOptional')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No Program</SelectItem>
-                  {programs.map((program) => (
-                    <SelectItem key={program.id} value={program.id}>
+                  <SelectItem value="none">{tc('labels.noProgram')}</SelectItem>
                       {program.code} - {program.name}
                     </SelectItem>
                   ))}
@@ -250,7 +257,9 @@ export function DesignForm({
               <FormField
                 label="Parent Family"
                 error={field.state.meta.errors[0]}
-                helpText="Optional: group this design under a family"
+                label={tc('fields.parentFamily')}
+                error={field.state.meta.errors[0]}
+                helpText={tp('designs.form.parentFamilyHelp')}
               >
                 <Select
                   value={field.state.value || 'none'}
@@ -263,15 +272,13 @@ export function DesignForm({
                     <SelectValue
                       placeholder={
                         loadingFamilies
-                          ? 'Loading families...'
-                          : 'Select family (optional)'
+                          ? tc('labels.loadingFamilies')
+                          : tc('labels.selectFamilyOptional')
                       }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Family</SelectItem>
-                    {families.map((family) => (
-                      <SelectItem key={family.id} value={family.id}>
+                    <SelectItem value="none">{tc('labels.noFamily')}</SelectItem>
                         {family.code} - {family.name}
                       </SelectItem>
                     ))}
@@ -288,9 +295,9 @@ export function DesignForm({
             <FormField
               label="Planned Quantity"
               error={field.state.meta.errors[0]}
-              helpText="Number of units planned"
-            >
-              <Input
+              label={tc('fields.plannedQuantity')}
+              error={field.state.meta.errors[0]}
+              helpText={tp('designs.form.plannedQuantityHelp')}
                 name={field.name}
                 type="number"
                 value={field.state.value}
@@ -298,7 +305,7 @@ export function DesignForm({
                 onBlur={field.handleBlur}
                 placeholder="100"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('designs.form.plannedQuantityPlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -309,7 +316,7 @@ export function DesignForm({
             <FormField
               label="Description"
               error={field.state.meta.errors[0]}
-              className="md:col-span-2"
+              label={tc('fields.description')}
             >
               <Textarea
                 name={field.name}
@@ -318,7 +325,7 @@ export function DesignForm({
                 onBlur={field.handleBlur}
                 placeholder="Design description..."
                 rows={3}
-                error={!!field.state.meta.errors.length}
+                placeholder={tp('designs.form.descriptionPlaceholder')}
               />
             </FormField>
           )}
@@ -336,15 +343,15 @@ export function DesignForm({
           >
             Cancel
           </Button>
+            {tc('actions.cancel')}
+          </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : design?.id
-              ? 'Update Design'
-              : 'Create Design'}
-        </Button>
-      </div>
+              ? tp('designs.form.updateSubmit')
+              : tp('designs.form.createSubmit')}
     </form>
   )
 }

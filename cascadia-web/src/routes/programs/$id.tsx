@@ -4,6 +4,8 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   ArrowLeft,
   Box,
@@ -69,12 +71,30 @@ export const Route = createFileRoute('/programs/$id')({
   },
 })
 
-const statusOptions = [
-  { value: 'Active', label: 'Active' },
-  { value: 'On Hold', label: 'On Hold' },
-  { value: 'Completed', label: 'Completed' },
-  { value: 'Cancelled', label: 'Cancelled' },
-]
+function programStatusOptions(tp: TFunction<'pages'>) {
+  return [
+    { value: 'Active', label: tp('programs.form.statusActive') },
+    { value: 'On Hold', label: tp('programs.form.statusOnHold') },
+    { value: 'Completed', label: tp('programs.form.statusCompleted') },
+    { value: 'Cancelled', label: tp('programs.form.statusCancelled') },
+  ]
+}
+
+function programStatusLabel(status: string, tp: TFunction<'pages'>): string {
+  const map: Record<string, string> = {
+    Active: tp('programs.form.statusActive'),
+    'On Hold': tp('programs.form.statusOnHold'),
+    Completed: tp('programs.form.statusCompleted'),
+    Cancelled: tp('programs.form.statusCancelled'),
+  }
+  return map[status] ?? status
+}
+
+function translateDesignType(designType: string, tp: TFunction<'pages'>): string {
+  const key = `designs.types.${designType}` as const
+  const translated = tp(key)
+  return translated === key ? designType : translated
+}
 
 function statusVariant(
   value: string,
@@ -117,6 +137,9 @@ function ProgramDetail({
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const statusOptions = programStatusOptions(tp)
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -171,12 +194,12 @@ function ProgramDetail({
 
       setIsEditing(false)
       showSuccess(
-        'Program updated',
-        `${data.code} has been updated successfully`,
+        tp('programs.detail.updatedTitle'),
+        tp('programs.detail.updatedDescription', { code: data.code }),
       )
       await invalidate('programs')
     } catch (error) {
-      handleError(error, { title: 'Failed to update program' })
+      handleError(error, { title: tp('programs.detail.updateFailed') })
     } finally {
       setIsSubmitting(false)
     }
@@ -184,10 +207,12 @@ function ProgramDetail({
 
   const handleDelete = () => {
     confirm({
-      title: 'Delete Program',
-      description: `Are you sure you want to delete ${program.code}? This will also delete all associated designs. This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('programs.deleteTitle'),
+      description: tp('programs.detail.deleteDescription', {
+        code: program.code,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -195,11 +220,14 @@ function ProgramDetail({
             method: 'DELETE',
           })
 
-          showSuccess('Program deleted', `${program.code} has been deleted`)
+          showSuccess(
+            tp('programs.deletedTitle'),
+            tp('programs.detail.deletedDescription', { code: program.code }),
+          )
           await invalidate('programs')
           navigate({ to: '/programs' })
         } catch (error) {
-          handleError(error, { title: 'Failed to delete program' })
+          handleError(error, { title: tp('programs.deleteFailed') })
         }
       },
     })
@@ -224,7 +252,7 @@ function ProgramDetail({
                 className="text-base"
                 variant={statusVariant(program.status)}
               >
-                {program.status}
+                {programStatusLabel(program.status, tp)}
               </Badge>
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
@@ -238,22 +266,22 @@ function ProgramDetail({
             <>
               <Button variant="outline" onClick={handleCancelEdit}>
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button onClick={handleSave} disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isSubmitting ? tc('actions.saving') : tc('actions.save')}
               </Button>
             </>
           ) : (
             <>
               <Button variant="outline" onClick={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                {tc('actions.edit')}
               </Button>
               <Button variant="destructive" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {tc('actions.delete')}
               </Button>
             </>
           )}
@@ -262,8 +290,8 @@ function ProgramDetail({
 
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="overview">{tc('tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="team">{tc('tabs.team')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="team">
@@ -278,15 +306,15 @@ function ProgramDetail({
               {/* Overview */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
                   <CardDescription>
-                    Program details and metadata
+                    {tp('programs.detail.overviewDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditText
-                      label="Program Code"
+                      label={tp('programs.form.code')}
                       value={isEditing ? editProgram.code : program.code}
                       onChange={(v) => updateField('code', v)}
                       isEditing={isEditing}
@@ -294,7 +322,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={isEditing ? editProgram.name : program.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
@@ -302,7 +330,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditBadge
-                      label="Status"
+                      label={tc('fields.status')}
                       value={isEditing ? editProgram.status : program.status}
                       onChange={(v) => updateField('status', v)}
                       isEditing={isEditing}
@@ -311,7 +339,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditText
-                      label="Customer"
+                      label={tc('fields.customer')}
                       value={
                         isEditing ? editProgram.customer : program.customer
                       }
@@ -320,7 +348,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditText
-                      label="Contract Number"
+                      label={tc('fields.contractNumber')}
                       value={
                         isEditing
                           ? editProgram.contractNumber
@@ -331,7 +359,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditText
-                      label="Start Date"
+                      label={tc('fields.startDate')}
                       value={
                         isEditing
                           ? toDateInputValue(editProgram.startDate)
@@ -345,7 +373,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditText
-                      label="Target End Date"
+                      label={tc('fields.targetEndDate')}
                       value={
                         isEditing
                           ? toDateInputValue(editProgram.targetEndDate)
@@ -361,7 +389,7 @@ function ProgramDetail({
                     />
 
                     <ViewEditTextarea
-                      label="Description"
+                      label={tc('fields.description')}
                       value={
                         isEditing
                           ? editProgram.description
@@ -385,11 +413,10 @@ function ProgramDetail({
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <GitBranch className="h-5 w-5 text-slate-400" />
-                    <CardTitle>Program Graph</CardTitle>
+                    <CardTitle>{tp('programs.detail.programGraphTitle')}</CardTitle>
                   </div>
                   <CardDescription>
-                    Drill down from this program to its designs, their items,
-                    and everything connected to them
+                    {tp('programs.detail.programGraphDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -407,10 +434,12 @@ function ProgramDetail({
                   <CardHeader>
                     <div className="flex items-center gap-2">
                       <GitBranch className="h-5 w-5 text-slate-400" />
-                      <CardTitle>Change History</CardTitle>
+                      <CardTitle>
+                        {tp('programs.detail.changeHistoryTitle')}
+                      </CardTitle>
                     </div>
                     <CardDescription>
-                      Timeline of changes across all designs in this program
+                      {tp('programs.detail.changeHistoryDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -426,17 +455,17 @@ function ProgramDetail({
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle>Designs</CardTitle>
+                    <CardTitle>{tp('programs.detail.designsTitle')}</CardTitle>
                     <CardDescription>
-                      {designs.length}{' '}
-                      {designs.length === 1 ? 'design' : 'designs'} in this
-                      program
+                      {tp('programs.detail.designsCount', {
+                        count: designs.length,
+                      })}
                     </CardDescription>
                   </div>
                   <Link to="/designs" search={{ programId: program.id }}>
                     <Button variant="outline" size="sm">
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Design
+                      {tp('programs.detail.addDesign')}
                     </Button>
                   </Link>
                 </CardHeader>
@@ -468,15 +497,14 @@ function ProgramDetail({
                                 : 'default'
                             }
                           >
-                            {design.designType}
+                            {translateDesignType(design.designType, tp)}
                           </Badge>
                         </Link>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                      No designs in this program yet. Click "Add Design" to
-                      create one.
+                      {tp('programs.detail.designsEmpty')}
                     </div>
                   )}
                 </CardContent>
@@ -500,7 +528,7 @@ function ProgramDetail({
                   >
                     <CardHeader className="pb-3">
                       <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-70">
-                        <CardTitle>Custom Attributes</CardTitle>
+                        <CardTitle>{tc('sections.customAttributes')}</CardTitle>
                       </CollapsibleTrigger>
                     </CardHeader>
                     <CollapsibleContent>
@@ -522,7 +550,7 @@ function ProgramDetail({
                           </dl>
                         ) : (
                           <p className="text-sm text-slate-500 dark:text-slate-400">
-                            No custom attributes defined.
+                            {tp('programs.detail.noCustomAttributes')}
                           </p>
                         )}
                       </CardContent>
@@ -536,14 +564,14 @@ function ProgramDetail({
                 <Card>
                   <CardHeader>
                     <CollapsibleTrigger className="hover:opacity-70">
-                      <CardTitle>Metadata</CardTitle>
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
                     </CollapsibleTrigger>
                   </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
                       <div className="space-y-1">
                         <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                          Created
+                          {tc('columns.created')}
                         </dt>
                         <dd className="text-slate-900 dark:text-white">
                           {new Date(program.createdAt).toLocaleDateString()}
@@ -552,7 +580,7 @@ function ProgramDetail({
 
                       <div className="space-y-1">
                         <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                          Last Modified
+                          {tp('programs.detail.lastModified')}
                         </dt>
                         <dd className="text-slate-900 dark:text-white">
                           {new Date(program.updatedAt).toLocaleDateString()}
@@ -561,7 +589,7 @@ function ProgramDetail({
 
                       <div className="space-y-1">
                         <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                          Program ID
+                          {tp('programs.detail.programId')}
                         </dt>
                         <dd className="text-sm font-mono text-slate-600 dark:text-slate-400">
                           {program.id}
@@ -571,7 +599,7 @@ function ProgramDetail({
                       {program.userRole && (
                         <div className="space-y-1">
                           <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                            Your Role
+                            {tp('programs.detail.yourRole')}
                           </dt>
                           <dd>
                             <Badge variant="outline">{program.userRole}</Badge>

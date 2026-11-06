@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import type { CADFileEntry } from './cad-types'
 import {
   Select,
@@ -29,6 +30,7 @@ export function CADFileSelect({
   selectedId: string
   onSelect: (file: CADFileEntry) => void
 }) {
+  const { t: tp } = useTranslation('pages')
   const direct = files.filter((f) => f.source === 'direct')
   const docGroups = new Map<string, Array<CADFileEntry>>()
   for (const f of files.filter((cf) => cf.source === 'cad_doc')) {
@@ -46,13 +48,16 @@ export function CADFileSelect({
         if (file) onSelect(file)
       }}
     >
-      <SelectTrigger className="w-[220px] h-8 text-xs" aria-label="CAD file">
+      <SelectTrigger
+        className="w-[220px] h-8 text-xs"
+        aria-label={tp('parts.detail.cad.cadFileAria')}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {direct.length > 0 && (
           <SelectGroup>
-            <SelectLabel>Direct Files</SelectLabel>
+            <SelectLabel>{tp('parts.detail.cad.directFiles')}</SelectLabel>
             {direct.map((f) => (
               <SelectItem key={f.id} value={f.id}>
                 {f.fileName}

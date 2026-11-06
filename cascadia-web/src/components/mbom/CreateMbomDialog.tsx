@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2, Factory, Loader2, XCircle } from 'lucide-react'
@@ -82,6 +83,7 @@ export function CreateMbomDialog({
   sourceDesignName,
   configuration,
 }: CreateMbomDialogProps) {
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
@@ -141,7 +143,7 @@ export function CreateMbomDialog({
 
   const result = createMbom.data ?? null
   const error = createMbom.error
-    ? createMbom.error.message || 'Failed to create MBOM'
+    ? createMbom.error.message || tc('dialogs.createMbom.failedToCreate')
     : null
   const isFormDisabled = createMbom.isPending
 
@@ -196,12 +198,12 @@ export function CreateMbomDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Factory className="h-5 w-5" />
-            Release to Manufacturing
+            {tc('dialogs.createMbom.title')}
           </DialogTitle>
           <DialogDescription>
-            Create a Manufacturing BOM from{' '}
-            <span className="font-medium">{sourceDesignCode}</span>. The MBOM
-            will be linked to the source EBOM for traceability.
+            {tc('dialogs.createMbom.description', {
+              designCode: sourceDesignCode,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -212,7 +214,7 @@ export function CreateMbomDialog({
               <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Source Design:
+                    {tc('labels.sourceDesign')}:
                   </span>
                   <span className="font-medium text-slate-900 dark:text-slate-100">
                     {sourceDesignCode}
@@ -220,10 +222,10 @@ export function CreateMbomDialog({
                 </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Type:
+                    {tc('columns.type')}:
                   </span>
                   <span className="font-medium text-slate-900 dark:text-slate-100">
-                    Engineering (EBOM)
+                    {tc('dialogs.createMbom.engineeringEbom')}
                   </span>
                 </div>
               </div>
@@ -231,7 +233,7 @@ export function CreateMbomDialog({
               {configuration && (
                 <div className="bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 text-sm space-y-1">
                   <div className="font-medium text-slate-900 dark:text-slate-100">
-                    Configuration
+                    {tc('labels.configuration')}
                     {configuration.makeCode && (
                       <span className="ml-2 font-mono text-cyan-700 dark:text-cyan-300">
                         {configuration.makeCode}
@@ -245,53 +247,59 @@ export function CreateMbomDialog({
                       .join(', ')}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    BOM lines this configuration does not select are left out;
-                    the rest become fixed lines.
+                    {tc('dialogs.createMbom.configurationHint')}
                   </p>
                 </div>
               )}
 
               {!configuration && (
                 <div className="space-y-2">
-                  <Label htmlFor="mbomRoot">Root Part</Label>
+                  <Label htmlFor="mbomRoot">{tc('labels.rootPart')}</Label>
                   <Select
                     value={rootItemId}
                     onValueChange={setRootItemId}
                     disabled={isFormDisabled}
                   >
                     <SelectTrigger id="mbomRoot">
-                      <SelectValue placeholder="Select the product to release" />
+                      <SelectValue
+                        placeholder={tc('dialogs.createMbom.selectProduct')}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {roots.map((root) => (
                         <SelectItem key={root.itemId} value={root.itemId}>
-                          {root.itemNumber} — {root.name || 'Unnamed'}
+                          {root.itemNumber} —{' '}
+                          {root.name || tc('labels.unnamed')}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {copyBomStructure
-                      ? 'Only this Part and its BOM subtree are copied to the MBOM.'
-                      : 'Identifies the product this Manufacturing design represents.'}
+                      ? tc('dialogs.createMbom.copySubtreeHint')
+                      : tc('dialogs.createMbom.identifyProductHint')}
                   </p>
                 </div>
               )}
 
               {/* Baseline Tag Selector */}
               <div className="space-y-2">
-                <Label htmlFor="sourceTag">Baseline Tag (optional)</Label>
+                <Label htmlFor="sourceTag">
+                  {tc('labels.baselineTagOptional')}
+                </Label>
                 <Select
                   value={sourceTagId}
                   onValueChange={setSourceTagId}
                   disabled={isFormDisabled || isLoadingTags}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Use current HEAD" />
+                    <SelectValue
+                      placeholder={tc('dialogs.createMbom.useCurrentHead')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__current__">
-                      Use current HEAD
+                      {tc('dialogs.createMbom.useCurrentHead')}
                     </SelectItem>
                     {tags.map((tag) => (
                       <SelectItem key={tag.id} value={tag.id}>
@@ -301,36 +309,38 @@ export function CreateMbomDialog({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Select a specific baseline tag, or use the current state.
+                  {tc('dialogs.createMbom.baselineHint')}
                 </p>
               </div>
 
               {/* MBOM Design Code */}
               <div className="space-y-2">
-                <Label htmlFor="code">Manufacturing Design Code</Label>
+                <Label htmlFor="code">
+                  {tc('labels.manufacturingDesignCode')}
+                </Label>
                 <Input
                   id="code"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="e.g., M-HULL-1"
+                  placeholder={tc('dialogs.createMbom.codePlaceholder')}
                   required
                   disabled={isFormDisabled}
                   pattern="[A-Z0-9\-]+"
-                  title="Uppercase letters, numbers, and hyphens only"
+                  title={tc('dialogs.cloneDesign.codePatternTitle')}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Must be unique. Typically prefixed with M- for manufacturing.
+                  {tc('dialogs.createMbom.codeHint')}
                 </p>
               </div>
 
               {/* MBOM Design Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{tc('columns.name')}</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Hull Assembly (MBOM)"
+                  placeholder={tc('dialogs.createMbom.namePlaceholder')}
                   required
                   disabled={isFormDisabled}
                 />
@@ -338,12 +348,14 @@ export function CreateMbomDialog({
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
+                <Label htmlFor="description">
+                  {tc('labels.descriptionOptional')}
+                </Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Description of the manufacturing design..."
+                  placeholder={tc('dialogs.createMbom.descriptionPlaceholder')}
                   rows={2}
                   disabled={isFormDisabled}
                 />
@@ -361,7 +373,7 @@ export function CreateMbomDialog({
                     disabled={isFormDisabled}
                   />
                   <Label htmlFor="copyBom" className="text-sm font-normal">
-                    Copy BOM structure to MBOM
+                    {tc('dialogs.createMbom.copyBomStructure')}
                   </Label>
                 </div>
 
@@ -375,7 +387,7 @@ export function CreateMbomDialog({
                     disabled={isFormDisabled}
                   />
                   <Label htmlFor="linkSource" className="text-sm font-normal">
-                    Create traceability links to source EBOM
+                    {tc('dialogs.createMbom.linkToSource')}
                   </Label>
                 </div>
 
@@ -392,8 +404,10 @@ export function CreateMbomDialog({
                     htmlFor="renumberItems"
                     className={`text-sm font-normal ${!copyBomStructure ? 'text-slate-400 dark:text-slate-600' : ''}`}
                   >
-                    Renumber item suffixes ({sourceDesignCode} &rarr;{' '}
-                    {code || `M-${sourceDesignCode}`})
+                    {tc('dialogs.createMbom.renumberItems', {
+                      from: sourceDesignCode,
+                      to: code || `M-${sourceDesignCode}`,
+                    })}
                   </Label>
                 </div>
               </div>
@@ -406,16 +420,16 @@ export function CreateMbomDialog({
                 onClick={handleClose}
                 disabled={createMbom.isPending}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button type="submit" disabled={isFormDisabled || !rootItemId}>
                 {createMbom.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
+                    {tc('actions.creating')}
                   </>
                 ) : (
-                  'Create MBOM'
+                  tc('actions.createMbom')
                 )}
               </Button>
             </DialogFooter>
@@ -427,19 +441,18 @@ export function CreateMbomDialog({
             </div>
             <div className="text-center">
               <p className="font-medium text-lg text-slate-900 dark:text-slate-100">
-                MBOM Created
+                {tc('dialogs.createMbom.created')}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Created{' '}
-                <span className="font-medium text-slate-900 dark:text-slate-100">
-                  {result.design.code}
-                </span>
+                {tc('dialogs.createMbom.createdCode', {
+                  code: result.design.code,
+                })}
               </p>
             </div>
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 text-sm space-y-1">
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Items copied:
+                  {tc('dialogs.createMbom.itemsCopied')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.itemsCopied}
@@ -447,7 +460,7 @@ export function CreateMbomDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  BOM relationships:
+                  {tc('dialogs.createMbom.bomRelationships')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.relationshipsCopied}
@@ -455,7 +468,7 @@ export function CreateMbomDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">
-                  Source links created:
+                  {tc('dialogs.createMbom.sourceLinksCreated')}
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">
                   {result.sourceLinks}
@@ -464,7 +477,7 @@ export function CreateMbomDialog({
               {result.linesFiltered !== undefined && (
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Lines left out by configuration:
+                    {tc('dialogs.createMbom.linesFiltered')}
                   </span>
                   <span className="font-medium text-slate-900 dark:text-slate-100">
                     {result.linesFiltered}
@@ -474,7 +487,7 @@ export function CreateMbomDialog({
             </div>
             <DialogFooter className="sm:justify-center">
               <Button onClick={handleNavigateToNewDesign}>
-                Go to MBOM Design
+                {tc('actions.goToMbomDesign')}
               </Button>
             </DialogFooter>
           </div>
@@ -485,7 +498,7 @@ export function CreateMbomDialog({
             </div>
             <div className="text-center">
               <p className="font-medium text-lg text-slate-900 dark:text-slate-100">
-                Creation Failed
+                {tc('dialogs.createMbom.creationFailed')}
               </p>
               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                 {error}
@@ -493,9 +506,9 @@ export function CreateMbomDialog({
             </div>
             <DialogFooter className="sm:justify-center">
               <Button variant="outline" onClick={() => createMbom.reset()}>
-                Try Again
+                {tc('actions.tryAgain')}
               </Button>
-              <Button onClick={handleClose}>Close</Button>
+              <Button onClick={handleClose}>{tc('actions.close')}</Button>
             </DialogFooter>
           </div>
         )}

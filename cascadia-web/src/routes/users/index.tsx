@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
@@ -34,6 +35,8 @@ export const Route = createFileRoute('/users/')({
 })
 
 function UsersListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { alert, confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -64,9 +67,8 @@ function UsersListPage() {
     // For now, users are edited via the list page dialogs
     // This could navigate to /users/$id if a detail page is created
     alert({
-      title: 'Edit User',
-      description:
-        'To edit user details, use the role assignment or password change options from the table actions.',
+      title: t('users.editTitle'),
+      description: t('users.editDescription'),
     })
   }
 
@@ -74,10 +76,10 @@ function UsersListPage() {
     if (!user.id) return
 
     confirm({
-      title: 'Delete User',
-      description: `Delete ${user.email}? If business records reference this account, it will be deactivated instead so its audit history remains intact.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('users.deleteTitle'),
+      description: t('users.deleteDescription', { email: user.email }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -89,15 +91,15 @@ function UsersListPage() {
           alert({
             title:
               response.data.outcome === 'deleted'
-                ? 'User deleted'
-                : 'User deactivated',
+                ? t('users.deletedTitle')
+                : t('users.deactivatedTitle'),
             description:
               response.data.outcome === 'deleted'
-                ? `${user.email} has been permanently deleted.`
-                : `${user.email} is referenced by business records, so the account was preserved and deactivated. All sessions were revoked.`,
+                ? t('users.deletedDescription', { email: user.email })
+                : t('users.deactivatedDescription', { email: user.email }),
           })
         } catch (error) {
-          handleError(error, { title: 'Failed to delete user' })
+          handleError(error, { title: tc('dialog.failedDelete') })
         }
       },
     })
@@ -145,16 +147,16 @@ function UsersListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Users
+            {t('users.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage user accounts and permissions
+            {t('users.subtitle')}
           </p>
         </div>
         <Link to="/users/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create User
+            {t('users.create')}
           </Button>
         </Link>
       </div>
@@ -163,13 +165,13 @@ function UsersListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total Users</CardDescription>
+            <CardDescription>{t('users.total')}</CardDescription>
             <CardTitle className="text-3xl">{stats.total}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Active</CardDescription>
+            <CardDescription>{t('users.active')}</CardDescription>
             <CardTitle className="text-3xl text-green-600 dark:text-green-400">
               {stats.active}
             </CardTitle>
@@ -177,7 +179,7 @@ function UsersListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Inactive</CardDescription>
+            <CardDescription>{t('users.inactive')}</CardDescription>
             <CardTitle className="text-3xl text-red-600 dark:text-red-400">
               {stats.inactive}
             </CardTitle>
@@ -185,7 +187,7 @@ function UsersListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Providers</CardDescription>
+            <CardDescription>{t('users.providers')}</CardDescription>
             <CardTitle className="text-3xl">
               {Object.keys(stats.byProvider).length}
             </CardTitle>
@@ -196,9 +198,9 @@ function UsersListPage() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Users</CardTitle>
+          <CardTitle>{t('users.tableTitle')}</CardTitle>
           <CardDescription>
-            {users.length} {users.length === 1 ? 'user' : 'users'} in the system
+            {t('users.tableDescription', { count: users.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>

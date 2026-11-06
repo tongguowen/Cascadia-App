@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueries } from '@tanstack/react-query'
 import type { WebhookDelivery, WebhookSubscription } from '@/query'
 import { Badge, Button, LoadingSpinner } from '@/components/ui'
@@ -34,12 +35,14 @@ const STATUS_VARIANTS: Record<
 }
 
 function StatusBadge({ delivery }: { delivery: WebhookDelivery }) {
+  const { t } = useTranslation('pages')
+  const td = (key: string) => t(`admin.webhooks.deliveries.${key}`)
   const variant = STATUS_VARIANTS[delivery.status] ?? 'secondary'
   const title =
     delivery.status === 'dead'
-      ? 'Exhausted its attempts. The event was never delivered, and the log row is the record of that.'
+      ? td('statusDeadTitle')
       : delivery.status === 'expired'
-        ? 'Dropped rather than sent: older than the maximum pending age when the pump reached it, or still queued when the subscription was deleted.'
+        ? td('statusExpiredTitle')
         : undefined
   return (
     <Badge variant={variant} title={title}>
@@ -64,6 +67,11 @@ export function WebhookDeliveriesDialog({
   subscription,
   onClose,
 }: WebhookDeliveriesDialogProps) {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const td = (key: string, options?: Record<string, unknown>) =>
+    t(`admin.webhooks.deliveries.${key}`, options)
+
   // The cursor of every older page asked for. The call site keys this dialog on
   // the subscription, so opening another row starts from its newest page.
   const [cursors, setCursors] = useState<Array<number>>([])
@@ -100,12 +108,10 @@ export function WebhookDeliveriesDialog({
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Delivery log — {subscription?.name}</DialogTitle>
-          <DialogDescription>
-            Newest first. Deliveries go out in event order within a
-            subscription, so a failure holds the line until it succeeds or runs
-            out of attempts.
-          </DialogDescription>
+          <DialogTitle>
+            {td('title', { name: subscription?.name ?? '' })}
+          </DialogTitle>
+          <DialogDescription>{td('description')}</DialogDescription>
         </DialogHeader>
 
         {newest?.isPending !== false ? (
@@ -114,19 +120,21 @@ export function WebhookDeliveriesDialog({
           </div>
         ) : deliveries.length === 0 ? (
           <p className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
-            Nothing delivered yet.
+            {td('empty')}
           </p>
         ) : (
           <div className="max-h-[28rem] overflow-auto rounded border border-slate-300 dark:border-slate-700">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-100 text-left text-xs text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                 <tr>
-                  <th className="px-3 py-2 font-medium">Seq</th>
-                  <th className="px-3 py-2 font-medium">Event</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Attempts</th>
-                  <th className="px-3 py-2 font-medium">Response</th>
-                  <th className="px-3 py-2 font-medium">When</th>
+                  <th className="px-3 py-2 font-medium">{td('colSeq')}</th>
+                  <th className="px-3 py-2 font-medium">{td('colEvent')}</th>
+                  <th className="px-3 py-2 font-medium">
+                    {tc('columns.status')}
+                  </th>
+                  <th className="px-3 py-2 font-medium">{td('colAttempts')}</th>
+                  <th className="px-3 py-2 font-medium">{td('colResponse')}</th>
+                  <th className="px-3 py-2 font-medium">{td('colWhen')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,8 +177,8 @@ export function WebhookDeliveriesDialog({
           <div className="flex items-center justify-between gap-4">
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {nextBeforeSeq !== null
-                ? `Showing the newest ${deliveries.length} deliveries.`
-                : 'That is every delivery still on record. Settled deliveries are pruned once they pass the retention period.'}
+                ? td('footerPartial', { count: deliveries.length })
+                : td('footerAll')}
             </p>
             {nextBeforeSeq !== null && (
               <Button
@@ -181,7 +189,7 @@ export function WebhookDeliveriesDialog({
                   setCursors((current) => [...current, nextBeforeSeq])
                 }
               >
-                {loadingOlder ? 'Loading…' : 'Load older deliveries'}
+                {loadingOlder ? td('loadingOlder') : td('loadOlder')}
               </Button>
             )}
           </div>
@@ -189,7 +197,7 @@ export function WebhookDeliveriesDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Close
+            {tc('actions.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

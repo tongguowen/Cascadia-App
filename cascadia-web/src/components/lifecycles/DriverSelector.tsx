@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Check, Loader2, X } from 'lucide-react'
 import type { LifecycleDefinition } from '@cascadia/commons/lifecycles/types'
@@ -18,6 +19,9 @@ export function DriverSelector({
   onChange,
   disabled = false,
 }: DriverSelectorProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: ti } = useTranslation('itemTypes')
+  const ds = (key: string) => tp(`lifecycles.driverSelector.${key}`)
   // Drivers are the ECO workflows — the Driving lifecycles in the one
   // definitions list. API responses always carry the resolved lifecycleType.
   const { data: lifecycles = [], isPending: loading } =
@@ -39,7 +43,7 @@ export function DriverSelector({
     return (
       <div className="flex items-center gap-2 text-slate-500 py-4">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm">Loading available drivers...</span>
+        <span className="text-sm">{ds('loading')}</span>
       </div>
     )
   }
@@ -47,7 +51,7 @@ export function DriverSelector({
   if (drivingLifecycles.length === 0) {
     return (
       <div className="text-sm text-slate-500 dark:text-slate-400 py-4">
-        No Driving lifecycles found. Create an ECO workflow first.
+        {ds('empty')}
       </div>
     )
   }
@@ -55,13 +59,13 @@ export function DriverSelector({
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-        Allowed Drivers
+        {ds('allowedDrivers')}
       </label>
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Select which ECO workflows can control items using this lifecycle.
+        {ds('description')}
         {selectedDriverIds.length === 0 && (
           <span className="block mt-1 text-amber-600 dark:text-amber-400">
-            If none selected, any ECO can control items on this lifecycle.
+            {ds('noneSelectedWarning')}
           </span>
         )}
       </p>
@@ -98,7 +102,7 @@ export function DriverSelector({
                     <div className="flex gap-1 mt-1">
                       {lifecycle.applicableItemTypes.map((type) => (
                         <Badge key={type} variant="outline">
-                          {type}
+                          {ti(type)}
                         </Badge>
                       ))}
                     </div>

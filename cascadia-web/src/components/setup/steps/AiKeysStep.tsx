@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   CheckCircle,
@@ -41,6 +42,8 @@ interface AiKeysStepProps {
 }
 
 export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [form, setForm] = useState<AiSettingsForm>({
     enabled: true,
     provider: 'anthropic',
@@ -96,7 +99,7 @@ export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
         <CardContent className="pt-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ai-provider">Provider</Label>
+              <Label htmlFor="ai-provider">{tc('fields.provider')}</Label>
               <Select
                 value={form.provider}
                 onValueChange={(v) => handleProviderChange(v as AiProviderType)}
@@ -115,7 +118,7 @@ export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ai-model">Model</Label>
+              <Label htmlFor="ai-model">{tc('fields.model')}</Label>
               <div className="flex items-center gap-2">
                 <Select
                   value={form.model}
@@ -138,8 +141,8 @@ export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
                   size="icon"
                   onClick={models.refresh}
                   disabled={models.isFetching}
-                  title="Refresh model list from provider"
-                  aria-label="Refresh model list from provider"
+                  title={tp('admin.ai.refreshModelsTitle')}
+                  aria-label={tp('admin.ai.refreshModelsTitle')}
                 >
                   <RefreshCw
                     className={`w-4 h-4 ${models.isFetching ? 'animate-spin' : ''}`}
@@ -173,7 +176,9 @@ export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
 
           {form.provider === 'ollama' && (
             <div className="space-y-2">
-              <Label htmlFor="ai-baseurl">Ollama base URL</Label>
+              <Label htmlFor="ai-baseurl">
+                {tp('setupWizard.ai.ollamaBaseUrl')}
+              </Label>
               <Input
                 id="ai-baseurl"
                 value={form.baseURL ?? ''}
@@ -191,7 +196,9 @@ export function AiKeysStep({ onCompleted }: AiKeysStepProps) {
                 setForm({ ...form, enabled: checked })
               }
             />
-            <Label htmlFor="ai-enabled">Enable AI features</Label>
+            <Label htmlFor="ai-enabled">
+              {tp('setupWizard.ai.enableFeatures')}
+            </Label>
           </div>
 
           <div className="flex items-center gap-3 pt-2 flex-wrap">

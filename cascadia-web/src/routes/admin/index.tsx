@@ -20,6 +20,7 @@ import {
   Users,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SettingKeys } from '@cascadia/commons/config/SettingKeys'
 import { APP_VERSION } from '@cascadia/commons/version'
 import { PageContainer } from '@/components/layout'
@@ -54,6 +55,10 @@ export const Route = createFileRoute('/admin/')({
 })
 
 function AdminPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const a = (key: string, options?: Record<string, string>) =>
+    t(`admin.index.${key}`, options)
   const invalidate = useInvalidateResources()
   const { data: vaultConfig, isPending: loading } = useQuery(vaultConfigQuery())
   // `null` means untouched, so the field tracks the server until it is edited
@@ -117,12 +122,12 @@ function AdminPage() {
     switch (source) {
       case 'env':
         return envVarName
-          ? `From environment variable ${envVarName}`
-          : 'From environment variable'
+          ? a('sourceEnv', { name: envVarName })
+          : a('sourceEnvGeneric')
       case 'db':
-        return 'Database override'
+        return a('sourceDb')
       case 'default':
-        return 'Default value'
+        return a('sourceDefault')
       default:
         return ''
     }
@@ -135,10 +140,10 @@ function AdminPage() {
         <Settings className="w-8 h-8 text-slate-700 dark:text-slate-300" />
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Administration
+            {a('title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            System configuration and settings
+            {a('subtitle')}
           </p>
         </div>
       </div>
@@ -148,24 +153,22 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <FolderOpen className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>Vault Configuration</CardTitle>
+            <CardTitle>{a('vaultTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            File storage configuration for the vault
-          </CardDescription>
+          <CardDescription>{a('vaultDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Loading configuration...
+              {a('loadingConfig')}
             </div>
           ) : vaultConfig ? (
             <div className="space-y-6">
               {/* Storage Type */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Storage Type
+                  {a('storageType')}
                   {vaultConfig.sources.type === 'env' && (
                     <Lock className="w-3.5 h-3.5 text-amber-500" />
                   )}
@@ -174,12 +177,12 @@ function AdminPage() {
                   {vaultConfig.type === 's3' ? (
                     <Badge variant="secondary" className="gap-1.5">
                       <Cloud className="w-3.5 h-3.5" />
-                      S3 Object Storage
+                      {a('s3Storage')}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="gap-1.5">
                       <HardDrive className="w-3.5 h-3.5" />
-                      Local File System
+                      {a('localStorage')}
                     </Badge>
                   )}
                 </div>
@@ -193,13 +196,13 @@ function AdminPage() {
                 <div className="space-y-4 border-l-2 border-slate-300 dark:border-slate-700 pl-4">
                   <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                     <Cloud className="w-4 h-4" />
-                    S3 Configuration
+                    {a('s3Config')}
                   </h4>
 
                   {/* Bucket */}
                   <div className="space-y-1">
                     <Label className="text-sm flex items-center gap-2">
-                      Bucket
+                      {a('bucket')}
                       <Lock className="w-3 h-3 text-amber-500" />
                     </Label>
                     <Input
@@ -215,7 +218,7 @@ function AdminPage() {
                   {/* Region */}
                   <div className="space-y-1">
                     <Label className="text-sm flex items-center gap-2">
-                      Region
+                      {a('region')}
                       {vaultConfig.envVars.S3_REGION && (
                         <Lock className="w-3 h-3 text-amber-500" />
                       )}
@@ -237,7 +240,7 @@ function AdminPage() {
                   {vaultConfig.keyPrefix && (
                     <div className="space-y-1">
                       <Label className="text-sm flex items-center gap-2">
-                        Key Prefix
+                        {a('keyPrefix')}
                         <Lock className="w-3 h-3 text-amber-500" />
                       </Label>
                       <Input
@@ -255,7 +258,7 @@ function AdminPage() {
                   {vaultConfig.endpoint && (
                     <div className="space-y-1">
                       <Label className="text-sm flex items-center gap-2">
-                        Custom Endpoint
+                        {a('customEndpoint')}
                         <Lock className="w-3 h-3 text-amber-500" />
                       </Label>
                       <Input
@@ -273,7 +276,7 @@ function AdminPage() {
                   <div className="space-y-1">
                     <Label className="text-sm flex items-center gap-2">
                       <Key className="w-3.5 h-3.5" />
-                      Credentials
+                      {a('credentials')}
                     </Label>
                     <div className="flex items-center gap-2">
                       {vaultConfig.hasCredentials ? (
@@ -282,12 +285,12 @@ function AdminPage() {
                           className="gap-1.5 text-green-700 dark:text-green-400"
                         >
                           <CheckCircle className="w-3 h-3" />
-                          Configured (explicit keys)
+                          {a('credentialsExplicit')}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="gap-1.5">
                           <CheckCircle className="w-3 h-3" />
-                          Using IAM role / instance profile
+                          {a('credentialsIam')}
                         </Badge>
                       )}
                     </div>
@@ -300,7 +303,7 @@ function AdminPage() {
                 <div className="space-y-4 border-l-2 border-slate-300 dark:border-slate-700 pl-4">
                   <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
                     <HardDrive className="w-4 h-4" />
-                    Local Storage
+                    {a('localStorageHeading')}
                   </h4>
 
                   <div className="space-y-2">
@@ -308,7 +311,7 @@ function AdminPage() {
                       htmlFor="vaultLocation"
                       className="flex items-center gap-2"
                     >
-                      Vault Location
+                      {a('vaultLocation')}
                       {isVaultRootLocked && (
                         <Lock className="w-3 h-3 text-amber-500" />
                       )}
@@ -317,7 +320,7 @@ function AdminPage() {
                       <Input
                         id="vaultLocation"
                         type="text"
-                        placeholder="C:\CascadiaVault or /var/cascadia/vault"
+                        placeholder={a('vaultLocationPlaceholder')}
                         value={vaultLocation}
                         onChange={(e) => setDraftVaultLocation(e.target.value)}
                         disabled={isVaultRootLocked}
@@ -330,7 +333,7 @@ function AdminPage() {
                       <Button
                         variant="outline"
                         size="icon"
-                        title="Browse"
+                        title={a('browse')}
                         disabled
                       >
                         <FolderOpen className="w-4 h-4" />
@@ -344,9 +347,7 @@ function AdminPage() {
                     </p>
                     {!isVaultRootLocked && (
                       <p className="text-sm text-slate-600 dark:text-slate-400">
-                        Specify the directory path where vault files will be
-                        stored. This location should be accessible by the
-                        application and have adequate storage space.
+                        {a('vaultLocationHelp')}
                       </p>
                     )}
                   </div>
@@ -365,18 +366,18 @@ function AdminPage() {
                         ) : (
                           <Save className="w-4 h-4 mr-2" />
                         )}
-                        {saving ? 'Saving...' : 'Save Configuration'}
+                        {saving ? tc('actions.saving') : a('saveConfiguration')}
                       </Button>
                       {saveStatus === 'success' && (
                         <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
                           <CheckCircle className="w-4 h-4" />
-                          Settings saved!
+                          {a('settingsSaved')}
                         </span>
                       )}
                       {saveStatus === 'error' && (
                         <span className="flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
                           <AlertCircle className="w-4 h-4" />
-                          {errorMessage || 'Failed to save'}
+                          {errorMessage || a('failedToSave')}
                         </span>
                       )}
                     </div>
@@ -386,7 +387,7 @@ function AdminPage() {
             </div>
           ) : (
             <div className="text-slate-600 dark:text-slate-400">
-              Failed to load vault configuration.
+              {a('loadVaultFailed')}
             </div>
           )}
         </CardContent>
@@ -400,23 +401,19 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>Item Type Configuration</CardTitle>
+            <CardTitle>{a('itemTypesTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Configure permissions, states, and labels for item types
-          </CardDescription>
+          <CardDescription>{a('itemTypesDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Manage runtime configurations for Part, Document, Change Order,
-              and other item types. Override code defaults without redeploying
-              the application.
+              {a('itemTypesBody')}
             </p>
             <Link to="/admin/item-types">
               <Button>
                 <Settings className="w-4 h-4 mr-2" />
-                Configure Item Types
+                {a('configureItemTypes')}
               </Button>
             </Link>
           </div>
@@ -428,22 +425,19 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>User Management</CardTitle>
+            <CardTitle>{a('usersTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Manage users, reset passwords, and view account status
-          </CardDescription>
+          <CardDescription>{a('usersDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              View all users, reset locked accounts, and manage passwords.
-              Requires the users:manage permission.
+              {a('usersBody')}
             </p>
             <Link to="/admin/users">
               <Button>
                 <Users className="w-4 h-4 mr-2" />
-                Manage Users
+                {a('manageUsers')}
               </Button>
             </Link>
           </div>
@@ -455,23 +449,19 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>API Keys</CardTitle>
+            <CardTitle>{a('apiKeysTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Issue, scope, and revoke keys for headless clients
-          </CardDescription>
+          <CardDescription>{a('apiKeysDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Review every key on the instance, revoke compromised ones, and set
-              the expiration policy applied at issuance. Keys can be scoped to a
-              subset of permissions and roles.
+              {a('apiKeysBody')}
             </p>
             <Link to="/admin/api-keys">
               <Button>
                 <KeyRound className="w-4 h-4 mr-2" />
-                Manage API Keys
+                {a('manageApiKeys')}
               </Button>
             </Link>
           </div>
@@ -483,24 +473,19 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>Component Catalog</CardTitle>
+            <CardTitle>{a('catalogTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Reference library of real, purchasable components and raw stock
-            materials
-          </CardDescription>
+          <CardDescription>{a('catalogDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Manage the component catalog used by the design engine during BOM
-              drafting. Browse, add, and import components with specs, pricing,
-              and sourcing info.
+              {a('catalogBody')}
             </p>
             <Link to="/admin/component-catalog">
               <Button>
                 <Package className="w-4 h-4 mr-2" />
-                Manage Catalog
+                {a('manageCatalog')}
               </Button>
             </Link>
           </div>
@@ -512,23 +497,19 @@ function AdminPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <PlayCircle className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <CardTitle>First-time setup wizard</CardTitle>
+            <CardTitle>{a('setupTitle')}</CardTitle>
           </div>
-          <CardDescription>
-            Re-run the guided setup flow to bootstrap users, AI keys,
-            programs/designs/parts, and shop tools
-          </CardDescription>
+          <CardDescription>{a('setupDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              The wizard auto-launches the first time an administrator signs in
-              after a fresh database. You can re-enter it anytime from here.
+              {a('setupBody')}
             </p>
             <Link to="/setup">
               <Button>
                 <PlayCircle className="w-4 h-4 mr-2" />
-                Run setup wizard
+                {a('runSetup')}
               </Button>
             </Link>
           </div>
@@ -541,17 +522,17 @@ function AdminPage() {
       {/* System */}
       <Card>
         <CardHeader>
-          <CardTitle>System</CardTitle>
-          <CardDescription>About this Cascadia instance</CardDescription>
+          <CardTitle>{a('systemTitle')}</CardTitle>
+          <CardDescription>{a('systemDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Version
+                {a('version')}
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Also reported by <code>GET /api/v1/health</code>
+                {a('versionHelp')}
               </p>
             </div>
             <Badge variant="outline">{APP_VERSION}</Badge>

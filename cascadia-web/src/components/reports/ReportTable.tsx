@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff, Pencil, Play, Trash2 } from 'lucide-react'
 import type { Report } from '@cascadia/commons/reports/types'
 import type { DataGridColumn, Row } from '@/components/ui'
@@ -14,14 +15,18 @@ interface ReportTableProps {
 }
 
 export function ReportTable({ reports, onDelete }: ReportTableProps) {
-  const columns: Array<DataGridColumn<Report>> = [
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+
+  const columns: Array<DataGridColumn<Report>> = useMemo(
+    () => [
     {
       id: 'name',
-      header: 'Name',
+      header: tc('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search reports...',
+      filterPlaceholder: tp('reports.table.searchReports'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -37,11 +42,11 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
     },
     {
       id: 'description',
-      header: 'Description',
+      header: tc('columns.description'),
       accessorKey: 'description',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search descriptions...',
+      filterPlaceholder: tp('reports.table.searchDescriptions'),
       cell: ({ getValue }) => {
         const value = getValue() as string
         return (
@@ -53,13 +58,13 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
     },
     {
       id: 'isPublic',
-      header: 'Visibility',
+      header: tp('reports.viewer.visibility'),
       accessorKey: 'isPublic',
       enableFiltering: true,
       filterType: 'select',
       filterOptions: [
-        { label: 'Public', value: 'true' },
-        { label: 'Private', value: 'false' },
+        { label: tp('reports.public'), value: 'true' },
+        { label: tp('reports.private'), value: 'false' },
       ],
       cell: ({ getValue }) => {
         const isPublic = getValue() as boolean
@@ -67,39 +72,41 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
           return (
             <Badge variant="default" className="gap-1">
               <Eye className="w-3 h-3" />
-              Public
+              {tp('reports.public')}
             </Badge>
           )
         }
         return (
           <Badge variant="outline" className="gap-1">
             <EyeOff className="w-3 h-3" />
-            Private
+            {tp('reports.private')}
           </Badge>
         )
       },
     },
     {
       id: 'columnsCount',
-      header: 'Columns',
+      header: tp('reports.viewer.columns'),
       accessorFn: (row) => row.columns?.length || 0,
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: tc('actions.any'),
       meta: { align: 'right' },
     },
     {
       id: 'filtersCount',
-      header: 'Filters',
+      header: tp('reports.viewer.filtersLabel'),
       accessorFn: (row) => row.filters?.length || 0,
       enableSorting: true,
       enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: tc('actions.any'),
       meta: { align: 'right' },
     },
-  ]
+  ],
+    [tc, tp],
+  )
 
   const renderRowActions = (row: Row<Report>) => {
     const report = row.original
@@ -108,12 +115,12 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
     return (
       <div className="flex justify-end gap-2">
         <Link to="/reports/$id/view" params={{ id: report.id }}>
-          <Button variant="ghost" size="sm" title="Run report">
+          <Button variant="ghost" size="sm" title={tp('reports.table.runReport')}>
             <Play className="w-4 h-4" />
           </Button>
         </Link>
         <Link to="/reports/$id/edit" params={{ id: report.id }}>
-          <Button variant="ghost" size="sm" title="Edit report">
+          <Button variant="ghost" size="sm" title={tp('reports.table.editReport')}>
             <Pencil className="w-4 h-4" />
           </Button>
         </Link>
@@ -123,7 +130,7 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
             size="sm"
             onClick={() => onDelete(report)}
             className="text-red-500 hover:text-red-700 dark:hover:text-red-300"
-            title="Delete report"
+            title={tp('reports.table.deleteReport')}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -145,8 +152,8 @@ export function ReportTable({ reports, onDelete }: ReportTableProps) {
       renderRowActions={renderRowActions}
       enableContextMenu
       getRowUrl={getRowUrl}
-      emptyMessage="No reports found"
-      emptyDescription="Create your first report to get started"
+      emptyMessage={tp('reports.table.emptyMessage')}
+      emptyDescription={tp('reports.table.emptyDescription')}
       exportFilename="reports"
     />
   )

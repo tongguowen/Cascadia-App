@@ -8,11 +8,13 @@
  * Slides out when panel is open.
  */
 
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, MessageSquare } from 'lucide-react'
 import { useChatPanel } from '@/ai/chat-context'
 import { cn } from '@/utils'
 
 export function ChatPanelButton() {
+  const { t } = useTranslation('ai')
   const { toggleOpen, isOpen } = useChatPanel()
 
   return (
@@ -31,7 +33,9 @@ export function ChatPanelButton() {
         // Slide with the panel when open
         isOpen && 'translate-x-full opacity-0 pointer-events-none',
       )}
-      aria-label={isOpen ? 'Close Cascadia Chat' : 'Open Cascadia Chat'}
+      aria-label={
+        isOpen ? t('panel.closePanelAria') : t('panel.openAria')
+      }
     >
       <div className="flex flex-col items-center gap-1">
         <MessageSquare className="h-5 w-5" />

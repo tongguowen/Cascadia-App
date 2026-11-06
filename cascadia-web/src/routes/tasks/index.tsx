@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { LayoutGrid, List as ListIcon, Plus } from 'lucide-react'
@@ -39,6 +40,8 @@ export const Route = createFileRoute('/tasks/')({
 })
 
 function TasksListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -90,7 +93,7 @@ function TasksListPage() {
       })
     } catch (error) {
       queryClient.setQueryData(taskQuery.queryKey, previous)
-      handleError(error, { title: 'Failed to update task' })
+      handleError(error, { title: tc('dialog.failedGeneric') })
       return
     }
 
@@ -101,10 +104,12 @@ function TasksListPage() {
     if (!task.id) return
 
     confirm({
-      title: 'Delete Task',
-      description: `Are you sure you want to delete ${task.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('tasks.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: task.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -112,10 +117,13 @@ function TasksListPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Task deleted', `${task.itemNumber} has been deleted`)
+          showSuccess(
+            t('tasks.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: task.itemNumber }),
+          )
           await invalidate('tasks')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete task' })
+          handleError(error, { title: t('tasks.deleteFailed') })
         }
       },
     })
@@ -127,10 +135,10 @@ function TasksListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Tasks
+            {t('tasks.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Manage your tasks with the kanban board
+            {t('tasks.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -139,19 +147,19 @@ function TasksListPage() {
             onClick={() => setViewMode('kanban')}
           >
             <LayoutGrid className="h-4 w-4 mr-2" />
-            Kanban
+            {t('tasks.viewKanban')}
           </Button>
           <Button
             variant={viewMode === 'list' ? 'default' : 'outline'}
             onClick={() => setViewMode('list')}
           >
             <ListIcon className="h-4 w-4 mr-2" />
-            List
+            {t('tasks.viewList')}
           </Button>
           <Link to="/tasks/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create Task
+              {t('tasks.create')}
             </Button>
           </Link>
         </div>
@@ -162,7 +170,7 @@ function TasksListPage() {
         itemType="Task"
         filters={TASK_FILTERS}
         total={tasks.length}
-        totalLabel="Total Tasks"
+        totalLabel={t('tasks.total')}
         counts={taskCountsByState}
       />
 
@@ -170,10 +178,8 @@ function TasksListPage() {
       {viewMode === 'kanban' ? (
         <Card>
           <CardHeader>
-            <CardTitle>Kanban Board</CardTitle>
-            <CardDescription>
-              Drag and drop tasks between columns to update their status
-            </CardDescription>
+            <CardTitle>{t('tasks.kanbanTitle')}</CardTitle>
+            <CardDescription>{t('tasks.kanbanDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <KanbanBoard
@@ -187,10 +193,9 @@ function TasksListPage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>All Tasks</CardTitle>
+            <CardTitle>{t('tasks.listTitle')}</CardTitle>
             <CardDescription>
-              {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} in the
-              system
+              {t('tasks.listDescription', { count: tasks.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>

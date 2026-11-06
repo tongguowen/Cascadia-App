@@ -3,8 +3,8 @@
 
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import cascadiaLogo from '/cascadia-plm-logo-icon.svg'
 import { ThemeToggle } from './ThemeToggle'
+import { LanguageToggle } from './LanguageToggle'
 import { Sidebar } from './Sidebar'
 import type { UserInfo } from './types'
 import { authSessionQuery, invalidateEverything } from '@/query'
@@ -77,14 +77,14 @@ export function Header() {
             to="/"
             className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
           >
-            <img src={cascadiaLogo} alt="Cascadia PLM" className="h-6 w-6" />
-            <span className="text-base font-bold">Cascadia</span>
+            <span className="text-base font-bold">Watchlink</span>
             <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
               PLM
             </span>
           </Link>
           <div className="w-px h-5 bg-gray-300 dark:bg-gray-600" />
           <StartTourButton />
+          <LanguageToggle />
           <ThemeToggle />
           {user && <ProfileDropdown user={user} onLogout={handleLogout} />}
         </div>

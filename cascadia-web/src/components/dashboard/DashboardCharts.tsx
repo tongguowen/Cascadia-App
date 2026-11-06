@@ -3,6 +3,7 @@
 
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import {
   Bar,
   BarChart,
@@ -77,12 +78,15 @@ function formatShortDate(dateStr: string): string {
 }
 
 export function ChangeOrdersChart({ data }: { data: Array<WeeklyDataPoint> }) {
+  const { t } = useTranslation('pages')
   const total = data.reduce((sum, d) => sum + d.count, 0)
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Change Orders Opened</CardTitle>
+        <CardTitle className="text-lg">
+          {t('dashboard.charts.changeOrdersOpened')}
+        </CardTitle>
         <CardDescription>Last 7 days ({total} total)</CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,12 +130,15 @@ export function ChangeOrdersChart({ data }: { data: Array<WeeklyDataPoint> }) {
 }
 
 export function PartsReleasedChart({ data }: { data: Array<WeeklyDataPoint> }) {
+  const { t } = useTranslation('pages')
   const total = data.reduce((sum, d) => sum + d.count, 0)
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Parts Released</CardTitle>
+        <CardTitle className="text-lg">
+          {t('dashboard.charts.partsReleased')}
+        </CardTitle>
         <CardDescription>Last 7 days ({total} total)</CardDescription>
       </CardHeader>
       <CardContent>
@@ -175,13 +182,16 @@ export function PartsReleasedChart({ data }: { data: Array<WeeklyDataPoint> }) {
 }
 
 export function PartTypeChart({ data }: { data: Array<CategoryDataPoint> }) {
+  const { t } = useTranslation('pages')
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
   if (total === 0) {
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Parts by Type</CardTitle>
+          <CardTitle className="text-lg">
+            {t('dashboard.charts.partsByType')}
+          </CardTitle>
           <CardDescription>Distribution of part types</CardDescription>
         </CardHeader>
         <CardContent>
@@ -196,7 +206,9 @@ export function PartTypeChart({ data }: { data: Array<CategoryDataPoint> }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Parts by Type</CardTitle>
+        <CardTitle className="text-lg">
+          {t('dashboard.charts.partsByType')}
+        </CardTitle>
         <CardDescription>{total} total parts</CardDescription>
       </CardHeader>
       <CardContent>
@@ -245,6 +257,7 @@ export function TasksByPriorityChart({
 }: {
   data: Array<CategoryDataPoint>
 }) {
+  const { t } = useTranslation('pages')
   const total = data.reduce((sum, d) => sum + d.value, 0)
 
   // Sort by priority order
@@ -259,7 +272,9 @@ export function TasksByPriorityChart({
     return (
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Open Tasks by Priority</CardTitle>
+          <CardTitle className="text-lg">
+            {t('dashboard.charts.openTasksByPriority')}
+          </CardTitle>
           <CardDescription>Task distribution by priority level</CardDescription>
         </CardHeader>
         <CardContent>
@@ -274,7 +289,9 @@ export function TasksByPriorityChart({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Open Tasks by Priority</CardTitle>
+        <CardTitle className="text-lg">
+          {t('dashboard.charts.openTasksByPriority')}
+        </CardTitle>
         <CardDescription>{total} open tasks</CardDescription>
       </CardHeader>
       <CardContent>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { FileSearch } from 'lucide-react'
 import { isPreviewable, previewKindFor } from '@cascadia/commons/vault/preview'
@@ -78,6 +79,7 @@ export function ItemFilePreviewPanel({
   canAnnotate = false,
   className,
 }: ItemFilePreviewPanelProps) {
+  const { t: tp } = useTranslation('pages')
   const { previewable, isLoading } = useItemPreviewableFiles(itemId, {
     branchId,
     mainBranchId,
@@ -102,7 +104,7 @@ export function ItemFilePreviewPanel({
   const { markup, markupDialog } = useFileMarkup({
     fileId: selected?.id ?? '',
     canAnnotate,
-    disabledReason: 'Check out this item to mark it up',
+    disabledReason: tp('vault.itemFilePreviewPanel.checkoutToMarkup'),
     currentUserId: session?.user?.id,
   })
 
@@ -110,7 +112,7 @@ export function ItemFilePreviewPanel({
     return (
       <Card className={className}>
         <CardContent className="py-12 text-center text-slate-600 dark:text-slate-400">
-          Loading files...
+          {tp('vault.itemFilePreviewPanel.loading')}
         </CardContent>
       </Card>
     )
@@ -122,10 +124,10 @@ export function ItemFilePreviewPanel({
         <CardContent className="py-12 text-center">
           <FileSearch className="mx-auto mb-4 h-12 w-12 text-slate-300 dark:text-slate-600" />
           <p className="text-slate-600 dark:text-slate-400">
-            No previewable files attached
+            {tp('vault.itemFilePreviewPanel.empty')}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-500">
-            Attach a PDF, drawing, image, or text file to read it here.
+            {tp('vault.itemFilePreviewPanel.emptyHint')}
           </p>
         </CardContent>
       </Card>
@@ -140,7 +142,7 @@ export function ItemFilePreviewPanel({
             htmlFor="preview-file-select"
             className="text-sm text-slate-600 dark:text-slate-400"
           >
-            File
+            {tp('vault.itemFilePreviewPanel.fileLabel')}
           </label>
           <select
             id="preview-file-select"

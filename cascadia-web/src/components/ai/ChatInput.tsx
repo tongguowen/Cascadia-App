@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Search, Send, Square } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
@@ -25,8 +26,11 @@ export function ChatInput({
   onStop,
   isLoading = false,
   disabled = false,
-  placeholder = 'Ask a question or request an action...',
+  placeholder,
 }: ChatInputProps) {
+  const { t } = useTranslation('ai')
+  const resolvedPlaceholder =
+    placeholder ?? t('input.placeholder')
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -71,7 +75,7 @@ export function ChatInput({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           disabled={disabled || isLoading}
           rows={1}
           className={cn(
@@ -95,7 +99,7 @@ export function ChatInput({
           variant="destructive"
           size="icon"
           className="flex-shrink-0"
-          aria-label="Stop generation"
+          aria-label={t('input.stopAria')}
         >
           <Square className="h-4 w-4" />
         </Button>
@@ -109,8 +113,8 @@ export function ChatInput({
               variant="outline"
               size="icon"
               className="h-7 w-7"
-              aria-label="Search (Ctrl+Enter)"
-              title="Search (Ctrl+Enter)"
+              aria-label={t('input.searchAria')}
+              title={t('input.searchTitle')}
             >
               <Search className="h-3.5 w-3.5" />
             </Button>
@@ -121,7 +125,7 @@ export function ChatInput({
             disabled={!value.trim() || disabled || isLoading}
             size="icon"
             className="h-7 w-7"
-            aria-label="Send message"
+            aria-label={t('input.sendAria')}
           >
             <Send className="h-3.5 w-3.5" />
           </Button>

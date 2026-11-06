@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Info, Loader2, Search } from 'lucide-react'
 import { formatRevision } from '@cascadia/commons/types/lifecycle'
@@ -83,6 +84,7 @@ export function AddPartFromDesignDialog({
   branchId,
   onSuccess,
 }: AddPartFromDesignDialogProps) {
+  const { t: tc } = useTranslation('common')
   const { alert } = useAlertDialog()
   const { handleError, showWarning } = useErrorHandler()
   const isLibrary = designType === 'Library'
@@ -290,8 +292,8 @@ export function AddPartFromDesignDialog({
 
       if (itemsPayload.length === 0) {
         showWarning(
-          'Nothing to add',
-          'None of the selected items are in a state this change order can act on.',
+          tc('dialogs.batchAddToEco.nothingToAddTitle'),
+          tc('dialogs.batchAddToEco.nothingToAddDescription'),
         )
         return
       }
@@ -303,14 +305,18 @@ export function AddPartFromDesignDialog({
       })
 
       alert({
-        title: 'Items Added',
-        description: `${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''} added to the change order.`,
+        title: tc('dialogs.addPartFromDesign.itemsAddedTitle'),
+        description: tc('dialogs.addPartFromDesign.itemsAddedDescription', {
+          count: selectedItems.length,
+        }),
       })
 
       onOpenChange(false)
       onSuccess()
     } catch (error) {
-      handleError(error, { title: 'Failed to add items to the change order' })
+      handleError(error, {
+        title: tc('dialogs.addPartFromDesign.failedAddTitle'),
+      })
     } finally {
       setSubmitting(false)
     }
@@ -366,24 +372,32 @@ export function AddPartFromDesignDialog({
       }
 
       alert({
-        title: 'Parts Imported',
-        description: `${selectedImportItems.length} part${selectedImportItems.length !== 1 ? 's' : ''} imported as usages into the Library.`,
+        title: tc('dialogs.addPartFromDesign.partsImportedTitle'),
+        description: tc('dialogs.addPartFromDesign.partsImportedDescription', {
+          count: selectedImportItems.length,
+        }),
       })
 
       onOpenChange(false)
       onSuccess()
     } catch (error) {
       handleError(error, {
-        title: 'Failed to import parts — some may have been partially imported',
+        title: tc('dialogs.addPartFromDesign.failedImportTitle'),
       })
     } finally {
       setSubmitting(false)
     }
   }
 
-  const scopeOptions: Array<{ value: ImportDesignScope; label: string }> = [
-    { value: 'all', label: 'All Designs' },
-    { value: 'library', label: 'Libraries' },
+  const scopeOptions: Array<{ value: ImportDesignScope; labelKey: string }> = [
+    {
+      value: 'all',
+      labelKey: 'dialogs.addPartFromDesign.scopeAllDesigns',
+    },
+    {
+      value: 'library',
+      labelKey: 'dialogs.addPartFromDesign.scopeLibraries',
+    },
   ]
 
   // Determine effective selected items for display
@@ -436,14 +450,14 @@ export function AddPartFromDesignDialog({
     },
     {
       id: 'itemNumber',
-      header: 'Item',
+      header: tc('columns.item'),
       accessorKey: 'itemNumber',
       enableSorting: false,
       meta: { width: '140px' },
     },
     {
       id: 'name',
-      header: 'Name',
+      header: tc('columns.name'),
       accessorKey: 'name',
       enableSorting: false,
       cell: ({
@@ -462,7 +476,7 @@ export function AddPartFromDesignDialog({
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: tc('labels.rev'),
       accessorKey: 'revision',
       enableSorting: false,
       meta: { width: '60px', align: 'center' as const },
@@ -470,7 +484,7 @@ export function AddPartFromDesignDialog({
     },
     {
       id: 'state',
-      header: 'State',
+      header: tc('labels.state'),
       accessorKey: 'state',
       enableSorting: false,
       cell: ({
@@ -494,7 +508,7 @@ export function AddPartFromDesignDialog({
         if (affectedItemIds.has(row.original.id)) {
           return (
             <Badge variant="outline" className="text-xs">
-              Already in ECO
+              {tc('dialogs.addPartFromDesign.alreadyInEco')}
             </Badge>
           )
         }
@@ -512,7 +526,7 @@ export function AddPartFromDesignDialog({
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
-            placeholder="Search by item number or name..."
+            placeholder={tc('dialogs.addPartFromDesign.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-8"
@@ -528,12 +542,14 @@ export function AddPartFromDesignDialog({
                 : {})}
               onCheckedChange={(checked) => toggleAllOnPage(!!checked)}
             />
-            All on page
+            {tc('dialogs.addPartFromDesign.allOnPage')}
           </label>
         )}
         {selectedIds.size > 0 && (
           <Badge variant="default" className="text-xs whitespace-nowrap">
-            {selectedIds.size} selected
+            {tc('dialogs.addPartFromDesign.selectedCount', {
+              count: selectedIds.size,
+            })}
           </Badge>
         )}
       </div>
@@ -564,8 +580,8 @@ export function AddPartFromDesignDialog({
           pageSizeOptions={[20, 50, 100]}
           emptyMessage={
             searchQuery
-              ? 'No parts match your search.'
-              : 'No parts found in this design.'
+              ? tc('dialogs.addPartFromDesign.noSearchMatch')
+              : tc('dialogs.addPartFromDesign.noPartsInDesign')
           }
         />
       </div>
@@ -579,18 +595,24 @@ export function AddPartFromDesignDialog({
           <DialogTitle>
             {step === 'select'
               ? isLibrary
-                ? `Add Parts to ${designName}`
-                : `Add Parts from ${designName}`
-              : `Review ${effectiveSelectedCount} Items`}
+                ? tc('dialogs.addPartFromDesign.titleAddToLibrary', {
+                    designName,
+                  })
+                : tc('dialogs.addPartFromDesign.titleAddFromDesign', {
+                    designName,
+                  })
+              : tc('dialogs.addPartFromDesign.titleReview', {
+                  count: effectiveSelectedCount,
+                })}
           </DialogTitle>
           <DialogDescription>
             {step === 'select'
               ? isLibrary
-                ? 'Add existing library parts or import from other designs.'
-                : 'Select parts to add as affected items in this change order.'
+                ? tc('dialogs.addPartFromDesign.descSelectLibrary')
+                : tc('dialogs.addPartFromDesign.descSelectDesign')
               : isLibrary && libraryMode === 'import'
-                ? 'Review the parts to be imported as usages.'
-                : 'Review the change actions for each item before adding them.'}
+                ? tc('dialogs.addPartFromDesign.descReviewImport')
+                : tc('dialogs.addPartFromDesign.descReviewNormal')}
           </DialogDescription>
         </DialogHeader>
 
@@ -610,7 +632,7 @@ export function AddPartFromDesignDialog({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
                   )}
                 >
-                  Add from Library
+                  {tc('dialogs.addPartFromDesign.addFromLibrary')}
                 </button>
                 <button
                   type="button"
@@ -622,7 +644,7 @@ export function AddPartFromDesignDialog({
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
                   )}
                 >
-                  Import from Designs
+                  {tc('dialogs.addPartFromDesign.importFromDesigns')}
                 </button>
               </div>
 
@@ -632,7 +654,7 @@ export function AddPartFromDesignDialog({
                   {/* Scope selector */}
                   <div>
                     <Label className="text-sm font-medium mb-2 block">
-                      Source
+                      {tc('dialogs.addPartFromDesign.sourceLabel')}
                     </Label>
                     <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
                       {scopeOptions.map((option) => (
@@ -647,7 +669,7 @@ export function AddPartFromDesignDialog({
                               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
                           )}
                         >
-                          {option.label}
+                          {tc(option.labelKey)}
                         </button>
                       ))}
                     </div>
@@ -658,7 +680,9 @@ export function AddPartFromDesignDialog({
                     <div className="relative flex-1">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        placeholder="Search by part number or name (min 2 characters)..."
+                        placeholder={tc(
+                          'dialogs.addPartFromDesign.searchImportPlaceholder',
+                        )}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-9 h-8"
@@ -669,7 +693,9 @@ export function AddPartFromDesignDialog({
                         variant="default"
                         className="text-xs whitespace-nowrap"
                       >
-                        {selectedIds.size} selected
+                        {tc('dialogs.addPartFromDesign.selectedCount', {
+                          count: selectedIds.size,
+                        })}
                       </Badge>
                     )}
                   </div>
@@ -682,11 +708,11 @@ export function AddPartFromDesignDialog({
                       </div>
                     ) : searchQuery.length < 2 ? (
                       <div className="text-center py-8 text-sm text-slate-500">
-                        Type at least 2 characters to search across designs.
+                        {tc('dialogs.addPartFromDesign.minImportSearch')}
                       </div>
                     ) : importResults.length === 0 ? (
                       <div className="text-center py-8 text-sm text-slate-500">
-                        No parts found matching your search.
+                        {tc('dialogs.addPartFromDesign.noImportMatch')}
                       </div>
                     ) : (
                       <div className="divide-y dark:divide-slate-700">
@@ -730,7 +756,7 @@ export function AddPartFromDesignDialog({
                               )}
                               {isAffected && (
                                 <Badge variant="outline" className="text-xs">
-                                  Already in ECO
+                                  {tc('dialogs.addPartFromDesign.alreadyInEco')}
                                 </Badge>
                               )}
                             </label>
@@ -759,12 +785,13 @@ export function AddPartFromDesignDialog({
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-blue-900 dark:text-blue-100">
-                  Importing as Usages
+                  {tc('dialogs.addPartFromDesign.importingAsUsagesTitle')}
                 </p>
                 <p className="text-blue-700 dark:text-blue-300 mt-0.5">
-                  These parts will be imported as usages into the Library design
-                  and registered as ECO affected items with action{' '}
-                  <strong>Add</strong>.
+                  <Trans
+                    i18nKey="dialogs.addPartFromDesign.importingAsUsagesDescription"
+                    components={{ strong: <strong /> }}
+                  />
                 </p>
               </div>
             </div>
@@ -773,12 +800,24 @@ export function AddPartFromDesignDialog({
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
                   <tr className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    <th className="text-left px-3 py-1.5">Item</th>
-                    <th className="text-left px-3 py-1.5">Name</th>
-                    <th className="text-center px-3 py-1.5">Rev</th>
-                    <th className="text-center px-3 py-1.5">State</th>
-                    <th className="text-center px-3 py-1.5">Source</th>
-                    <th className="text-center px-3 py-1.5">Action</th>
+                    <th className="text-left px-3 py-1.5">
+                      {tc('columns.item')}
+                    </th>
+                    <th className="text-left px-3 py-1.5">
+                      {tc('columns.name')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.rev')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.state')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('dialogs.addPartFromDesign.tableSource')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.action')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y dark:divide-slate-700">
@@ -823,11 +862,13 @@ export function AddPartFromDesignDialog({
 
             <div className="space-y-2">
               <Label htmlFor="import-parts-description">
-                Description (optional)
+                {tc('labels.descriptionOptional')}
               </Label>
               <Textarea
                 id="import-parts-description"
-                placeholder="Describe why these parts are being imported..."
+                placeholder={tc(
+                  'dialogs.addPartFromDesign.importDescriptionPlaceholder',
+                )}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
@@ -841,12 +882,24 @@ export function AddPartFromDesignDialog({
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
                   <tr className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    <th className="text-left px-3 py-1.5">Item</th>
-                    <th className="text-left px-3 py-1.5">Name</th>
-                    <th className="text-center px-3 py-1.5">Rev</th>
-                    <th className="text-center px-3 py-1.5">State</th>
-                    <th className="text-center px-3 py-1.5">Action</th>
-                    <th className="text-center px-3 py-1.5">Target</th>
+                    <th className="text-left px-3 py-1.5">
+                      {tc('columns.item')}
+                    </th>
+                    <th className="text-left px-3 py-1.5">
+                      {tc('columns.name')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.rev')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.state')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.action')}
+                    </th>
+                    <th className="text-center px-3 py-1.5">
+                      {tc('labels.target')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y dark:divide-slate-700">
@@ -911,7 +964,8 @@ export function AddPartFromDesignDialog({
                               }
                               className="text-xs"
                             >
-                              {available.at(0)?.label ?? 'No action available'}
+                              {available.at(0)?.label ??
+                                tc('dialogs.addPartFromDesign.noActionAvailable')}
                             </Badge>
                           )}
                         </td>
@@ -931,11 +985,11 @@ export function AddPartFromDesignDialog({
 
             <div className="space-y-2">
               <Label htmlFor="add-parts-description">
-                Description (optional)
+                {tc('labels.descriptionOptional')}
               </Label>
               <Textarea
                 id="add-parts-description"
-                placeholder="Describe the changes..."
+                placeholder={tc('dialogs.addPartFromDesign.describePlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
@@ -952,18 +1006,20 @@ export function AddPartFromDesignDialog({
               className="mr-auto"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
+              {tc('actions.back')}
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           {step === 'select' ? (
             <Button
               onClick={() => setStep('review')}
               disabled={selectedIds.size === 0}
             >
-              Review ({selectedIds.size})
+              {tc('dialogs.addPartFromDesign.reviewButton', {
+                count: selectedIds.size,
+              })}
             </Button>
           ) : (
             <Button
@@ -976,8 +1032,12 @@ export function AddPartFromDesignDialog({
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isLibrary && libraryMode === 'import'
-                ? `Import ${effectiveSelectedCount} Part${effectiveSelectedCount !== 1 ? 's' : ''}`
-                : `Add ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''} to Change Order`}
+                ? tc('dialogs.addPartFromDesign.importParts', {
+                    count: effectiveSelectedCount,
+                  })
+                : tc('dialogs.addPartFromDesign.addItems', {
+                    count: selectedItems.length,
+                  })}
             </Button>
           )}
         </DialogFooter>

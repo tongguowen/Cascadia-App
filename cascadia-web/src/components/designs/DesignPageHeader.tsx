@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Archive,
   ArrowLeft,
@@ -77,6 +78,9 @@ export function DesignPageHeader({
   onReleaseToManufacturing,
   onGapAnalysis,
 }: DesignPageHeaderProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+
   // Get context badge variant based on current view mode
   const getContextBadgeVariant = () => {
     switch (versionContext.type) {
@@ -97,17 +101,23 @@ export function DesignPageHeader({
   const getContextLabel = () => {
     switch (versionContext.type) {
       case 'main':
-        return 'Main'
+        return tp('designs.pageHeader.contextMain')
       case 'branch':
-        return versionContext.branchName || 'Branch'
+        return versionContext.branchName || tp('designs.pageHeader.contextBranch')
       case 'tag':
-        return versionContext.tagName || 'Tag'
+        return versionContext.tagName || tp('designs.pageHeader.contextTag')
       case 'commit':
-        return `Commit ${versionContext.commitId?.slice(0, 8)}`
+        return tp('designs.pageHeader.contextCommit', {
+          id: versionContext.commitId?.slice(0, 8) ?? '',
+        })
       default:
-        return 'Main'
+        return tp('designs.pageHeader.contextMain')
     }
   }
+
+  const designTypeLabel = tp(`designs.types.${design.designType}`, {
+    defaultValue: design.designType,
+  })
 
   return (
     <div className="space-y-4">
@@ -130,7 +140,7 @@ export function DesignPageHeader({
                   design.designType === 'Library' ? 'secondary' : 'default'
                 }
               >
-                {design.designType}
+                {designTypeLabel}
               </Badge>
               <Badge variant={getContextBadgeVariant()} className="text-sm">
                 {getContextLabel()}
@@ -143,9 +153,9 @@ export function DesignPageHeader({
             {design.configuration && (
               <p
                 className="text-xs text-cyan-700 dark:text-cyan-300 mt-1"
-                title="The configuration this Manufacturing design was resolved with"
+                title={tp('designs.pageHeader.resolvedConfigurationTitle')}
               >
-                Configuration
+                {tp('designs.pageHeader.configuration')}
                 {design.configuration.makeCode && (
                   <span className="font-mono ml-1">
                     {design.configuration.makeCode}
@@ -177,11 +187,11 @@ export function DesignPageHeader({
                 disabled={isSaving}
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button onClick={onSave} disabled={isSaving}>
                 <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? tc('actions.saving') : tc('actions.save')}
               </Button>
             </>
           ) : (
@@ -190,7 +200,7 @@ export function DesignPageHeader({
               {onGapAnalysis && design.designType !== 'Family' && (
                 <Button variant="outline" onClick={onGapAnalysis}>
                   <Search className="h-4 w-4 mr-2" />
-                  Gap Analysis
+                  {tp('designs.pageHeader.gapAnalysis')}
                 </Button>
               )}
               {onEdit && (
@@ -200,7 +210,7 @@ export function DesignPageHeader({
                   disabled={isHistoricalView}
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {tc('actions.edit')}
                 </Button>
               )}
               {onClone && design.designType === 'Engineering' && (
@@ -210,7 +220,7 @@ export function DesignPageHeader({
                   disabled={isHistoricalView}
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Clone
+                  {tp('designs.pageHeader.clone')}
                 </Button>
               )}
               {onReleaseToManufacturing &&
@@ -221,7 +231,7 @@ export function DesignPageHeader({
                     disabled={isHistoricalView}
                   >
                     <Factory className="h-4 w-4 mr-2" />
-                    Release to Manufacturing
+                    {tp('designs.pageHeader.releaseToManufacturing')}
                   </Button>
                 )}
               {onArchive && design.designType !== 'Library' && (
@@ -231,10 +241,10 @@ export function DesignPageHeader({
                   disabled={isHistoricalView}
                 >
                   <Archive className="h-4 w-4 mr-2" />
-                  Archive
+                  {tc('actions.archive')}
                 </Button>
               )}
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" aria-label={tc('tabs.settings')}>
                 <Settings className="h-4 w-4" />
               </Button>
             </>

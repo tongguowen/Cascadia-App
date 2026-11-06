@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Copy,
   ExternalLink,
@@ -43,6 +44,7 @@ export function CADSelectionCaption({
 }: {
   selection: CADSelectionState
 }) {
+  const { t: tc } = useTranslation('common')
   const node = selection.selectedNode
   if (!node) return null
 
@@ -57,7 +59,7 @@ export function CADSelectionCaption({
             {node.part.name ?? node.name}
           </span>
           <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">
-            Rev {node.part.revision}
+            {tc('cadSelection.rev', { revision: node.part.revision })}
           </span>
           <StateBadge itemType={node.part.itemType} state={node.part.state} />
         </div>
@@ -69,8 +71,8 @@ export function CADSelectionCaption({
           </span>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
             {node.resolution === 'excluded'
-              ? 'not a BOM part'
-              : 'no matching part'}
+              ? tc('cadSelection.notBomPart')
+              : tc('cadSelection.noMatchingPart')}
           </span>
         </div>
       )}
@@ -96,6 +98,7 @@ export function CADSelectionMenu({
   onRelink: () => void
 }) {
   const navigate = useNavigate()
+  const { t: tc } = useTranslation('common')
   const node = selection.selectedNode
 
   if (!node) {
@@ -103,7 +106,7 @@ export function CADSelectionMenu({
       <ContextMenuContent>
         <ContextMenuItem disabled>
           <MousePointerClick className="mr-1.5 h-3.5 w-3.5" />
-          Click a part to select it
+          {tc('cadSelection.clickToSelect')}
         </ContextMenuItem>
       </ContextMenuContent>
     )
@@ -130,30 +133,36 @@ export function CADSelectionMenu({
             }
           >
             <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-            Open in new tab
+            {tc('cadSelection.openNewTab')}
           </ContextMenuItem>
           <ContextMenuItem onClick={() => navigate({ to: route })}>
             <MousePointerClick className="mr-1.5 h-3.5 w-3.5" />
-            Open
+            {tc('cadSelection.open')}
           </ContextMenuItem>
         </>
       ) : (
         <ContextMenuItem disabled>
           <HelpCircle className="mr-1.5 h-3.5 w-3.5" />
           {node.resolution === 'excluded'
-            ? 'Marked as not a BOM part'
-            : 'No matching part in this BOM'}
+            ? tc('cadSelection.markedNotBom')
+            : tc('cadSelection.noMatchingInBom')}
         </ContextMenuItem>
       )}
 
       <ContextMenuSeparator />
       <ContextMenuItem onClick={onRelink}>
         <Link2 className="mr-1.5 h-3.5 w-3.5" />
-        {node.part ? 'Link to a different part…' : 'Link to a part…'}
+        {node.part
+          ? tc('cadSelection.linkDifferent')
+          : tc('cadSelection.linkPart')}
       </ContextMenuItem>
       <ContextMenuItem onClick={() => void copyLabel(node)}>
         <Copy className="mr-1.5 h-3.5 w-3.5" />
-        Copy {node.part ? 'part number' : 'CAD name'}
+        {tc('cadSelection.copyLabel', {
+          label: node.part
+            ? tc('cadSelection.copyPartNumber')
+            : tc('cadSelection.copyCadName'),
+        })}
       </ContextMenuItem>
     </ContextMenuContent>
   )

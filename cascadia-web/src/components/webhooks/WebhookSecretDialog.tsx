@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui'
 import {
@@ -34,6 +35,8 @@ export function WebhookSecretDialog({
   mode,
   onClose,
 }: WebhookSecretDialogProps) {
+  const { t } = useTranslation('pages')
+  const ts = (key: string) => t(`admin.webhooks.secret.${key}`)
   const [copy, setCopy] = useState<'idle' | 'copied' | 'failed'>('idle')
 
   const handleClose = () => {
@@ -51,14 +54,9 @@ export function WebhookSecretDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === 'created'
-              ? 'Subscription created'
-              : 'Signing secret rotated'}
+            {mode === 'created' ? ts('createdTitle') : ts('rotatedTitle')}
           </DialogTitle>
-          <DialogDescription>
-            Copy this secret now. It is stored encrypted and is never shown
-            again — a lost secret is rotated, not recovered.
-          </DialogDescription>
+          <DialogDescription>{ts('description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -71,15 +69,12 @@ export function WebhookSecretDialog({
               size="icon"
               onClick={() => {
                 if (!secret) return
-                // The clipboard can refuse — an insecure context, a denied
-                // permission — and a "copied" tick when it did would send an
-                // operator away without the only copy of the secret.
                 void navigator.clipboard.writeText(secret).then(
                   () => setCopy('copied'),
                   () => setCopy('failed'),
                 )
               }}
-              title="Copy to clipboard"
+              title={ts('copyTitle')}
             >
               {copy === 'copied' ? (
                 <Check className="h-4 w-4 text-green-600" />
@@ -90,38 +85,22 @@ export function WebhookSecretDialog({
           </div>
 
           {copy === 'failed' && (
-            <p className="text-sm text-destructive">
-              Copying to the clipboard failed. Select the secret above and copy
-              it by hand before closing this.
-            </p>
+            <p className="text-sm text-destructive">{ts('copyFailed')}</p>
           )}
 
           <div className="flex gap-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
-              {mode === 'rotated' ? (
-                <>
-                  The previous secret stopped working immediately. Deliveries
-                  signed with it will fail verification until the receiver is
-                  updated.
-                </>
-              ) : (
-                <>
-                  Give this to the receiver so it can verify deliveries. Every
-                  request carries an <code>X-Cascadia-Signature</code> header of
-                  the form <code>t=&lt;timestamp&gt;,v1=&lt;hmac&gt;</code>, an
-                  HMAC-SHA256 over{' '}
-                  <code>v1.&lt;timestamp&gt;.&lt;body&gt;</code>
-                  using the exact bytes received.
-                </>
-              )}
+              {mode === 'rotated'
+                ? ts('rotatedWarning')
+                : ts('createdWarning')}
             </div>
           </div>
         </div>
 
         <DialogFooter>
           <Button onClick={handleClose}>
-            {copy === 'copied' ? 'Done' : 'I have copied it'}
+            {copy === 'copied' ? ts('copiedDone') : ts('confirmCopied')}
           </Button>
         </DialogFooter>
       </DialogContent>

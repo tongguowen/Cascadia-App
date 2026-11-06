@@ -3,7 +3,9 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { lifecycleListQuery } from '@/query/options/lifecycles'
+import { translateStateName } from '@/i18n'
 
 /**
  * Filter-dropdown options for lifecycle state: every state id across every
@@ -16,6 +18,7 @@ import { lifecycleListQuery } from '@/query/options/lifecycles'
  * it could. Empty until the definitions load.
  */
 export function useItemStateOptions(): Array<{ label: string; value: string }> {
+  const { i18n } = useTranslation()
   const { data: definitions = [] } = useQuery(lifecycleListQuery())
 
   return useMemo(() => {
@@ -25,9 +28,14 @@ export function useItemStateOptions(): Array<{ label: string; value: string }> {
       for (const state of definition.states) {
         if (seen.has(state.id)) continue
         seen.add(state.id)
-        options.push({ label: state.name, value: state.id })
+        options.push({
+          label: translateStateName(state.name),
+          value: state.id,
+        })
       }
     }
     return options
-  }, [definitions])
+    // Recompute when locale changes so filter labels stay in sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [definitions, i18n.language])
 }

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CheckCircle, Plus, Wrench, X } from 'lucide-react'
 import { TOOL_SUBTYPES } from '@cascadia/commons/items/types/tool'
@@ -33,8 +34,11 @@ const STATUS_VARIANTS: Record<
   retired: 'destructive',
 }
 
-function subtypeLabel(subtype?: string): string {
-  if (!subtype) return 'Uncategorized'
+function subtypeLabel(
+  subtype: string | undefined,
+  uncategorizedLabel: string,
+): string {
+  if (!subtype) return uncategorizedLabel
   const known = TOOL_SUBTYPES[subtype as KnownToolSubtype] as
     { label: string } | undefined
   return known ? known.label : subtype
@@ -46,6 +50,8 @@ function makeAndModel(tool: Tool): string {
 }
 
 export function ToolsStep({ onCompleted }: ToolsStepProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -67,7 +73,9 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
       })
       if (!response.ok) {
         const json = await response.json().catch(() => ({}))
-        throw new Error(json.error?.message ?? 'Failed to create tool')
+        throw new Error(
+          json.error?.message ?? tp('setup.tools.createFailed'),
+        )
       }
       await invalidate('items')
       // Collapse back to the list; the button re-opens a blank form.
@@ -99,12 +107,11 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
             <div>
               <CardTitle className="text-base">
                 {tools.length > 0
-                  ? `${tools.length} tool${tools.length === 1 ? '' : 's'} on record`
-                  : 'No tools yet'}
+                  ? tp('setup.tools.onRecord', { count: tools.length })
+                  : tp('setup.tools.noToolsYet')}
               </CardTitle>
               <CardDescription>
-                Name, type, and subtype are all that's required — capabilities
-                like build volume or spindle speed can be filled in later.
+                {tp('setup.tools.cardDescription')}
               </CardDescription>
             </div>
             {!showForm && (
@@ -118,7 +125,7 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
                 className="shrink-0"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add tool
+                {tp('setup.tools.addTool')}
               </Button>
             )}
           </div>
@@ -136,7 +143,10 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
                     {tool.name || tool.itemNumber}
                   </span>
                   <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {subtypeLabel(tool.toolSubtype)}
+                    {subtypeLabel(
+                      tool.toolSubtype,
+                      tp('setup.tools.uncategorized'),
+                    )}
                   </span>
                   <span className="text-sm text-slate-500 dark:text-slate-400 truncate">
                     {makeAndModel(tool)}
@@ -178,7 +188,7 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
               >
                 <Wrench className="w-6 h-6" />
                 <span className="text-sm">
-                  Add your first machine — a printer, mill, saw, or gauge
+                  {tp('setup.tools.firstToolHint')}
                 </span>
               </button>
             )
@@ -188,13 +198,13 @@ export function ToolsStep({ onCompleted }: ToolsStepProps) {
 
       <div className="flex items-center gap-3">
         <Button onClick={onCompleted}>
-          Continue
+          {tc('actions.continue')}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
         {tools.length === 0 && (
           <span className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400">
             <X className="w-4 h-4" />
-            Skipping is fine — you can add tools later.
+            {tp('setup.tools.skipHint')}
           </span>
         )}
       </div>

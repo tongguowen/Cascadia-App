@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Plus, Trash2, User, Users } from 'lucide-react'
 import {
@@ -27,6 +28,7 @@ export function StateApproversPanel({
   workflowDefinitionId,
   stateId,
 }: StateApproversPanelProps) {
+  const { t: tc } = useTranslation('common')
   const [saving, setSaving] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newApproverType, setNewApproverType] = useState<'user' | 'role'>(
@@ -136,7 +138,7 @@ export function StateApproversPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-medium">Approvers</Label>
+        <Label className="text-xs font-medium">{tc('fields.approvers')}</Label>
         {!showAddForm && (
           <Button
             type="button"
@@ -146,7 +148,7 @@ export function StateApproversPanel({
             className="h-6 px-2 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
-            Add
+            {tc('stateApprovers.add')}
           </Button>
         )}
       </div>
@@ -166,14 +168,23 @@ export function StateApproversPanel({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="role">Role</SelectItem>
-                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="role">{tc('fields.role')}</SelectItem>
+                <SelectItem value="user">
+                  {tc('enum.approverKind.user')}
+                </SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={newApproverId} onValueChange={setNewApproverId}>
               <SelectTrigger className="h-7 text-xs flex-1">
-                <SelectValue placeholder={`Select ${newApproverType}...`} />
+                <SelectValue
+                  placeholder={tc('stateApprovers.selectType', {
+                    type:
+                      newApproverType === 'user'
+                        ? tc('enum.approverKind.user')
+                        : tc('fields.role'),
+                  })}
+                />
               </SelectTrigger>
               <SelectContent>
                 {newApproverType === 'user'
@@ -199,7 +210,7 @@ export function StateApproversPanel({
               className="rounded border-slate-300 dark:border-slate-600 h-3 w-3"
             />
             <span className="text-xs text-slate-600 dark:text-slate-400">
-              Required
+              {tc('stateApprovers.required')}
             </span>
           </label>
 
@@ -214,7 +225,7 @@ export function StateApproversPanel({
               }}
               className="h-6 px-2 text-xs"
             >
-              Cancel
+              {tc('stateApprovers.cancel')}
             </Button>
             <Button
               type="button"
@@ -223,7 +234,11 @@ export function StateApproversPanel({
               disabled={!newApproverId || saving}
               className="h-6 px-2 text-xs"
             >
-              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Add'}
+              {saving ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                tc('stateApprovers.add')
+              )}
             </Button>
           </div>
         </div>
@@ -232,7 +247,7 @@ export function StateApproversPanel({
       {/* Approvers List */}
       {approvers.length === 0 && !showAddForm ? (
         <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-          No approvers configured. Anyone can transition from this state.
+          {tc('stateApprovers.empty')}
         </p>
       ) : (
         <div className="space-y-1.5">
@@ -247,7 +262,7 @@ export function StateApproversPanel({
                 <User className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
               )}
               <span className="text-xs flex-1 truncate">
-                {approver.approverName || 'Unknown'}
+                {approver.approverName || tc('stateApprovers.unknown')}
               </span>
               <label className="flex items-center gap-1">
                 <input
@@ -259,7 +274,9 @@ export function StateApproversPanel({
                   disabled={saving}
                   className="rounded border-slate-300 dark:border-slate-600 h-3 w-3"
                 />
-                <span className="text-xs text-slate-500">Req</span>
+                <span className="text-xs text-slate-500">
+                  {tc('stateApprovers.requiredShort')}
+                </span>
               </label>
               <Button
                 type="button"

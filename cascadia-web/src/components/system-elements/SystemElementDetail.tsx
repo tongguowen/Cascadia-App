@@ -8,7 +8,8 @@
  * the items that realize it, and the requirements allocated to it.
  */
 import { Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -256,7 +257,7 @@ export function SystemElementDetail({
     setIsEditing(true)
   }
 
-  // A revise-checkout mints the branch working copy up front, so editing
+        handleError(error, { title: tc('errors.cannotEditItem') })
   // belongs on that row's page — see the requirement page for the reasoning.
   const handleCheckoutComplete = (branchId: string, currentItemId?: string) => {
     setElement(currentElement)
@@ -433,13 +434,26 @@ export function SystemElementDetail({
           <div className="flex gap-2">
             {isEditing ? (
               <>
+                ? tf('createSubtitle')
+                : td('revisionSubtitle', {
+                    revision: currentElement.revision,
+                    name: currentElement.name || tc('labels.unnamed'),
+                  })}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex gap-2">
+            {isEditing ? (
+              <>
                 <Button
                   variant="outline"
                   onClick={handleCancelEdit}
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -451,10 +465,10 @@ export function SystemElementDetail({
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create System Element'
-                      : 'Save Changes'}
+                      ? tf('createSubmit')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
@@ -465,17 +479,7 @@ export function SystemElementDetail({
                     onClick={() => setIsImpactDialogOpen(true)}
                   >
                     <Search className="h-4 w-4 mr-2" />
-                    Impact Analysis
-                  </Button>
-                )}
-                {getEditDisabledReason() ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>{editButton}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{getEditDisabledReason()}</p>
-                    </TooltipContent>
+                    {tc('actions.impactAnalysis')}
                   </Tooltip>
                 ) : (
                   editButton
@@ -488,6 +492,16 @@ export function SystemElementDetail({
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {!isCreateMode &&
+                    {tc('actions.delete')}
                   </Button>
                 )}
               </>
@@ -513,19 +527,13 @@ export function SystemElementDetail({
         <TabsList
           className={`grid w-full ${isCreateMode ? 'grid-cols-2' : 'grid-cols-3'}`}
         >
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
-          {!isCreateMode && <TabsTrigger value="history">History</TabsTrigger>}
-        </TabsList>
-
-        <TabsContent
-          value="details"
-          className="mt-6"
-          data-testid="system-element-form"
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          <TabsTrigger value="relationships">
+            {tc('tabs.relationships')}
+          </TabsTrigger>
+          {!isCreateMode && (
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+          )}
                 <CardHeader>
                   <CardTitle>Overview</CardTitle>
                   <CardDescription>
@@ -537,32 +545,40 @@ export function SystemElementDetail({
                     <ViewEditText
                       label="Item Number"
                       value={
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
+                  <CardDescription>{td('overviewDescription')}</CardDescription>
+                      onChange={(v) => updateField('itemNumber', v)}
+                      isEditing={isEditing && isCreateMode}
+                      placeholder="Leave blank to auto-generate (SE-000001)"
+                      data-testid="system-element-item-number"
+                      label={tc('fields.itemNumber')}
+                      value={
                         isEditing
                           ? element.itemNumber
                           : currentElement.itemNumber
                       }
                       onChange={(v) => updateField('itemNumber', v)}
                       isEditing={isEditing && isCreateMode}
-                      placeholder="Leave blank to auto-generate (SE-000001)"
+                      placeholder={tf('itemNumberPlaceholder')}
                       data-testid="system-element-item-number"
                     />
                     <ViewEditText
-                      label="Revision"
+                      label={tc('fields.revision')}
                       value={currentElement.revision}
                       onChange={() => {}}
                       isEditing={false}
                     />
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={isEditing ? element.name : currentElement.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="Power subsystem"
+                      placeholder={tf('namePlaceholder')}
                       required
                       data-testid="system-element-name"
                     />
                     <ViewEditSelect
-                      label="Kind"
+                      label={tc('columns.kind')}
                       value={
                         isEditing
                           ? element.elementKind
@@ -570,24 +586,24 @@ export function SystemElementDetail({
                       }
                       onChange={(v) => updateField('elementKind', v)}
                       isEditing={isEditing}
-                      options={KIND_OPTIONS}
-                      placeholder="Select kind..."
+                      options={kindOptions}
+                      placeholder={tf('kindPlaceholder')}
                     />
                     <ViewEditTextarea
-                      label="Description"
-                      value={
-                        isEditing
-                          ? element.description
-                          : currentElement.description
-                      }
-                      onChange={(v) => updateField('description', v)}
-                      isEditing={isEditing}
-                      className="md:col-span-2"
-                      rows={4}
-                    />
+                      label={tc('fields.description')}
                     {!isCreateMode && (
                       <ViewEditStatic
                         label="Part of"
+                        value={
+                          parent ? (
+                            <span className="flex items-center gap-2">
+                              <ItemLink
+                                itemType="SystemElement"
+                                itemId={parent.id}
+                                className="font-mono text-blue-600 hover:underline dark:text-blue-400"
+                              >
+                                {parent.itemNumber}
+                        label={td('partOf')}
                         value={
                           parent ? (
                             <span className="flex items-center gap-2">
@@ -603,7 +619,7 @@ export function SystemElementDetail({
                               </span>
                             </span>
                           ) : (
-                            'Top level — no element decomposes into this one'
+                            td('topLevelNoParent')
                           )
                         }
                       />
@@ -622,7 +638,7 @@ export function SystemElementDetail({
                           isCreateMode={isCreateMode}
                           selectedBranchId={selectedBranchId}
                           onBranchChange={setSelectedBranchId}
-                          itemLabel="system element"
+                          itemLabel={td('itemLabel')}
                         />
                       )}
                   </dl>
@@ -660,13 +676,13 @@ export function SystemElementDetail({
                 <Card>
                   <CardHeader>
                     <CollapsibleTrigger className="hover:opacity-70">
-                      <CardTitle>Metadata</CardTitle>
-                    </CollapsibleTrigger>
-                  </CardHeader>
-                  <CollapsibleContent>
-                    <CardContent className="space-y-3">
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
+                              ).toLocaleDateString()
+                            : '-'
+                        }
+                      />
                       <ViewEditStatic
-                        label="Created"
+                        label={tc('columns.created')}
                         value={
                           currentElement.createdAt
                             ? new Date(
@@ -676,7 +692,7 @@ export function SystemElementDetail({
                         }
                       />
                       <ViewEditStatic
-                        label="Last Modified"
+                        label={tp('programs.detail.lastModified')}
                         value={
                           currentElement.modifiedAt
                             ? new Date(
@@ -688,12 +704,12 @@ export function SystemElementDetail({
                       {!isCreateMode && (
                         <>
                           <ViewEditStatic
-                            label="Master ID"
+                            label={td('masterId')}
                             value={currentElement.masterId}
                             mono
                           />
                           <ViewEditStatic
-                            label="Element ID"
+                            label={td('elementId')}
                             value={currentElement.id}
                             mono
                           />
@@ -725,19 +741,7 @@ export function SystemElementDetail({
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-slate-500">
-                  Save the system element first to manage relationships
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {!isCreateMode && (
-          <TabsContent value="history" className="mt-6">
-            <ItemHistoryTab
-              itemId={currentElement.id!}
-              designId={currentElement.designId}
+                <p className="text-slate-500">{td('saveFirstRelationships')}</p>
               versionContext={context}
               onViewHistoricalState={setContext}
             />

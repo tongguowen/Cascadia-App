@@ -3,6 +3,7 @@
 
 import { ChevronDown, ChevronRight, Link2 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 
 import type { BOMTreeNode } from './types'
@@ -97,6 +98,7 @@ export function BomTreeView<T extends BOMTreeNode>({
   onColumnFilterChange,
   className,
 }: BomTreeViewProps<T>) {
+  const { t: tc } = useTranslation('common')
   // Column resize state — empty until first resize, then pixel widths
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>({})
   const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({})
@@ -172,7 +174,7 @@ export function BomTreeView<T extends BOMTreeNode>({
               <Checkbox
                 checked={isIndeterminate ? 'indeterminate' : isAllSelected}
                 onCheckedChange={() => onSelectAll?.()}
-                aria-label="Select all"
+                aria-label={tc('ui.bomTree.selectAll')}
                 className="h-3.5 w-3.5"
               />
             </div>
@@ -319,6 +321,7 @@ function BomTreeNodeGrid<T extends BOMTreeNode>({
   onCheckboxChange,
   isItemSelectable,
 }: BomTreeNodeGridProps<T>) {
+  const { t: tc } = useTranslation('common')
   const hasChildren = node.children && node.children.length > 0
   const isExpanded = expandedNodes.has(node.itemId)
   const indentSize = depth * indentPx
@@ -364,7 +367,9 @@ function BomTreeNodeGrid<T extends BOMTreeNode>({
             checked={isSelected}
             onCheckedChange={() => onCheckboxChange?.(node.itemId)}
             disabled={!isSelectable}
-            aria-label={`Select ${node.itemNumber}`}
+            aria-label={tc('ui.bomTree.selectItem', {
+              itemNumber: node.itemNumber,
+            })}
             className="h-3.5 w-3.5"
           />
         </div>
@@ -409,7 +414,9 @@ function BomTreeNodeGrid<T extends BOMTreeNode>({
                     <Badge
                       variant="outline"
                       className="text-xs text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600 flex-shrink-0"
-                      title={`From ${node.designName || node.designCode}`}
+                      title={tc('ui.bomTree.fromDesign', {
+                        design: node.designName || node.designCode,
+                      })}
                     >
                       <Link2 className="h-3 w-3 mr-1" />
                       {node.designCode}
@@ -515,6 +522,7 @@ function BomTreeNodeFlow<T extends BOMTreeNode>({
   indentPx,
   readOnly,
 }: BomTreeNodeFlowProps<T>) {
+  const { t: tc } = useTranslation('common')
   const hasChildren = node.children && node.children.length > 0
   const isExpanded = expandedNodes.has(node.itemId)
   const paddingLeft = depth * indentPx + 8
@@ -549,7 +557,9 @@ function BomTreeNodeFlow<T extends BOMTreeNode>({
             <Badge
               variant="outline"
               className="text-xs text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-600"
-              title={`From ${node.designName || node.designCode}`}
+              title={tc('ui.bomTree.fromDesign', {
+                design: node.designName || node.designCode,
+              })}
             >
               <Link2 className="h-3 w-3 mr-1" />
               {node.designCode}
@@ -560,7 +570,9 @@ function BomTreeNodeFlow<T extends BOMTreeNode>({
             {node.name}
           </span>
 
-          <span className="text-xs text-slate-500">Rev {node.revision}</span>
+          <span className="text-xs text-slate-500">
+            {tc('ui.bomTree.rev', { revision: node.revision ?? '' })}
+          </span>
 
           <StateBadge
             itemType={node.itemType}

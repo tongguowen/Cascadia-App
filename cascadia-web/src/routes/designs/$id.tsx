@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -105,6 +106,8 @@ function DesignDetailPage() {
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false)
   const [isMbomDialogOpen, setIsMbomDialogOpen] = useState(false)
   const [isGapAnalysisOpen, setIsGapAnalysisOpen] = useState(false)
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
 
   const { data: design } = useQuery(designDetailQuery(id))
   const { data: branches = [] } = useQuery(designBranchesQuery<Branch>(id))
@@ -186,7 +189,7 @@ function DesignDetailPage() {
 
   const handleArchive = () => {
     confirm({
-      title: 'Archive Design',
+      title: tc('confirm.archiveDesign'),
       description: `Are you sure you want to archive ${design.code}? The design will no longer appear in lists but data will be preserved.`,
       actionLabel: 'Archive',
       cancelLabel: 'Cancel',
@@ -201,7 +204,7 @@ function DesignDetailPage() {
           await invalidate('designs')
           navigate({ to: '/designs' })
         } catch (error) {
-          handleError(error, { title: 'Failed to archive design' })
+          handleError(error, { title: tp('designs.archiveFailed') })
         }
       },
     })
@@ -298,7 +301,7 @@ function DesignDetailPage() {
           className="w-full"
         >
           <TabsList className="w-fit">
-            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="members">{tc('tabs.members')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="members" className="mt-6">
@@ -317,11 +320,11 @@ function DesignDetailPage() {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="items">Items</TabsTrigger>
-            <TabsTrigger value="graph">Graph</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="ecos">Change Orders</TabsTrigger>
-            <TabsTrigger value="baselines">Baselines</TabsTrigger>
+            <TabsTrigger value="items">{tc('tabs.items')}</TabsTrigger>
+            <TabsTrigger value="graph">{tc('tabs.graph')}</TabsTrigger>
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+            <TabsTrigger value="ecos">{tc('tabs.changeOrders')}</TabsTrigger>
+            <TabsTrigger value="baselines">{tc('tabs.baselines')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="items" className="mt-6">
@@ -374,13 +377,17 @@ function DesignDetailPage() {
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="structure">Structure</TabsTrigger>
-            <TabsTrigger value="requirements">Requirements</TabsTrigger>
-            <TabsTrigger value="architecture">Architecture</TabsTrigger>
-            <TabsTrigger value="graph">Graph</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="ecos">Change Orders</TabsTrigger>
-            <TabsTrigger value="baselines">Baselines</TabsTrigger>
+            <TabsTrigger value="structure">{tc('tabs.structure')}</TabsTrigger>
+            <TabsTrigger value="requirements">
+              {tc('tabs.requirements')}
+            </TabsTrigger>
+            <TabsTrigger value="architecture">
+              {tc('tabs.architecture')}
+            </TabsTrigger>
+            <TabsTrigger value="graph">{tc('tabs.graph')}</TabsTrigger>
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+            <TabsTrigger value="ecos">{tc('tabs.changeOrders')}</TabsTrigger>
+            <TabsTrigger value="baselines">{tc('tabs.baselines')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="structure" className="mt-6 space-y-6">

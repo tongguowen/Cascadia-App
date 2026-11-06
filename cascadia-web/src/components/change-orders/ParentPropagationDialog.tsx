@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, ChevronRight, Loader2 } from 'lucide-react'
 import { formatRevision } from '@cascadia/commons/types/lifecycle'
@@ -52,6 +53,8 @@ export function ParentPropagationDialog({
   targetItem,
   onSuccess,
 }: ParentPropagationDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { alert } = useAlertDialog()
   const { handleError, showWarning } = useErrorHandler()
   const [loading, setLoading] = useState(true)
@@ -79,7 +82,7 @@ export function ParentPropagationDialog({
 
       setAncestors(response.data.ancestors)
     } catch (error) {
-      handleError(error, { title: 'Failed to load parent items' })
+      handleError(error, { title: tp('changeOrders.loadParentItemsFailedTitle') })
     } finally {
       setLoading(false)
     }
@@ -198,13 +201,13 @@ export function ParentPropagationDialog({
       })
 
       alert({
-        title: 'Items Added',
+        title: tc('errors.itemsAdded'),
         description: `${itemsToAdd.length} item(s) have been added to the change order.`,
       })
 
       onSuccess()
     } catch (error) {
-      handleError(error, { title: 'Failed to add items to the change order' })
+      handleError(error, { title: tp('changeOrders.addItemsFailedTitle') })
     } finally {
       setSubmitting(false)
     }
@@ -229,10 +232,11 @@ export function ParentPropagationDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Item with Parent Chain</DialogTitle>
+          <DialogTitle>{tc('dialogs.addItemWithParentChain.title')}</DialogTitle>
           <DialogDescription>
-            {targetItem.itemNumber} has parent assemblies. Select which parents
-            to include in this ECO.
+            {tc('dialogs.addItemWithParentChain.description', {
+              itemNumber: targetItem.itemNumber,
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -245,7 +249,7 @@ export function ParentPropagationDialog({
             {/* Target item */}
             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2">
-                <Badge variant="default">Target</Badge>
+                <Badge variant="default">{tc('badges.target')}</Badge>
                 <span className="font-semibold text-slate-900 dark:text-slate-100">
                   {targetItem.itemNumber}
                 </span>
@@ -341,10 +345,14 @@ export function ParentPropagationDialog({
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">
+                {tc('labels.descriptionOptional')}
+              </Label>
               <Textarea
                 id="description"
-                placeholder="Describe the change..."
+                placeholder={tp(
+                  'changeOrders.workflowEditor.propagationChangePlaceholder',
+                )}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}

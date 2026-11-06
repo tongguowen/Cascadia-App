@@ -8,6 +8,7 @@
  * and the directed relationship edge every other graph in the app uses.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Background,
   Controls,
@@ -185,6 +186,9 @@ export function ArchitectureGraphView({
   architecture,
 }: ArchitectureGraphViewProps) {
   const { theme } = useTheme()
+  const { t: tc } = useTranslation('common')
+  const graphT = (key: string, options?: Record<string, unknown>) =>
+    tc(`graphs.${key}`, options)
   const [showRequirements, setShowRequirements] = useState(false)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
@@ -203,15 +207,18 @@ export function ArchitectureGraphView({
   if (nodes.length === 0) {
     return (
       <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-        No system elements to draw at this context.
+        {graphT('architectureEmpty')}
       </div>
     )
   }
 
   return (
     <FullscreenGraphWrapper
-      title="Architecture Graph"
-      subtitle={`${nodes.length} item${nodes.length !== 1 ? 's' : ''}, ${edges.length} link${edges.length !== 1 ? 's' : ''}`}
+      title={graphT('architectureGraphTitle')}
+      subtitle={graphT('itemsAndLinksSubtitle', {
+        itemCount: nodes.length,
+        linkCount: edges.length,
+      })}
       inlineHeight="600px"
       headerControls={
         <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -221,16 +228,13 @@ export function ArchitectureGraphView({
             onChange={(event) => setShowRequirements(event.target.checked)}
             className="h-4 w-4"
           />
-          Show allocated requirements
+          {graphT('showAllocatedRequirements')}
         </label>
       }
       footer={
         <div className="text-sm text-slate-600 dark:text-slate-400">
           <EdgeDirectionLegend example="a System Element that Decomposes into a child points at the child, and one Realized by a Part points at the Part" />
-          <p className="mt-1 text-xs">
-            Use mouse wheel to zoom, drag to pan. Click item numbers to
-            navigate.
-          </p>
+          <p className="mt-1 text-xs">{graphT('architectureZoomHint')}</p>
         </div>
       }
     >

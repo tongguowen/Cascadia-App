@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { ArrowUpDown, Eye, EyeOff, Loader2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { CADCompareSlot } from './CADViewer'
 import type { ModelVersionEntry, ModelVersionFile } from '@/query'
 import {
@@ -163,6 +164,10 @@ function CompareSlot({
   versions: Array<ModelVersionEntry>
   onChange: (next: CompareSlotSelection) => void
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const cadT = (key: string, options?: Record<string, unknown>) =>
+    tp(`parts.detail.cad.${key}`, options)
   const { entry, file } = resolveSlot(versions, selection)
   const branchEntries = versions.filter((v) => v.kind === 'branch')
   const revisionEntries = versions.filter((v) => v.kind !== 'branch')
@@ -202,7 +207,7 @@ function CompareSlot({
           onChange={(color) => onChange({ ...selection, color })}
         />
         <span className="flex-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-          Side {slot}
+          {cadT('sideLabel', { slot })}
         </span>
         <Button
           variant="ghost"
@@ -227,7 +232,7 @@ function CompareSlot({
           className="w-full h-8 text-xs"
           data-testid={`cad-compare-version-${slot}`}
         >
-          <SelectValue placeholder="Pick a version…" />
+          <SelectValue placeholder={tc('placeholders.pickVersion')} />
         </SelectTrigger>
         <SelectContent>
           {branchEntries.length > 0 && (
@@ -286,7 +291,7 @@ function CompareSlot({
 
       <div className="flex items-center gap-2">
         <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
-          Opacity
+          {cadT('opacity')}
         </span>
         <input
           type="range"
@@ -299,7 +304,7 @@ function CompareSlot({
           }
           disabled={!selection.visible || file === null}
           className="flex-1 h-1.5 cursor-pointer accent-blue-500 disabled:opacity-40"
-          aria-label={`Side ${slot} opacity`}
+          aria-label={cadT('sideOpacityAria', { slot })}
         />
         <span className="w-8 text-right text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
           {Math.round(selection.opacity * 100)}%
@@ -328,6 +333,9 @@ export function CADComparePanel({
   onSwap,
   onClose,
 }: CADComparePanelProps) {
+  const { t: tp } = useTranslation('pages')
+  const cadT = (key: string, options?: Record<string, unknown>) =>
+    tp(`parts.detail.cad.${key}`, options)
   const withModels = versions.filter((v) => v.files.length > 0)
   const sameFile =
     a.fileId !== null && a.fileId === b.fileId
@@ -338,7 +346,7 @@ export function CADComparePanel({
     <div className="absolute bottom-4 right-4 z-20 w-80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-          Compare versions
+          {cadT('comparePanelTitle')}
         </p>
         <div className="flex items-center gap-1">
           <Button
@@ -346,7 +354,7 @@ export function CADComparePanel({
             size="icon"
             className="h-6 w-6"
             onClick={onSwap}
-            title="Swap sides A and B"
+            title={cadT('swapSidesTitle')}
           >
             <ArrowUpDown className="h-3.5 w-3.5" />
           </Button>
@@ -355,7 +363,7 @@ export function CADComparePanel({
             size="icon"
             className="h-6 w-6"
             onClick={onClose}
-            title="Close comparison"
+            title={cadT('closeCompareTitle')}
           >
             <X className="h-3.5 w-3.5" />
           </Button>
@@ -366,7 +374,7 @@ export function CADComparePanel({
         <div className="flex items-center gap-2 py-1">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Loading versions…
+            {cadT('loadingVersions')}
           </p>
         </div>
       ) : withModels.length === 0 ? (

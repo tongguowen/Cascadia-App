@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link2 } from 'lucide-react'
 import {
   catalogEntriesFrom,
@@ -39,7 +40,7 @@ import {
 import { useErrorHandler } from '@/hooks/useErrorHandler'
 import { apiFetch } from '@/api/client'
 import { useInvalidateResources } from '@/query'
-import { ITEM_TYPE_OPTIONS } from '@/items/item-type-ui'
+import { getItemTypeOptions } from '@/items/item-type-ui'
 import { StateBadge } from '@/components/items/StateBadge'
 import { cn } from '@/utils'
 
@@ -78,6 +79,8 @@ export function NewRelationshipTypeDialog({
   itemType: sourceItemType,
   onSuccess,
 }: NewRelationshipTypeDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError, showError } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [relationshipType, setRelationshipType] = useState('')
@@ -140,10 +143,10 @@ export function NewRelationshipTypeDialog({
   const isBom = finalType === BOM_RELATIONSHIP_TYPE
   const catalogedType = catalogEntry(finalType)
   const targetTypeOptions = catalogedType
-    ? ITEM_TYPE_OPTIONS.filter((option) =>
+    ? getItemTypeOptions().filter((option) =>
         catalogedType.targetTypes.includes(option.value),
       )
-    : ITEM_TYPE_OPTIONS
+    : getItemTypeOptions()
   const quantityInvalid = isBom
     ? !isValidQuantity(quantity)
     : quantity.trim() !== '' && !isValidQuantity(quantity)
@@ -184,7 +187,7 @@ export function NewRelationshipTypeDialog({
       setReferenceDesignator('')
       setFindNumber('')
     } catch (error) {
-      handleError(error, { title: 'Failed to add relationship' })
+      handleError(error, { title: tp('relationships.addFailedTitle') })
     } finally {
       setLoading(false)
     }
@@ -194,22 +197,24 @@ export function NewRelationshipTypeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto auto-hide-scroll">
         <DialogHeader>
-          <DialogTitle>Add New Relationship Type</DialogTitle>
+          <DialogTitle>{tc('dialogs.newRelationshipType.title')}</DialogTitle>
           <DialogDescription>
-            Create a new relationship type and add the first related item
+            {tc('dialogs.newRelationshipType.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Relationship Type Selection */}
           <div>
-            <Label>Relationship Type</Label>
+            <Label>{tp('relationships.relationshipType')}</Label>
             <Select
               value={relationshipType}
               onValueChange={(value) => applyType(value, customType)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select or create a type..." />
+                <SelectValue
+                  placeholder={tp('relationships.selectOrCreateTypePlaceholder')}
+                />
               </SelectTrigger>
               <SelectContent>
                 {catalogSuggestions.map((entry) => (
@@ -223,7 +228,9 @@ export function NewRelationshipTypeDialog({
                     {type}
                   </SelectItem>
                 ))}
-                <SelectItem value="custom">Custom Type...</SelectItem>
+                <SelectItem value="custom">
+                  {tp('relationships.customTypeOption')}
+                </SelectItem>
               </SelectContent>
             </Select>
             {catalogedType && (
@@ -238,11 +245,13 @@ export function NewRelationshipTypeDialog({
           {/* Custom Type Input */}
           {relationshipType === 'custom' && (
             <div>
-              <Label htmlFor="customType">Custom Relationship Type</Label>
+              <Label htmlFor="customType">
+                {tp('relationships.customRelationshipType')}
+              </Label>
               <Input
                 id="customType"
                 type="text"
-                placeholder="Enter custom type name..."
+                placeholder={tp('relationships.customTypeNamePlaceholder')}
                 value={customType}
                 onChange={(e) => applyType(relationshipType, e.target.value)}
               />
@@ -254,7 +263,7 @@ export function NewRelationshipTypeDialog({
             <BomScopeNotice scope={bomScope} />
           ) : (
             <div>
-              <Label>Target Item Type</Label>
+              <Label>{tp('relationships.targetItemType')}</Label>
               <Select value={itemType} onValueChange={setItemType}>
                 <SelectTrigger>
                   <SelectValue />
@@ -272,10 +281,10 @@ export function NewRelationshipTypeDialog({
 
           {/* Search Input */}
           <div>
-            <Label>Search Items</Label>
+            <Label>{tp('relationships.searchItems')}</Label>
             <Input
               type="text"
-              placeholder="Search by item number or name..."
+              placeholder={tc('placeholders.searchItemNumberOrName')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -374,18 +383,18 @@ export function NewRelationshipTypeDialog({
                 </div>
 
                 <div>
-                  <Label htmlFor="refDes">Ref Designator</Label>
+                  <Label htmlFor="refDes">{tc('fields.refDesignator')}</Label>
                   <Input
                     id="refDes"
                     type="text"
-                    placeholder="R1, C1"
+                    placeholder={tc('placeholders.referenceDesignatorExample')}
                     value={referenceDesignator}
                     onChange={(e) => setReferenceDesignator(e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="findNum">Find Number</Label>
+                  <Label htmlFor="findNum">{tc('fields.findNumber')}</Label>
                   <Input
                     id="findNum"
                     type="number"

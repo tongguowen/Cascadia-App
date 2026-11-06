@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, CheckCircle, Clock, RotateCcw, Save } from 'lucide-react'
 import type { ApiKeyPolicy } from '@cascadia/commons/auth/api-key-policy-types'
@@ -27,6 +28,8 @@ import { ApiError, apiFetch } from '@/api/client'
  * list above supports.
  */
 export function ApiKeyPolicyCard() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const { data, isPending } = useQuery(apiKeyPolicyQuery())
 
@@ -59,7 +62,7 @@ export function ApiKeyPolicyCard() {
       setStatus('success')
     } catch (err) {
       setErrorMessage(
-        err instanceof ApiError ? err.message : 'Failed to save policy',
+        err instanceof ApiError ? err.message : t('admin.apiKeys.policy.saveFailed'),
       )
       setStatus('error')
     } finally {
@@ -71,10 +74,12 @@ export function ApiKeyPolicyCard() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Expiration policy</CardTitle>
+          <CardTitle>{t('admin.apiKeys.policy.title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Loading policy…</p>
+          <p className="text-sm text-muted-foreground">
+            {t('admin.apiKeys.policy.loading')}
+          </p>
         </CardContent>
       </Card>
     )
@@ -85,22 +90,21 @@ export function ApiKeyPolicyCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Clock className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-          <CardTitle>Expiration policy</CardTitle>
+          <CardTitle>{t('admin.apiKeys.policy.title')}</CardTitle>
         </div>
-        <CardDescription>
-          Applied when a key is issued. Changing it never shortens a key already
-          in the field — revoke those explicitly.
-        </CardDescription>
+        <CardDescription>{t('admin.apiKeys.policy.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="default-days">Default lifetime (days)</Label>
+            <Label htmlFor="default-days">
+              {t('admin.apiKeys.policy.defaultLifetimeLabel')}
+            </Label>
             <Input
               id="default-days"
               type="number"
               min={1}
-              placeholder="No default"
+              placeholder={t('admin.apiKeys.policy.defaultLifetimePlaceholder')}
               value={policy.defaultExpirationDays ?? ''}
               onChange={(e) =>
                 update({
@@ -110,18 +114,19 @@ export function ApiKeyPolicyCard() {
               }
             />
             <p className="text-xs text-muted-foreground">
-              Used when a key is created without an explicit expiry. Blank means
-              no default.
+              {t('admin.apiKeys.policy.defaultLifetimeHelp')}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="max-days">Maximum lifetime (days)</Label>
+            <Label htmlFor="max-days">
+              {t('admin.apiKeys.policy.maxLifetimeLabel')}
+            </Label>
             <Input
               id="max-days"
               type="number"
               min={1}
-              placeholder="No ceiling"
+              placeholder={t('admin.apiKeys.policy.maxLifetimePlaceholder')}
               value={policy.maxExpirationDays ?? ''}
               onChange={(e) =>
                 update({
@@ -131,8 +136,7 @@ export function ApiKeyPolicyCard() {
               }
             />
             <p className="text-xs text-muted-foreground">
-              Requests beyond this are rejected, not silently clamped. Blank
-              means no ceiling.
+              {t('admin.apiKeys.policy.maxLifetimeHelp')}
             </p>
           </div>
         </div>
@@ -146,9 +150,11 @@ export function ApiKeyPolicyCard() {
             }
           />
           <div>
-            <Label htmlFor="require-expiration">Require an expiry</Label>
+            <Label htmlFor="require-expiration">
+              {t('admin.apiKeys.policy.requireExpiryLabel')}
+            </Label>
             <p className="text-xs text-muted-foreground">
-              Reject key creation that would produce a key that never expires.
+              {t('admin.apiKeys.policy.requireExpiryHelp')}
             </p>
           </div>
         </div>
@@ -162,14 +168,16 @@ export function ApiKeyPolicyCard() {
         {status === 'success' && (
           <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
             <CheckCircle className="w-4 h-4" />
-            Policy saved.
+            {t('admin.apiKeys.policy.saved')}
           </div>
         )}
 
         <div className="flex items-center gap-2">
           <Button onClick={handleSave} disabled={saving || draft === null}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving…' : 'Save policy'}
+            {saving
+              ? tc('actions.saving')
+              : t('admin.apiKeys.policy.savePolicy')}
           </Button>
           {draft !== null && (
             <Button
@@ -179,7 +187,7 @@ export function ApiKeyPolicyCard() {
                 setStatus('idle')
               }}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           )}
           {defaults && (
@@ -191,7 +199,7 @@ export function ApiKeyPolicyCard() {
               }}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Restore defaults
+              {t('admin.apiKeys.policy.restoreDefaults')}
             </Button>
           )}
         </div>

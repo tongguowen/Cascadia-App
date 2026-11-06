@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { fileCategoryLabel } from '@cascadia/commons/vault/file-categories'
@@ -42,6 +43,8 @@ export const Route = createFileRoute('/files/')({
 })
 
 function FilesListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -79,7 +82,7 @@ function FilesListPage() {
 
       downloadBlob(await response.blob(), file.originalFileName)
     } catch (error) {
-      handleError(error, { title: 'Failed to download file' })
+      handleError(error, { title: t('files.downloadFailed') })
     }
   }
 
@@ -95,7 +98,7 @@ function FilesListPage() {
       })
 
       showSuccess(
-        'Category updated',
+        t('files.categoryUpdated'),
         category === null
           ? `${file.originalFileName} is back to its auto-detected category`
           : `${file.originalFileName} is now tagged ${fileCategoryLabel(category)}`,
@@ -103,23 +106,25 @@ function FilesListPage() {
 
       await invalidate('files')
     } catch (error) {
-      handleError(error, { title: 'Failed to update category' })
+      handleError(error, { title: tc('dialog.failedGeneric') })
     }
   }
 
   const handleDelete = (file: FileRecordWithItem) => {
     if (file.isCheckedOut) {
       handleError(new Error('Cannot delete a file that is checked out'), {
-        title: 'Delete failed',
+        title: tc('dialog.failedDelete'),
       })
       return
     }
 
     confirm({
-      title: 'Delete File',
-      description: `Are you sure you want to delete "${file.originalFileName}"? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('files.deleteTitle'),
+      description: t('files.deleteDescription', {
+        fileName: file.originalFileName,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -128,13 +133,15 @@ function FilesListPage() {
           })
 
           showSuccess(
-            'File deleted',
-            `${file.originalFileName} has been deleted`,
+            t('files.deletedTitle'),
+            tc('dialog.deletedMessage', {
+              identifier: file.originalFileName,
+            }),
           )
 
           await invalidate('files')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete file' })
+          handleError(error, { title: tc('dialog.failedDelete') })
         }
       },
     })
@@ -159,10 +166,10 @@ function FilesListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Files
+            {t('files.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Browse all files in the vault
+            {t('files.subtitle')}
           </p>
         </div>
       </div>
@@ -171,25 +178,25 @@ function FilesListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total Files</CardDescription>
+            <CardDescription>{t('files.total')}</CardDescription>
             <CardTitle className="text-3xl">{totalFiles}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>CAD Models</CardDescription>
+            <CardDescription>{t('files.cadModels')}</CardDescription>
             <CardTitle className="text-3xl">{cadModels}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Drawings</CardDescription>
+            <CardDescription>{t('files.drawings')}</CardDescription>
             <CardTitle className="text-3xl">{drawings}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Documents</CardDescription>
+            <CardDescription>{t('files.documents')}</CardDescription>
             <CardTitle className="text-3xl">{documents}</CardTitle>
           </CardHeader>
         </Card>
@@ -198,9 +205,9 @@ function FilesListPage() {
       {/* Files Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Files</CardTitle>
+          <CardTitle>{t('files.tableTitle')}</CardTitle>
           <CardDescription>
-            {totalFiles} {totalFiles === 1 ? 'file' : 'files'} in the vault
+            {t('files.tableDescription', { count: totalFiles })}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Shield, Trash2, UserPlus } from 'lucide-react'
 import type {
@@ -48,11 +49,11 @@ import {
 } from '@/query'
 import { apiFetch } from '@/api/client'
 
-const ROLE_OPTIONS: Array<{ value: ProgramMemberRole; label: string }> = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'lead', label: 'Lead' },
-  { value: 'engineer', label: 'Engineer' },
-  { value: 'viewer', label: 'Viewer' },
+const ROLE_VALUES: Array<ProgramMemberRole> = [
+  'admin',
+  'lead',
+  'engineer',
+  'viewer',
 ]
 
 function roleVariant(
@@ -91,6 +92,16 @@ function flagBadge(label: string, on: boolean | null) {
  * every mutation is re-checked server-side by the members routes.
  */
 export function ProgramTeamCard({ program }: { program: Program }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const roleOptions = useMemo(
+    () =>
+      ROLE_VALUES.map((value) => ({
+        value,
+        label: tp(`programs.detail.team.roles.${value}`),
+      })),
+    [tp],
+  )
   const { data: members = [] } = useQuery(programMembersQuery(program.id))
   const { data: session } = useQuery(authSessionQuery())
   const { confirm } = useAlertDialog()
@@ -103,18 +114,21 @@ export function ProgramTeamCard({ program }: { program: Program }) {
   // A lead may add members but not mint admins — mirror the server rule so
   // the option is not offered and then rejected.
   const grantableRoles = isProgramAdmin
-    ? ROLE_OPTIONS
-    : ROLE_OPTIONS.filter((r) => r.value !== 'admin')
+    ? roleOptions
+    : roleOptions.filter((r) => r.value !== 'admin')
 
   const [addOpen, setAddOpen] = useState(false)
   const [editing, setEditing] = useState<ProgramMember | null>(null)
 
   const removeMember = (member: ProgramMember) => {
     confirm({
-      title: 'Remove member',
-      description: `Remove ${member.user.name ?? member.user.email} from ${program.code}? They will lose access to everything in this program.`,
-      actionLabel: 'Remove',
-      cancelLabel: 'Cancel',
+      title: tp('programs.detail.team.removeConfirmTitle'),
+      description: tp('programs.detail.team.removeConfirmDescription', {
+        name: member.user.name ?? member.user.email,
+        code: program.code,
+      }),
+      actionLabel: tp('programs.detail.team.removeAction'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -122,10 +136,17 @@ export function ProgramTeamCard({ program }: { program: Program }) {
             `/api/v1/programs/${program.id}/members/${member.userId}`,
             { method: 'DELETE' },
           )
-          showSuccess('Member removed', `${member.user.email} was removed`)
+          showSuccess(
+            tp('programs.detail.team.memberRemovedTitle'),
+            tp('programs.detail.team.memberRemovedDescription', {
+              email: member.user.email,
+            }),
+          )
           await invalidate('programs')
         } catch (error) {
-          handleError(error, { title: 'Failed to remove member' })
+          handleError(error, {
+            title: tp('programs.detail.team.removeFailedTitle'),
+          })
         }
       },
     })
@@ -135,16 +156,15 @@ export function ProgramTeamCard({ program }: { program: Program }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Team</CardTitle>
+          <CardTitle>{tp('programs.detail.team.title')}</CardTitle>
           <CardDescription>
-            {members.length} {members.length === 1 ? 'member' : 'members'} of
-            this program
+            {tp('programs.detail.team.memberCount', { count: members.length })}
           </CardDescription>
         </div>
         {canAddMembers && (
           <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Member
+            {tp('programs.detail.team.addMember')}
           </Button>
         )}
       </CardHeader>
@@ -152,14 +172,26 @@ export function ProgramTeamCard({ program }: { program: Program }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Permissions</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead>{tp('programs.detail.team.columns.member')}</TableHead>
+              <TableHead>{tp('programs.detail.team.columns.role')}</TableHead>
+              <TableHead>
+                {tp('programs.detail.team.columns.permissions')}
+              </TableHead>
+              <TableHead>{tp('programs.detail.team.columns.joined')}</TableHead>
               {isProgramAdmin && <TableHead className="w-24" />}
             </TableRow>
           </TableHeader>
           <TableBody>
+            {members.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={isProgramAdmin ? 5 : 4}
+                  className="text-center text-sm text-slate-500 dark:text-slate-400 py-8"
+                >
+                  {tp('programs.detail.team.empty')}
+                </TableCell>
+              </TableRow>
+            ) : null}
             {members.map((member) => (
               <TableRow key={member.id}>
                 <TableCell>
@@ -174,14 +206,23 @@ export function ProgramTeamCard({ program }: { program: Program }) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={roleVariant(member.role)}>
-                    {member.role}
+                    {tp(`programs.detail.team.roles.${member.role}`)}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {flagBadge('Create change orders', member.canCreateEco)}
-                    {flagBadge('Approve change orders', member.canApproveEco)}
-                    {flagBadge('Manage Designs', member.canManageDesigns)}
+                    {flagBadge(
+                      tp('programs.detail.team.flags.createEco'),
+                      member.canCreateEco,
+                    )}
+                    {flagBadge(
+                      tp('programs.detail.team.flags.approveEco'),
+                      member.canApproveEco,
+                    )}
+                    {flagBadge(
+                      tp('programs.detail.team.flags.manageDesigns'),
+                      member.canManageDesigns,
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-slate-500 dark:text-slate-400">
@@ -193,7 +234,7 @@ export function ProgramTeamCard({ program }: { program: Program }) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        title="Edit role & permissions"
+                        title={tp('programs.detail.team.editRoleTitle')}
                         onClick={() => setEditing(member)}
                       >
                         <Shield className="h-4 w-4" />
@@ -201,7 +242,7 @@ export function ProgramTeamCard({ program }: { program: Program }) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        title="Remove from program"
+                        title={tp('programs.detail.team.removeFromProgramTitle')}
                         onClick={() => removeMember(member)}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
@@ -250,6 +291,8 @@ function AddMemberDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
   // Only fetch the picker list once the dialog is opened by someone who may
@@ -273,13 +316,18 @@ function AddMemberDialog({
         method: 'POST',
         body: JSON.stringify({ userId, role }),
       })
-      showSuccess('Member added', 'The user now has access to this program')
+      showSuccess(
+        tp('programs.detail.team.addDialog.memberAddedTitle'),
+        tp('programs.detail.team.addDialog.memberAddedDescription'),
+      )
       setUserId('')
       setRole('engineer')
       onOpenChange(false)
       await invalidate('programs')
     } catch (error) {
-      handleError(error, { title: 'Failed to add member' })
+      handleError(error, {
+        title: tp('programs.detail.team.addDialog.addFailedTitle'),
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -289,15 +337,16 @@ function AddMemberDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add team member</DialogTitle>
+          <DialogTitle>{tp('programs.detail.team.addDialog.title')}</DialogTitle>
           <DialogDescription>
-            Grant a user access to {program.code}. Their program role sets the
-            default ECO and product permissions.
+            {tp('programs.detail.team.addDialog.description', {
+              code: program.code,
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>User</Label>
+            <Label>{tp('programs.detail.team.addDialog.user')}</Label>
             <SearchableSelect
               value={userId}
               onValueChange={setUserId}
@@ -305,13 +354,13 @@ function AddMemberDialog({
                 value: u.id,
                 label: u.name ? `${u.name} (${u.email})` : u.email,
               }))}
-              placeholder="Select a user…"
-              searchPlaceholder="Search users…"
-              emptyMessage="No users available to add."
+              placeholder={tp('programs.detail.team.addDialog.selectUser')}
+              searchPlaceholder={tp('programs.detail.team.addDialog.searchUsers')}
+              emptyMessage={tp('programs.detail.team.addDialog.noUsers')}
             />
           </div>
           <div className="space-y-2">
-            <Label>Program role</Label>
+            <Label>{tp('programs.detail.team.addDialog.programRole')}</Label>
             <Select
               value={role}
               onValueChange={(v) => setRole(v as ProgramMemberRole)}
@@ -331,10 +380,12 @@ function AddMemberDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleAdd} disabled={!userId || isSubmitting}>
-            {isSubmitting ? 'Adding…' : 'Add Member'}
+            {isSubmitting
+              ? tc('actions.adding')
+              : tp('programs.detail.team.addMember')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -351,8 +402,18 @@ function EditMemberDialog({
   member: ProgramMember
   onOpenChange: (open: boolean) => void
 }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { handleError, showSuccess } = useErrorHandler()
   const invalidate = useInvalidateResources()
+  const roleOptions = useMemo(
+    () =>
+      ROLE_VALUES.map((value) => ({
+        value,
+        label: tp(`programs.detail.team.roles.${value}`),
+      })),
+    [tp],
+  )
 
   const [role, setRole] = useState<ProgramMemberRole>(member.role)
   const [canCreateEco, setCanCreateEco] = useState(!!member.canCreateEco)
@@ -377,11 +438,18 @@ function EditMemberDialog({
           }),
         },
       )
-      showSuccess('Member updated', `${member.user.email} was updated`)
+      showSuccess(
+        tp('programs.detail.team.editDialog.memberUpdatedTitle'),
+        tp('programs.detail.team.editDialog.memberUpdatedDescription', {
+          email: member.user.email,
+        }),
+      )
       onOpenChange(false)
       await invalidate('programs')
     } catch (error) {
-      handleError(error, { title: 'Failed to update member' })
+      handleError(error, {
+        title: tp('programs.detail.team.editDialog.updateFailedTitle'),
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -393,17 +461,17 @@ function EditMemberDialog({
     set: (v: boolean) => void
   }> = [
     {
-      label: 'Can create change orders',
+      label: tp('programs.detail.team.editDialog.canCreateEco'),
       value: canCreateEco,
       set: setCanCreateEco,
     },
     {
-      label: 'Can approve change orders',
+      label: tp('programs.detail.team.editDialog.canApproveEco'),
       value: canApproveEco,
       set: setCanApproveEco,
     },
     {
-      label: 'Can manage designs',
+      label: tp('programs.detail.team.editDialog.canManageDesigns'),
       value: canManageDesigns,
       set: setCanManageDesigns,
     },
@@ -413,15 +481,16 @@ function EditMemberDialog({
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit team member</DialogTitle>
+          <DialogTitle>{tp('programs.detail.team.editDialog.title')}</DialogTitle>
           <DialogDescription>
-            {member.user.name ?? member.user.email} — changing the role resets
-            these permissions to the role's defaults unless you set them here.
+            {tp('programs.detail.team.editDialog.description', {
+              name: member.user.name ?? member.user.email,
+            })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Program role</Label>
+            <Label>{tp('programs.detail.team.addDialog.programRole')}</Label>
             <Select
               value={role}
               onValueChange={(v) => setRole(v as ProgramMemberRole)}
@@ -430,7 +499,7 @@ function EditMemberDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ROLE_OPTIONS.map((r) => (
+                {roleOptions.map((r) => (
                   <SelectItem key={r.value} value={r.value}>
                     {r.label}
                   </SelectItem>
@@ -457,10 +526,10 @@ function EditMemberDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSubmitting}>
-            {isSubmitting ? 'Saving…' : 'Save'}
+            {isSubmitting ? tc('actions.saving') : tc('actions.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

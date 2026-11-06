@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Input } from './Input'
 import { Textarea } from './Textarea'
 import {
@@ -185,12 +186,14 @@ export function ViewEditSelect({
   onChange,
   isEditing,
   options,
-  placeholder = 'Select...',
+  placeholder,
   emptyText = '-',
   className,
   required,
   'data-testid': testId,
 }: ViewEditSelectProps) {
+  const { t: tc } = useTranslation('common')
+  const selectPlaceholder = placeholder ?? tc('placeholders.selectGeneric')
   const selectedOption = options.find((opt) => opt.value === value)
   const labelId = React.useId()
 
@@ -206,7 +209,7 @@ export function ViewEditSelect({
         {isEditing ? (
           <Select value={value || ''} onValueChange={onChange}>
             <SelectTrigger className="w-full" aria-labelledby={labelId}>
-              <SelectValue placeholder={placeholder} />
+              <SelectValue placeholder={selectPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (
@@ -420,12 +423,14 @@ export function ViewEditBadge({
   isEditing,
   options,
   variant,
-  placeholder = 'Select...',
+  placeholder,
   emptyText = '-',
   readOnly = false,
   className,
   required,
 }: ViewEditBadgeProps) {
+  const { t: tc } = useTranslation('common')
+  const selectPlaceholder = placeholder ?? tc('placeholders.selectGeneric')
   const selectedOption = options.find((opt) => opt.value === value)
   const badgeVariant = variant ? variant(value || '') : 'default'
 
@@ -443,7 +448,7 @@ export function ViewEditBadge({
         {isEditing && !readOnly ? (
           <Select value={value || ''} onValueChange={onChange}>
             <SelectTrigger className="w-full" aria-labelledby={labelId}>
-              <SelectValue placeholder={placeholder} />
+              <SelectValue placeholder={selectPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {options.map((option) => (

@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import {
   ArrowLeft,
@@ -220,7 +221,7 @@ function WorkInstructionDetailView({
             ? "This work instruction's design has no main branch, so there is nowhere to hold the edit lock."
             : 'This work instruction has no output part, so it does not belong to a design yet. Attach the part it builds and set it as the output part.',
         ),
-        { title: 'Cannot edit' },
+        { title: tc('errors.cannotEdit') },
       )
       return
     }
@@ -231,7 +232,7 @@ function WorkInstructionDetailView({
         body: JSON.stringify({ branchId: ctx.lockBranchId }),
       })
     } catch (error) {
-      handleError(error, { title: 'Cannot edit work instruction' })
+      handleError(error, { title: tp('workInstructions.detail.cannotEditTitle') })
       void loadEditContext()
       return
     }
@@ -331,7 +332,7 @@ function WorkInstructionDetailView({
       await handleStopEditing()
       await invalidate('work-instructions')
     } catch (error) {
-      handleError(error, { title: 'Failed to update work instruction' })
+      handleError(error, { title: tp('workInstructions.detail.updateFailedTitle') })
     } finally {
       setIsSubmitting(false)
     }
@@ -341,10 +342,12 @@ function WorkInstructionDetailView({
     if (!workInstruction.id) return
 
     confirm({
-      title: 'Delete Work Instruction',
-      description: `Are you sure you want to delete ${workInstruction.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('workInstructions.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: workInstruction.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -359,7 +362,7 @@ function WorkInstructionDetailView({
           await invalidate('work-instructions')
           navigate({ to: '/work-instructions' })
         } catch (error) {
-          handleError(error, { title: 'Failed to delete work instruction' })
+          handleError(error, { title: tp('workInstructions.detail.deleteFailedTitle') })
         }
       },
     })
@@ -422,7 +425,7 @@ function WorkInstructionDetailView({
       try {
         await addStep.mutateAsync(stepData)
       } catch (error) {
-        handleError(error, { title: 'Failed to add step' })
+        handleError(error, { title: tp('workInstructions.detail.addStepFailedTitle') })
       }
     },
     [addStep.mutateAsync, handleError],
@@ -433,7 +436,7 @@ function WorkInstructionDetailView({
       try {
         await updateStep.mutateAsync({ stepId, data })
       } catch (error) {
-        handleError(error, { title: 'Failed to update step' })
+        handleError(error, { title: tp('workInstructions.detail.updateStepFailedTitle') })
       }
     },
     [updateStep.mutateAsync, handleError],
@@ -442,21 +445,21 @@ function WorkInstructionDetailView({
   const handleDeleteStep = useCallback(
     (stepId: string) => {
       confirm({
-        title: 'Delete Step',
-        description: 'Are you sure you want to delete this step?',
-        actionLabel: 'Delete',
-        cancelLabel: 'Cancel',
+        title: twi('deleteStepTitle'),
+        description: twi('deleteStepDescription'),
+        actionLabel: tc('actions.delete'),
+        cancelLabel: tc('actions.cancel'),
         variant: 'destructive',
         onConfirm: async () => {
           try {
             await deleteStep.mutateAsync(stepId)
           } catch (error) {
-            handleError(error, { title: 'Failed to delete step' })
+            handleError(error, { title: tp('workInstructions.detail.deleteStepFailedTitle') })
           }
         },
       })
     },
-    [deleteStep.mutateAsync, handleError, confirm],
+    [deleteStep.mutateAsync, handleError, confirm, twi, tc],
   )
 
   const handleReorderSteps = useCallback(
@@ -464,7 +467,7 @@ function WorkInstructionDetailView({
       try {
         await reorderSteps.mutateAsync(reorderedSteps)
       } catch (error) {
-        handleError(error, { title: 'Failed to reorder steps' })
+        handleError(error, { title: tp('workInstructions.detail.reorderStepsFailedTitle') })
       }
     },
     [reorderSteps.mutateAsync, handleError],
@@ -480,7 +483,7 @@ function WorkInstructionDetailView({
       }),
     invalidates: ['work-instructions'],
     onError: (error) =>
-      handleError(error, { title: 'Failed to add operation' }),
+      handleError(error, { title: tp('workInstructions.detail.addOperationFailedTitle') }),
   })
 
   const formatTime = (minutes?: number) => {
@@ -521,7 +524,7 @@ function WorkInstructionDetailView({
                   editContext.branchType !== 'main' && (
                     <Badge variant="secondary" className="text-xs">
                       <GitBranch className="h-3 w-3 mr-1" />
-                      Working copy
+                      {twi('workingCopy')}
                     </Badge>
                   )}
                 {editContext?.checkedOutBy && (
@@ -531,13 +534,13 @@ function WorkInstructionDetailView({
                   >
                     <Lock className="h-3 w-3 mr-1" />
                     {heldByMe
-                      ? 'Checked out by you'
-                      : `Checked out by ${lockHolderLabel}`}
+                      ? twi('checkedOutByYou')
+                      : twi('checkedOutBy', { name: lockHolderLabel })}
                   </Badge>
                 )}
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                {workInstruction.name || 'Untitled Work Instruction'}
+                {workInstruction.name || twi('untitled')}
               </p>
             </div>
           </div>
@@ -549,13 +552,13 @@ function WorkInstructionDetailView({
           >
             <Button variant="outline">
               <PlayCircle className="h-4 w-4 mr-2" />
-              Present
+              {tc('actions.present')}
             </Button>
           </Link>
           {isEditing ? (
             <Button variant="outline" onClick={() => void handleStopEditing()}>
               <Check className="h-4 w-4 mr-2" />
-              Done Editing
+              {twi('doneEditing')}
             </Button>
           ) : (
             <Button
@@ -564,21 +567,21 @@ function WorkInstructionDetailView({
               disabled={lockedByOther || editContext?.isBranchLocked}
               title={
                 lockedByOther
-                  ? `Checked out by ${lockHolderLabel}`
+                  ? twi('checkedOutBy', { name: lockHolderLabel })
                   : editContext?.isBranchLocked
-                    ? 'Branch is locked (ECO submitted for approval)'
+                    ? twi('branchLockedTitle')
                     : undefined
               }
             >
               {editContext?.isMainProtected && !editContext.lockBranchId ? (
                 <>
                   <GitBranch className="h-4 w-4 mr-2" />
-                  Revise
+                  {tc('actions.revise')}
                 </>
               ) : (
                 <>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {tc('actions.edit')}
                 </>
               )}
             </Button>
@@ -603,11 +606,13 @@ function WorkInstructionDetailView({
         }
       >
         <TabsList>
-          <TabsTrigger value="steps">Steps ({steps.length})</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="parts">Attached Parts</TabsTrigger>
+          <TabsTrigger value="steps">
+            {twi('tabs.steps', { count: steps.length })}
+          </TabsTrigger>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          <TabsTrigger value="parts">{twi('tabs.attachedParts')}</TabsTrigger>
           <TabsTrigger value="alerts" className="relative">
-            Alerts
+            {twi('tabs.alerts')}
             {pendingAlertCount > 0 && (
               <Badge
                 variant="warning"
@@ -617,7 +622,7 @@ function WorkInstructionDetailView({
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="usage">Used By</TabsTrigger>
+          <TabsTrigger value="usage">{twi('tabs.usedBy')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="steps" className="mt-6">
@@ -636,7 +641,7 @@ function WorkInstructionDetailView({
                   onDeleteStep={handleDeleteStep}
                   onReorderSteps={handleReorderSteps}
                   onError={(error) =>
-                    handleError(error, { title: 'Operation error' })
+                    handleError(error, { title: tp('workInstructions.detail.operationErrorTitle') })
                   }
                   onSuccess={(message) => showSuccess('Success', message)}
                   isLoading={isSubmitting}
@@ -650,7 +655,7 @@ function WorkInstructionDetailView({
                   onDeleteStep={handleDeleteStep}
                   onReorderSteps={handleReorderSteps}
                   onError={(error) =>
-                    handleError(error, { title: 'Step error' })
+                    handleError(error, { title: tp('workInstructions.detail.stepErrorTitle') })
                   }
                 />
               )}
@@ -658,13 +663,13 @@ function WorkInstructionDetailView({
               {!hasOperations && steps.length > 0 && (
                 <div className="mt-4 text-center">
                   <p className="text-sm text-slate-500">
-                    Want to organize steps into operations?{' '}
+                    {twi('organizeHint')}{' '}
                     <button
                       className="text-sky-600 dark:text-sky-400 hover:underline"
                       disabled={addFirstOperation.isPending}
                       onClick={() => addFirstOperation.mutate()}
                     >
-                      Add an operation
+                      {twi('addOperation')}
                     </button>
                   </p>
                 </div>
@@ -679,10 +684,8 @@ function WorkInstructionDetailView({
           {isEditing ? (
             <Card>
               <CardHeader>
-                <CardTitle>Edit Work Instruction</CardTitle>
-                <CardDescription>
-                  Update the work instruction details
-                </CardDescription>
+                <CardTitle>{twi('editCardTitle')}</CardTitle>
+                <CardDescription>{twi('editCardDescription')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <WorkInstructionForm
@@ -697,26 +700,28 @@ function WorkInstructionDetailView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Basic Information</CardTitle>
+                  <CardTitle>{twi('basicInformation')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      Work Instruction Number
+                      {twi('instructionNumber')}
                     </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {workInstruction.itemNumber}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-slate-500">Name</dt>
+                    <dt className="text-sm font-medium text-slate-500">
+                      {tc('fields.name')}
+                    </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {workInstruction.name || '-'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      Revision
+                      {tc('fields.revision')}
                     </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {workInstruction.revision}
@@ -724,7 +729,7 @@ function WorkInstructionDetailView({
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      State
+                      {tc('labels.state')}
                     </dt>
                     <dd className="mt-1">
                       <StateBadge
@@ -738,12 +743,12 @@ function WorkInstructionDetailView({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Procedure Information</CardTitle>
+                  <CardTitle>{twi('procedureInformation')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      Estimated Time
+                      {twi('estimatedTime')}
                     </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {formatTime(workInstruction.estimatedTime)}
@@ -751,7 +756,7 @@ function WorkInstructionDetailView({
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      Difficulty
+                      {twi('difficulty')}
                     </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {workInstruction.difficulty || '-'}
@@ -759,7 +764,7 @@ function WorkInstructionDetailView({
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-slate-500">
-                      Required Tools
+                      {twi('requiredTools')}
                     </dt>
                     <dd className="mt-1 text-slate-900 dark:text-white">
                       {workInstruction.requiredTools || '-'}
@@ -771,7 +776,7 @@ function WorkInstructionDetailView({
               {workInstruction.description && (
                 <Card className="md:col-span-2">
                   <CardHeader>
-                    <CardTitle>Description</CardTitle>
+                    <CardTitle>{tc('fields.description')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
@@ -785,7 +790,7 @@ function WorkInstructionDetailView({
                 <Card className="md:col-span-2">
                   <CardHeader>
                     <CardTitle className="text-amber-600 dark:text-amber-400">
-                      Safety Notes
+                      {twi('safetyNotes')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -804,7 +809,7 @@ function WorkInstructionDetailView({
             workInstructionId={workInstruction.id ?? ''}
             readOnly={!isEditing}
             onError={(error) =>
-              handleError(error, { title: 'Part attachment error' })
+              handleError(error, { title: tp('workInstructions.detail.partAttachmentErrorTitle') })
             }
             onSuccess={(message) => showSuccess('Success', message)}
           />
@@ -813,15 +818,7 @@ function WorkInstructionDetailView({
         <TabsContent value="alerts" className="mt-6">
           <ChangeAlertPanel
             workInstructionId={workInstruction.id ?? ''}
-            onError={(error) => handleError(error, { title: 'Alert error' })}
-            onSuccess={(message) => showSuccess('Success', message)}
-          />
-        </TabsContent>
-
-        <TabsContent value="usage" className="mt-6">
-          <UsageTab workInstructionId={workInstruction.id ?? ''} />
-        </TabsContent>
-      </Tabs>
+            onError={(error) => handleError(error, { title: tp('workInstructions.detail.alertErrorTitle') })}
 
       {workInstruction.id && workInstruction.designId && (
         <CheckoutDialog
@@ -898,6 +895,15 @@ function ReadOnlyStepsView({
             No steps yet. Click Edit to start authoring this work instruction.
           </p>
         </CardContent>
+  const { t: tp } = useTranslation('pages')
+  const twi = (key: string) => tp(`workInstructions.detail.${key}`)
+
+  if (steps.length === 0 && operations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-slate-500">{twi('noStepsYet')}</p>
+        </CardContent>
       </Card>
     )
   }
@@ -949,7 +955,7 @@ function ReadOnlyStepsView({
             {(stepsByOperation.get(op.id) ?? []).length > 0 ? (
               (stepsByOperation.get(op.id) ?? []).map(renderStep)
             ) : (
-              <p className="text-sm text-slate-500">No steps</p>
+              <p className="text-sm text-slate-500">{twi('noSteps')}</p>
             )}
           </CardContent>
         </Card>
@@ -958,15 +964,7 @@ function ReadOnlyStepsView({
         <Card>
           {sortedOps.length > 0 && (
             <CardHeader>
-              <CardTitle className="text-base">Other Steps</CardTitle>
-            </CardHeader>
-          )}
-          <CardContent className={sortedOps.length > 0 ? '' : 'pt-6'}>
-            {ungrouped.map(renderStep)}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+              <CardTitle className="text-base">{twi('otherSteps')}</CardTitle>
   )
 }
 
@@ -1007,7 +1005,17 @@ function UsageTab({ workInstructionId }: { workInstructionId: string }) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">Loading usage...</p>
+  const { t: tp } = useTranslation('pages')
+  const twi = (key: string) => tp(`workInstructions.detail.${key}`)
+  const { data: usage = [], isPending: loading } = useQuery(
+    workInstructionUsageQuery<TemplateUsageRow>(workInstructionId),
+  )
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-slate-500">{twi('loadingUsage')}</p>
         </CardContent>
       </Card>
     )
@@ -1016,21 +1024,18 @@ function UsageTab({ workInstructionId }: { workInstructionId: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Used By Work Orders</CardTitle>
-        <CardDescription>
-          Work orders carry frozen copies of this template on their travelers —
-          executions are recorded there, not on the template
-        </CardDescription>
+        <CardTitle>{twi('usedByTitle')}</CardTitle>
+        <CardDescription>{twi('usedByDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
         {usage.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Work Order</TableHead>
-                <TableHead>Snapshot Taken</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{twi('tableWorkOrder')}</TableHead>
+                <TableHead>{twi('tableSnapshotTaken')}</TableHead>
+                <TableHead>{twi('tableProgress')}</TableHead>
+                <TableHead>{twi('tableStatus')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1071,13 +1076,4 @@ function UsageTab({ workInstructionId }: { workInstructionId: string }) {
             </TableBody>
           </Table>
         ) : (
-          <p className="text-slate-500 text-center py-8">
-            Not used by any work order yet. Attach this template to parts, and
-            work orders building those parts will pick it up when populating
-            their travelers.
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
+          <p className="text-slate-500 text-center py-8">{twi('noUsage')}</p>

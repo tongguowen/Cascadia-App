@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRight, Check, Info, Sparkles } from 'lucide-react'
 import {
   BOM_FIELDS,
@@ -45,6 +46,7 @@ export function ColumnMappingStep({
   mappings,
   onMappingsChange,
 }: ColumnMappingStepProps) {
+  const { t: tp } = useTranslation('pages')
   const config = getImportConfig(itemType)
   const itemFields = getFieldsForType(itemType)
 
@@ -113,10 +115,10 @@ export function ColumnMappingStep({
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Map columns to fields
+          {tp('import.columnMapping.title')}
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Review auto-detected mappings and adjust as needed
+          {tp('import.columnMapping.subtitle')}
         </p>
       </div>
 
@@ -125,13 +127,15 @@ export function ColumnMappingStep({
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
           <span className="text-slate-600 dark:text-slate-400">
-            {stats.autoDetected} auto-detected
+            {tp('import.columnMapping.autoDetected', {
+              count: stats.autoDetected,
+            })}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
           <span className="text-slate-600 dark:text-slate-400">
-            {stats.totalMapped} mapped
+            {tp('import.columnMapping.mapped', { count: stats.totalMapped })}
           </span>
         </div>
       </div>
@@ -142,7 +146,9 @@ export function ColumnMappingStep({
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             <span className="text-sm text-amber-800 dark:text-amber-200">
-              Required fields not mapped: {missingFields.join(', ')}
+              {tp('import.columnMapping.requiredNotMapped', {
+                fields: missingFields.join(', '),
+              })}
             </span>
           </div>
         </div>
@@ -155,9 +161,9 @@ export function ColumnMappingStep({
             <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div>
               <span className="text-sm text-blue-800 dark:text-blue-200">
-                {unmappedForAttributes.length} unmapped column
-                {unmappedForAttributes.length > 1 ? 's' : ''} will become custom
-                attributes:
+                {tp('import.columnMapping.unmappedAttributes', {
+                  count: unmappedForAttributes.length,
+                })}
               </span>
               <div className="flex flex-wrap gap-1 mt-2">
                 {unmappedForAttributes.map(({ sourceColumn, attributeKey }) => (
@@ -181,14 +187,14 @@ export function ColumnMappingStep({
           <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
             <tr>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-600 dark:text-slate-400 w-1/3">
-                Source Column
+                {tp('import.columnMapping.sourceColumn')}
               </th>
               <th className="px-2 py-3 w-10"></th>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-600 dark:text-slate-400 w-1/3">
-                Target Field
+                {tp('import.columnMapping.targetField')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-slate-600 dark:text-slate-400">
-                Sample Data
+                {tp('import.columnMapping.sampleData')}
               </th>
             </tr>
           </thead>
@@ -219,7 +225,7 @@ export function ColumnMappingStep({
                       {mapping.confidence >= 0.8 && mapping.targetField && (
                         <Badge variant="secondary" className="text-xs">
                           <Sparkles className="h-3 w-3 mr-1" />
-                          Auto
+                          {tp('import.columnMapping.autoBadge')}
                         </Badge>
                       )}
                     </div>
@@ -245,12 +251,14 @@ export function ColumnMappingStep({
                       <SelectContent>
                         <SelectItem value="skip">
                           <span className="text-slate-400">
-                            Skip this column
+                            {tp('import.columnMapping.skipColumn')}
                           </span>
                         </SelectItem>
                         <SelectGroup>
                           <SelectLabel>
-                            {config.singularLabel} Fields
+                            {tp('import.columnMapping.fieldsGroup', {
+                              label: config.singularLabel,
+                            })}
                           </SelectLabel>
                           {availableItemFields.map((field) => (
                             <SelectItem key={field.field} value={field.field}>
@@ -261,12 +269,12 @@ export function ColumnMappingStep({
                                     variant="destructive"
                                     className="text-xs"
                                   >
-                                    Required
+                                    {tp('import.columnMapping.required')}
                                   </Badge>
                                 )}
                                 {field.autoGenerate && (
                                   <Badge variant="outline" className="text-xs">
-                                    Auto
+                                    {tp('import.columnMapping.autoBadge')}
                                   </Badge>
                                 )}
                               </div>
@@ -275,7 +283,9 @@ export function ColumnMappingStep({
                         </SelectGroup>
                         {config.supportsBom && bomFields.length > 0 && (
                           <SelectGroup>
-                            <SelectLabel>BOM Fields</SelectLabel>
+                            <SelectLabel>
+                              {tp('import.columnMapping.bomFields')}
+                            </SelectLabel>
                             {bomFields.map((field) => (
                               <SelectItem key={field.field} value={field.field}>
                                 <div className="flex items-center gap-2">
@@ -295,7 +305,9 @@ export function ColumnMappingStep({
                     {fieldConfig?.type === 'enum' &&
                       sampleValue !== undefined && (
                         <span className="text-xs text-slate-400">
-                          Expected: {fieldConfig.enumValues?.join(', ')}
+                          {tp('import.columnMapping.expected', {
+                            values: fieldConfig.enumValues?.join(', '),
+                          })}
                         </span>
                       )}
                   </td>
@@ -308,19 +320,21 @@ export function ColumnMappingStep({
 
       {/* Field Legend */}
       <div className="text-sm text-slate-600 dark:text-slate-400">
-        <p className="font-medium mb-2">Field types:</p>
+        <p className="font-medium mb-2">
+          {tp('import.columnMapping.fieldTypesTitle')}
+        </p>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <Badge variant="destructive" className="text-xs">
-              Required
+              {tp('import.columnMapping.required')}
             </Badge>
-            <span>Must be mapped</span>
+            <span>{tp('import.columnMapping.mustBeMapped')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
-              Auto
+              {tp('import.columnMapping.autoBadge')}
             </Badge>
-            <span>Auto-generated if not provided</span>
+            <span>{tp('import.columnMapping.autoGeneratedHint')}</span>
           </div>
         </div>
       </div>

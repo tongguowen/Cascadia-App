@@ -4,6 +4,7 @@
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { GitBranch, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { DirectionMode } from './types'
 import type { useRelationshipGraph } from './useRelationshipGraph'
 import { EdgeDirectionLegend } from '@/components/graph/EdgeDirectionLegend'
@@ -28,6 +29,10 @@ export function GraphView({
   graph: ReturnType<typeof useRelationshipGraph>
   theme: 'light' | 'dark'
 }) {
+  const { t: tc } = useTranslation('common')
+  const graphT = (key: string, options?: Record<string, unknown>) =>
+    tc(`graphs.${key}`, options)
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -36,7 +41,7 @@ export function GraphView({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm text-slate-600 dark:text-slate-400">
-                Mode:
+                {graphT('modeLabel')}
               </label>
               <select
                 value={graph.direction}
@@ -46,14 +51,14 @@ export function GraphView({
                 disabled={graph.loading}
                 className="text-sm rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value="all">All relationships</option>
-                <option value="outgoing">Uses (outgoing)</option>
-                <option value="incoming">Where-used (incoming)</option>
+                <option value="all">{graphT('filterAllRelationships')}</option>
+                <option value="outgoing">{graphT('filterOutgoing')}</option>
+                <option value="incoming">{graphT('filterIncoming')}</option>
               </select>
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-slate-600 dark:text-slate-400">
-                Depth:
+                {graphT('depthLabel')}
               </label>
               <select
                 value={graph.depth}
@@ -61,12 +66,12 @@ export function GraphView({
                 disabled={graph.loading}
                 className="text-sm rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               >
-                <option value={0}>This item only</option>
-                <option value={1}>1 level</option>
-                <option value={2}>2 levels</option>
-                <option value={3}>3 levels</option>
-                <option value={4}>4 levels</option>
-                <option value={5}>5 levels</option>
+                <option value={0}>{graphT('thisItemOnly')}</option>
+                {[1, 2, 3, 4, 5].map((level) => (
+                  <option key={level} value={level}>
+                    {graphT('depthLevel', { count: level })}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -154,7 +159,7 @@ export function GraphView({
         ) : graph.loading && graph.nodes.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-slate-500">
             <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-            Loading graph...
+            {graphT('loadingRelationship')}
           </div>
         ) : graph.nodes.length === 0 ? (
           <div className="text-center py-8">

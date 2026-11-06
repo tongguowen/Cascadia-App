@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { z } from 'zod'
@@ -26,6 +27,8 @@ export const Route = createFileRoute('/parts/new')({
 })
 
 function NewPartPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess, showWarning } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -79,7 +82,7 @@ function NewPartPage() {
       // Navigate to the new part's detail page
       navigate({ to: '/parts/$id', params: { id: itemId } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create part' })
+      handleError(error, { title: tp('parts.form.createFailedTitle') })
       throw error // Re-throw so PartDetail knows save failed
     } finally {
       setIsSubmitting(false)

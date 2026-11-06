@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useForm } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import {
   workInstructionEditSchema,
   workInstructionSchema,
@@ -42,6 +43,8 @@ export function WorkInstructionForm({
   isSubmitting,
   showOutputPart = false,
 }: WorkInstructionFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const form = useForm({
     defaultValues: {
       itemType: 'WorkInstruction' as const,
@@ -94,7 +97,7 @@ export function WorkInstructionForm({
           {(field) => (
             <ItemNumberField
               itemType="WorkInstruction"
-              label="Work Instruction Number"
+              label={tp('workInstructions.form.instructionNumber')}
               name={field.name}
               value={field.state.value}
               onChange={field.handleChange}
@@ -108,7 +111,7 @@ export function WorkInstructionForm({
         <form.Field name="name">
           {(field) => (
             <FormField
-              label="Work Instruction Name"
+              label={tp('workInstructions.form.instructionName')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -117,7 +120,7 @@ export function WorkInstructionForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Assembly Procedure for Motor Housing"
+                placeholder={tp('workInstructions.form.namePlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -142,7 +145,7 @@ export function WorkInstructionForm({
         <form.Field name="description">
           {(field) => (
             <FormField
-              label="Description"
+              label={tc('fields.description')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -151,7 +154,7 @@ export function WorkInstructionForm({
                 value={field.state.value || ''}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Brief summary of the work instruction..."
+                placeholder={tp('workInstructions.form.descriptionPlaceholder')}
                 rows={3}
                 error={!!field.state.meta.errors.length}
               />
@@ -162,7 +165,7 @@ export function WorkInstructionForm({
         {/* State */}
         <form.Field name="state">
           {(field) => (
-            <FormField label="State" error={field.state.meta.errors[0]}>
+            <FormField label={tc('columns.state')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(value) => field.handleChange(value)}
@@ -171,11 +174,21 @@ export function WorkInstructionForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="InReview">In Review</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Released">Released</SelectItem>
-                  <SelectItem value="Obsolete">Obsolete</SelectItem>
+                  <SelectItem value="Draft">
+                    {tc('enum.workInstructionState.Draft')}
+                  </SelectItem>
+                  <SelectItem value="InReview">
+                    {tc('enum.workInstructionState.InReview')}
+                  </SelectItem>
+                  <SelectItem value="Approved">
+                    {tc('enum.workInstructionState.Approved')}
+                  </SelectItem>
+                  <SelectItem value="Released">
+                    {tc('enum.workInstructionState.Released')}
+                  </SelectItem>
+                  <SelectItem value="Obsolete">
+                    {tc('enum.workInstructionState.Obsolete')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -185,7 +198,7 @@ export function WorkInstructionForm({
         {/* Difficulty */}
         <form.Field name="difficulty">
           {(field) => (
-            <FormField label="Difficulty" error={field.state.meta.errors[0]}>
+            <FormField label={tc('columns.difficulty')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value || ''}
                 onValueChange={(value) =>
@@ -193,12 +206,18 @@ export function WorkInstructionForm({
                 }
               >
                 <SelectTrigger error={!!field.state.meta.errors.length}>
-                  <SelectValue placeholder="Select difficulty" />
+                  <SelectValue placeholder={tp('workInstructions.form.selectDifficulty')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Easy">Easy</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Hard">Hard</SelectItem>
+                  <SelectItem value="Easy">
+                    {tc('enum.workInstructionDifficulty.Easy')}
+                  </SelectItem>
+                  <SelectItem value="Medium">
+                    {tc('enum.workInstructionDifficulty.Medium')}
+                  </SelectItem>
+                  <SelectItem value="Hard">
+                    {tc('enum.workInstructionDifficulty.Hard')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -209,7 +228,7 @@ export function WorkInstructionForm({
         <form.Field name="estimatedTime">
           {(field) => (
             <FormField
-              label="Estimated Time (minutes)"
+              label={tp('workInstructions.form.estimatedTime')}
               error={field.state.meta.errors[0]}
             >
               <Input
@@ -222,7 +241,7 @@ export function WorkInstructionForm({
                 onBlur={field.handleBlur}
                 type="number"
                 min="0"
-                placeholder="30"
+                placeholder={tp('workInstructions.form.estimatedTimePlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -233,7 +252,7 @@ export function WorkInstructionForm({
         <form.Field name="requiredTools">
           {(field) => (
             <FormField
-              label="Required Tools"
+              label={tp('workInstructions.form.requiredTools')}
               error={field.state.meta.errors[0]}
             >
               <Input
@@ -241,7 +260,7 @@ export function WorkInstructionForm({
                 value={field.state.value || ''}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Screwdriver, Torque wrench, Safety glasses"
+                placeholder={tp('workInstructions.form.requiredToolsPlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -252,7 +271,7 @@ export function WorkInstructionForm({
         <form.Field name="safetyNotes">
           {(field) => (
             <FormField
-              label="Safety Notes"
+              label={tp('workInstructions.form.safetyNotes')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -261,7 +280,7 @@ export function WorkInstructionForm({
                 value={field.state.value || ''}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Important safety considerations for this procedure..."
+                placeholder={tp('workInstructions.form.safetyNotesPlaceholder')}
                 rows={3}
                 error={!!field.state.meta.errors.length}
               />
@@ -279,15 +298,15 @@ export function WorkInstructionForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : workInstruction?.id
-              ? 'Update Work Instruction'
-              : 'Create Work Instruction'}
+              ? tp('workInstructions.form.updateSubmit')
+              : tp('workInstructions.form.createSubmit')}
         </Button>
       </div>
     </form>

@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import type { Part } from '@cascadia/commons/items/types/part'
-import type { VersionContext } from '@/hooks/useVersionContext'
-import type { CADViewerState } from './useCADViewerState'
 import {
   AttributesEditor,
   formatAttributeValue,
 } from '@/components/items/AttributesEditor'
-import { FileList, FileUploadZone } from '@/components/vault'
 import {
   Card,
   CardContent,
@@ -21,10 +19,11 @@ import {
 } from '@/components/ui'
 
 /**
- * The right-hand column of a part's Details tab: custom attributes, the file
- * vault, and the row's own metadata.
+ * The right-hand column of a part's Details tab: custom attributes and the
+ * row's own metadata. Vault files live in the main column (between Overview
+ * and Manufacturing) so the list has the same width as Overview.
  *
- * Three cards that share only their position. They are here rather than in
+ * These cards share only their position. They are here rather than in
  * PartDetail because none of them participates in the page's edit/save cycle
  * beyond the two props below — the attributes editor writes through, and the
  * rest is display.
@@ -34,32 +33,19 @@ export function PartDetailSidebar({
   isCreateMode,
   isEditing,
   isSubmitting,
-  canMutateFiles,
   attributes,
   onAttributesChange,
-  context,
-  mainBranchId,
-  cadViewer,
-  onUploaded,
-  onUploadError,
 }: {
   /** The version-resolved part being displayed. */
   part: Part
   isCreateMode: boolean
   isEditing: boolean
   isSubmitting: boolean
-  /** Whether the current user holds the editable item checkout. */
-  canMutateFiles: boolean
   attributes: Record<string, unknown>
   onAttributesChange: (attributes: Record<string, unknown>) => void
-  context: VersionContext
-  mainBranchId: string | undefined
-  /** Uploads refresh the CAD list and bust the thumbnail cache. */
-  cadViewer: CADViewerState
-  onUploaded: () => void
-  onUploadError: (error: unknown) => void
 }) {
-  const branchId = context.type === 'branch' ? context.branchId : undefined
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
 
   return (
     <div className="space-y-6">
@@ -79,7 +65,7 @@ export function PartDetailSidebar({
           >
             <CardHeader className="pb-3">
               <CollapsibleTrigger className="hover:opacity-70">
-                <CardTitle>Custom Attributes</CardTitle>
+                <CardTitle>{tc('sections.customAttributes')}</CardTitle>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
@@ -101,7 +87,7 @@ export function PartDetailSidebar({
                   </dl>
                 ) : (
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    No custom attributes defined.
+                    {tc('messages.noCustomAttributes')}
                   </p>
                 )}
               </CardContent>
@@ -110,46 +96,17 @@ export function PartDetailSidebar({
         </Card>
       )}
 
-      {!isCreateMode && part.id && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Files</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FileUploadZone
-              itemId={part.id}
-              branchId={branchId}
-              readOnly={!canMutateFiles}
-              optionModel={part.optionModel}
-              makes={part.makes}
-              onUploadComplete={onUploaded}
-              onUploadError={onUploadError}
-            />
-            <FileList
-              itemId={part.id}
-              branchId={branchId}
-              mainBranchId={mainBranchId}
-              readOnly={!canMutateFiles}
-              optionModel={part.optionModel}
-              makes={part.makes}
-              onViewCAD={cadViewer.showFile}
-              onThumbnailChanged={cadViewer.bumpThumbnail}
-            />
-          </CardContent>
-        </Card>
-      )}
-
       <Collapsible defaultOpen={false}>
         <Card>
           <CardHeader>
             <CollapsibleTrigger className="hover:opacity-70">
-              <CardTitle>Metadata</CardTitle>
+              <CardTitle>{tc('sections.metadata')}</CardTitle>
             </CollapsibleTrigger>
           </CardHeader>
           <CollapsibleContent>
             <CardContent className="space-y-3">
               <ViewEditStatic
-                label="Created"
+                label={tc('columns.created')}
                 value={
                   part.createdAt
                     ? new Date(part.createdAt).toLocaleDateString()
@@ -157,7 +114,7 @@ export function PartDetailSidebar({
                 }
               />
               <ViewEditStatic
-                label="Last Modified"
+                label={tc('fields.lastModified')}
                 value={
                   part.modifiedAt
                     ? new Date(part.modifiedAt).toLocaleDateString()
@@ -167,11 +124,15 @@ export function PartDetailSidebar({
               {!isCreateMode && (
                 <>
                   <ViewEditStatic
-                    label="Master ID"
+                    label={tc('fields.masterId')}
                     value={part.masterId}
                     mono
                   />
-                  <ViewEditStatic label="Part ID" value={part.id} mono />
+                  <ViewEditStatic
+                    label={tp('parts.detail.partId')}
+                    value={part.id}
+                    mono
+                  />
                 </>
               )}
             </CardContent>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { ArrowLeft, Calendar, Package, Wrench } from 'lucide-react'
@@ -172,7 +173,7 @@ function WorkOrderDetailPage() {
           {workOrder.notes && (
             <Card>
               <CardHeader>
-                <CardTitle>Notes</CardTitle>
+                <CardDescription>{tp('physicalParts.part')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">

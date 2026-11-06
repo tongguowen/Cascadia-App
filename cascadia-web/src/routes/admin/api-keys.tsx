@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { KeyRound, Search, ShieldAlert } from 'lucide-react'
@@ -31,15 +32,17 @@ export const Route = createFileRoute('/admin/api-keys')({
     ]),
 })
 
-const STATUS_FILTERS: Array<{ value: ApiKeyStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'disabled', label: 'Disabled' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'revoked', label: 'Revoked' },
-]
-
 function AdminApiKeysPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const STATUS_FILTERS: Array<{ value: ApiKeyStatus | 'all'; label: string }> =
+    [
+      { value: 'all', label: t('admin.apiKeys.filterAll') },
+      { value: 'active', label: t('admin.apiKeys.filterActive') },
+      { value: 'disabled', label: t('admin.apiKeys.filterDisabled') },
+      { value: 'expired', label: t('admin.apiKeys.filterExpired') },
+      { value: 'revoked', label: t('admin.apiKeys.filterRevoked') },
+    ]
   const { data: keys = [], isPending, error } = useQuery(adminApiKeysQuery())
   const { data: mine } = useQuery(myApiKeysQuery())
 
@@ -80,11 +83,10 @@ function AdminApiKeysPage() {
         <KeyRound className="w-8 h-8 text-slate-700 dark:text-slate-300" />
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            API Keys
+            {t('admin.apiKeys.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Every key on this instance, and the policy applied when new ones are
-            issued
+            {t('admin.apiKeys.subtitle')}
           </p>
         </div>
       </div>
@@ -94,15 +96,12 @@ function AdminApiKeysPage() {
           <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium text-amber-900 dark:text-amber-200">
-              {unscopedRoleKeys} active{' '}
-              {unscopedRoleKeys === 1 ? 'key inherits' : 'keys inherit'} every
-              role their owner holds
+              {t('admin.apiKeys.unscopedWarningTitle', {
+                count: unscopedRoleKeys,
+              })}
             </p>
             <p className="text-amber-800 dark:text-amber-300 mt-1">
-              Role scope is separate from permission scope, so these clear
-              role-gated actions — such as bypassing branch protection on import
-              — regardless of how narrow their permissions are. Edit a key to
-              restrict its roles.
+              {t('admin.apiKeys.unscopedWarningBody')}
             </p>
           </div>
         </div>
@@ -111,7 +110,7 @@ function AdminApiKeysPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2 flex-wrap">
-            <CardTitle>Keys</CardTitle>
+            <CardTitle>{t('admin.apiKeys.keysTitle')}</CardTitle>
             {STATUS_FILTERS.filter((f) => f.value !== 'all').map((filter) => {
               const count = counts.get(filter.value) ?? 0
               if (count === 0) return null
@@ -122,10 +121,7 @@ function AdminApiKeysPage() {
               )
             })}
           </div>
-          <CardDescription>
-            Key material is shown once at creation and never again — only a hash
-            is stored, so a lost key is rotated, not recovered.
-          </CardDescription>
+          <CardDescription>{t('admin.apiKeys.keysDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +130,7 @@ function AdminApiKeysPage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by key name, prefix, or owner"
+                placeholder={t('admin.apiKeys.searchPlaceholder')}
                 className="pl-9"
               />
             </div>

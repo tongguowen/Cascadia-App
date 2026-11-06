@@ -3,6 +3,7 @@
 
 import { useForm, useStore } from '@tanstack/react-form'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Info } from 'lucide-react'
 import { partSchema } from '@cascadia/commons/items/types/part'
@@ -47,6 +48,8 @@ export function PartForm({
   onCancel,
   isSubmitting,
 }: PartFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   // Track selected design's protection status
   const [selectedBranchId, setSelectedBranchId] = useState<string | undefined>()
   const [attributes, setAttributes] = useState<Record<string, unknown>>(
@@ -117,10 +120,10 @@ export function PartForm({
         <form.Field name="designId">
           {(field) => (
             <FormField
-              label="Design"
+              label={tc('fields.design')}
               required
               error={field.state.meta.errors[0]}
-              helpText="The design this part belongs to"
+              helpText={tp('parts.form.designHelp')}
               className="md:col-span-2"
             >
               <div className="flex items-center gap-4">
@@ -145,17 +148,17 @@ export function PartForm({
         {/* Branch Selection - Available for new items in both phases */}
         {showBranchSelector && (
           <FormField
-            label="Target Branch"
+            label={tc('fields.targetBranch')}
             required={branchRequired}
             error={
               branchRequired && !selectedBranchId
-                ? 'Please select a branch to create this part on'
+                ? tp('parts.form.branchSelectRequired')
                 : undefined
             }
             helpText={
               branchRequired
-                ? 'Select a change-order or workspace branch for the new part'
-                : 'Optional: Create on a workspace branch for private development'
+                ? tp('parts.form.branchHelpRequired')
+                : tp('parts.form.branchHelpOptional')
             }
             className="md:col-span-2"
           >
@@ -165,25 +168,21 @@ export function PartForm({
               onChange={setSelectedBranchId}
               showMainOption={!branchRequired}
               placeholder={
-                branchRequired ? 'Select branch...' : 'Main branch (default)'
+                branchRequired
+                  ? tc('labels.selectBranch')
+                  : tc('labels.mainBranchDefault')
               }
             />
             {branchRequired && (
               <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm rounded-md">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  This design is under change control. New parts must be created
-                  on an ECO or workspace branch.
-                </span>
+                <span>{tp('parts.form.changeControlNotice')}</span>
               </div>
             )}
             {!branchRequired && !selectedBranchId && (
               <div className="flex items-start gap-2 mt-2 p-3 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm rounded-md">
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>
-                  No branch selected - part will be created on the main branch.
-                  Select a workspace branch for private development work.
-                </span>
+                <span>{tp('parts.form.mainBranchNotice')}</span>
               </div>
             )}
           </FormField>
@@ -199,6 +198,7 @@ export function PartForm({
               onChange={field.handleChange}
               onBlur={field.handleBlur}
               error={field.state.meta.errors[0]}
+              label={tc('fields.itemNumber')}
               data-testid="part-item-number"
             />
           )}
@@ -208,7 +208,7 @@ export function PartForm({
         <form.Field name="name">
           {(field) => (
             <FormField
-              label="Name"
+              label={tc('fields.name')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -217,7 +217,7 @@ export function PartForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Widget Assembly"
+                placeholder={tp('parts.form.namePlaceholder')}
                 error={!!field.state.meta.errors.length}
                 data-testid="part-name"
               />
@@ -229,7 +229,7 @@ export function PartForm({
         <form.Field name="description">
           {(field) => (
             <FormField
-              label="Description"
+              label={tc('fields.description')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -238,7 +238,7 @@ export function PartForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Detailed description of the part..."
+                placeholder={tp('parts.form.descriptionPlaceholder')}
                 rows={4}
                 error={!!field.state.meta.errors.length}
               />
@@ -249,7 +249,7 @@ export function PartForm({
         {/* Type */}
         <form.Field name="partType">
           {(field) => (
-            <FormField label="Type" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.type')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(value) =>
@@ -260,13 +260,21 @@ export function PartForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select option" />
+                  <SelectValue placeholder={tc('labels.selectOption')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Manufacture">Manufacture</SelectItem>
-                  <SelectItem value="Purchase">Purchase</SelectItem>
-                  <SelectItem value="Software">Software</SelectItem>
-                  <SelectItem value="Phantom">Phantom</SelectItem>
+                  <SelectItem value="Manufacture">
+                    {tp('parts.partType.Manufacture')}
+                  </SelectItem>
+                  <SelectItem value="Purchase">
+                    {tp('parts.partType.Purchase')}
+                  </SelectItem>
+                  <SelectItem value="Software">
+                    {tp('parts.partType.Software')}
+                  </SelectItem>
+                  <SelectItem value="Phantom">
+                    {tp('parts.partType.Phantom')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -276,7 +284,10 @@ export function PartForm({
         {/* Tracking Mode */}
         <form.Field name="trackingMode">
           {(field) => (
-            <FormField label="Tracking" error={field.state.meta.errors[0]}>
+            <FormField
+              label={tc('fields.tracking')}
+              error={field.state.meta.errors[0]}
+            >
               <Select
                 value={field.state.value}
                 onValueChange={(value) =>
@@ -284,12 +295,18 @@ export function PartForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select option" />
+                  <SelectValue placeholder={tc('labels.selectOption')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Not tracked</SelectItem>
-                  <SelectItem value="lot">Lot tracked</SelectItem>
-                  <SelectItem value="serial">Serial tracked</SelectItem>
+                  <SelectItem value="none">
+                    {tp('parts.form.trackingNone')}
+                  </SelectItem>
+                  <SelectItem value="lot">
+                    {tp('parts.form.trackingLot')}
+                  </SelectItem>
+                  <SelectItem value="serial">
+                    {tp('parts.form.trackingSerial')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -299,13 +316,13 @@ export function PartForm({
         {/* Material */}
         <form.Field name="material">
           {(field) => (
-            <FormField label="Material" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.material')} error={field.state.meta.errors[0]}>
               <Input
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Steel, Aluminum, etc."
+                placeholder={tp('parts.form.materialPlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -315,7 +332,7 @@ export function PartForm({
         {/* Weight */}
         <form.Field name="weight">
           {(field) => (
-            <FormField label="Weight" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.weight')} error={field.state.meta.errors[0]}>
               <div className="flex gap-2">
                 <Input
                   name={field.name}
@@ -338,10 +355,16 @@ export function PartForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="kg">kg</SelectItem>
-                        <SelectItem value="g">g</SelectItem>
-                        <SelectItem value="lb">lb</SelectItem>
-                        <SelectItem value="oz">oz</SelectItem>
+                        <SelectItem value="kg">
+                          {tc('enum.weightUnit.kg')}
+                        </SelectItem>
+                        <SelectItem value="g">{tc('enum.weightUnit.g')}</SelectItem>
+                        <SelectItem value="lb">
+                          {tc('enum.weightUnit.lb')}
+                        </SelectItem>
+                        <SelectItem value="oz">
+                          {tc('enum.weightUnit.oz')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -354,7 +377,7 @@ export function PartForm({
         {/* Cost */}
         <form.Field name="cost">
           {(field) => (
-            <FormField label="Cost" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.cost')} error={field.state.meta.errors[0]}>
               <div className="flex gap-2">
                 <form.Field name="costCurrency">
                   {(currencyField) => (
@@ -396,7 +419,7 @@ export function PartForm({
         <form.Field name="leadTimeDays">
           {(field) => (
             <FormField
-              label="Lead Time (days)"
+              label={tc('fields.leadTimeDays')}
               error={field.state.meta.errors[0]}
             >
               <Input
@@ -433,7 +456,7 @@ export function PartForm({
             disabled={isSubmitting}
             data-testid="part-cancel"
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
         )}
         <Button
@@ -442,10 +465,10 @@ export function PartForm({
           data-testid="part-submit"
         >
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : part?.id
-              ? 'Update Part'
-              : 'Create Part'}
+              ? tp('parts.form.updateSubmit')
+              : tp('parts.form.createSubmit')}
         </Button>
       </div>
     </form>

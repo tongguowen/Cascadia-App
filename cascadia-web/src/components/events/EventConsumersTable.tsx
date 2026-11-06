@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MoreVertical, RotateCcw, SkipForward, Trash2 } from 'lucide-react'
 import type { DataGridColumn, Row } from '@/components/ui'
 import type { EventConsumerStatus } from '@/query'
@@ -56,14 +58,18 @@ export function EventConsumersTable({
   onViewError,
   busyId = null,
 }: EventConsumersTableProps) {
-  const columns: Array<DataGridColumn<EventConsumerStatus>> = [
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+
+  const columns: Array<DataGridColumn<EventConsumerStatus>> = useMemo(
+    () => [
     {
       id: 'id',
-      header: 'Consumer',
+      header: tp('admin.events.consumersTable.colConsumer'),
       accessorKey: 'id',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter by id...',
+      filterPlaceholder: tp('admin.events.consumersTable.filterIdPlaceholder'),
       cell: ({ getValue }) => (
         <span className="font-mono text-sm text-slate-700 dark:text-slate-200">
           {getValue() as string}
@@ -72,7 +78,7 @@ export function EventConsumersTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: tp('admin.events.consumersTable.colState'),
       accessorFn: (row) =>
         row.abandonedAt
           ? 'abandoned'
@@ -86,11 +92,26 @@ export function EventConsumersTable({
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Current', value: 'current' },
-        { label: 'Behind', value: 'behind' },
-        { label: 'Retrying', value: 'retrying' },
-        { label: 'Parked', value: 'parked' },
-        { label: 'Abandoned', value: 'abandoned' },
+        {
+          label: tp('admin.events.consumersTable.stateCurrent'),
+          value: 'current',
+        },
+        {
+          label: tp('admin.events.consumersTable.stateBehind'),
+          value: 'behind',
+        },
+        {
+          label: tp('admin.events.consumersTable.stateRetrying'),
+          value: 'retrying',
+        },
+        {
+          label: tp('admin.events.consumersTable.stateParked'),
+          value: 'parked',
+        },
+        {
+          label: tp('admin.events.consumersTable.stateAbandoned'),
+          value: 'abandoned',
+        },
       ],
       cell: ({ getValue }) => {
         const state = getValue() as string
@@ -98,9 +119,9 @@ export function EventConsumersTable({
           return (
             <Badge
               variant="destructive"
-              title="Retention gave up waiting: this backlog is forfeit and the consumer must be re-registered"
+              title={tp('admin.events.consumersTable.abandonedTitle')}
             >
-              abandoned
+              {tp('admin.events.consumersTable.stateAbandoned')}
             </Badge>
           )
         }
@@ -108,21 +129,34 @@ export function EventConsumersTable({
           return (
             <Badge
               variant="destructive"
-              title="Stopped retrying after repeated failures — resume it, or skip the event it is stuck on"
+              title={tp('admin.events.consumersTable.parkedTitle')}
             >
-              parked
+              {tp('admin.events.consumersTable.stateParked')}
             </Badge>
           )
         }
         if (state === 'retrying')
-          return <Badge variant="warning">retrying</Badge>
-        if (state === 'behind') return <Badge variant="outline">behind</Badge>
-        return <Badge variant="success">current</Badge>
+          return (
+            <Badge variant="warning">
+              {tp('admin.events.consumersTable.stateRetrying')}
+            </Badge>
+          )
+        if (state === 'behind')
+          return (
+            <Badge variant="outline">
+              {tp('admin.events.consumersTable.stateBehind')}
+            </Badge>
+          )
+        return (
+          <Badge variant="success">
+            {tp('admin.events.consumersTable.stateCurrent')}
+          </Badge>
+        )
       },
     },
     {
       id: 'lag',
-      header: 'Lag',
+      header: tp('admin.events.consumersTable.colLag'),
       accessorKey: 'lag',
       cell: ({ getValue }) => {
         const lag = getValue() as number
@@ -141,7 +175,7 @@ export function EventConsumersTable({
     },
     {
       id: 'cursor',
-      header: 'Cursor',
+      header: tp('admin.events.consumersTable.colCursor'),
       accessorKey: 'lastSeq',
       cell: ({ getValue }) => (
         <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
@@ -152,7 +186,7 @@ export function EventConsumersTable({
     },
     {
       id: 'failures',
-      header: 'Failures',
+      header: tp('admin.events.consumersTable.colFailures'),
       accessorKey: 'failureCount',
       cell: ({ row }) => {
         const consumer = row.original
@@ -166,14 +200,16 @@ export function EventConsumersTable({
             className="h-auto p-0 text-red-600 dark:text-red-400"
             onClick={() => onViewError(consumer)}
           >
-            {consumer.failureCount} — see error
+            {tp('admin.events.consumersTable.seeError', {
+              count: consumer.failureCount,
+            })}
           </Button>
         )
       },
     },
     {
       id: 'updatedAt',
-      header: 'Last progress',
+      header: tp('admin.events.consumersTable.colLastProgress'),
       accessorKey: 'updatedAt',
       cell: ({ getValue }) => (
         <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -183,7 +219,7 @@ export function EventConsumersTable({
     },
     {
       id: 'registeredHere',
-      header: 'Polled by',
+      header: tp('admin.events.consumersTable.colPolledBy'),
       accessorKey: 'registeredHere',
       cell: ({ getValue }) => {
         const here = getValue() as boolean
@@ -195,16 +231,20 @@ export function EventConsumersTable({
             className="text-xs text-slate-500 dark:text-slate-400"
             title={
               here
-                ? 'This process registers the consumer and polls it'
-                : 'Registered in another process — the jobs worker, for the relay and the webhook dispatcher. The usual reading, not a fault.'
+                ? tp('admin.events.consumersTable.polledHereTitle')
+                : tp('admin.events.consumersTable.polledElsewhereTitle')
             }
           >
-            {here ? 'this process' : 'elsewhere'}
+            {here
+              ? tp('admin.events.consumersTable.polledHere')
+              : tp('admin.events.consumersTable.polledElsewhere')}
           </span>
         )
       },
     },
-  ]
+  ],
+    [onViewError, tp],
+  )
 
   const renderRowActions = (row: Row<EventConsumerStatus>) => {
     const consumer = row.original
@@ -218,7 +258,7 @@ export function EventConsumersTable({
             disabled={busyId === consumer.id}
           >
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{tc('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -229,7 +269,7 @@ export function EventConsumersTable({
             disabled={consumer.abandonedAt !== null}
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            Resume
+            {tp('admin.events.consumersTable.resume')}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => onSkip(consumer)}
@@ -238,7 +278,7 @@ export function EventConsumersTable({
             }
           >
             <SkipForward className="mr-2 h-4 w-4" />
-            Skip the failing event
+            {tp('admin.events.consumersTable.skipFailingEvent')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -246,7 +286,7 @@ export function EventConsumersTable({
             className={DESTRUCTIVE_ITEM}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Forget this cursor
+            {tp('admin.events.consumersTable.forgetCursor')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -260,8 +300,8 @@ export function EventConsumersTable({
       getRowId={(consumer) => consumer.id}
       enableRowActions={true}
       renderRowActions={renderRowActions}
-      emptyMessage="No consumer has a cursor yet"
-      emptyDescription="A cursor row appears the first time a consumer runs."
+      emptyMessage={tp('admin.events.consumersTable.emptyMessage')}
+      emptyDescription={tp('admin.events.consumersTable.emptyDescription')}
     />
   )
 }

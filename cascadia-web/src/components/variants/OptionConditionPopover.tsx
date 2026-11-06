@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SlidersHorizontal } from 'lucide-react'
 import { OPTION_CODE_PATTERN } from '@cascadia/commons/types/variants'
 import { ConditionPicker } from './ConditionPicker'
@@ -42,6 +43,10 @@ export function OptionConditionPopover({
   parent: { id: string; optionModel?: OptionModel | null }
   disabled?: boolean
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const ph = (key: string) =>
+    tp(`variants.placeholders.${key}` as 'variants.placeholders.conditionCodeExample')
   const { alert } = useAlertDialog()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<OptionCondition | null>(option ?? null)
@@ -134,7 +139,7 @@ export function OptionConditionPopover({
           size="sm"
           className="h-8 w-8 p-0"
           aria-label="Option condition"
-          title="Option condition"
+          title={tc('tooltips.optionCondition')}
           disabled={disabled}
         >
           <SlidersHorizontal
@@ -159,24 +164,24 @@ export function OptionConditionPopover({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label htmlFor="opt-new-code" className="text-xs">
-                    Code
+                    {tc('fields.code')}
                   </Label>
                   <Input
                     id="opt-new-code"
                     className="h-8 text-sm font-mono"
-                    placeholder="color"
+                    placeholder={ph('conditionCodeExample')}
                     value={newCode}
                     onChange={(e) => setNewCode(e.target.value)}
                   />
                 </div>
                 <div>
                   <Label htmlFor="opt-new-name" className="text-xs">
-                    Name
+                    {tc('fields.name')}
                   </Label>
                   <Input
                     id="opt-new-name"
                     className="h-8 text-sm"
-                    placeholder="Colour"
+                    placeholder={ph('conditionNameExample')}
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                   />
@@ -189,7 +194,7 @@ export function OptionConditionPopover({
                 <Input
                   id="opt-new-values"
                   className="h-8 text-sm"
-                  placeholder="Black, White"
+                  placeholder={ph('conditionValuesExample')}
                   value={newValues}
                   onChange={(e) => setNewValues(e.target.value)}
                 />
@@ -201,7 +206,7 @@ export function OptionConditionPopover({
                   size="sm"
                   onClick={() => setShowNewFamily(false)}
                 >
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   type="button"
@@ -209,7 +214,7 @@ export function OptionConditionPopover({
                   disabled={!canAddFamily || addFamily.isPending}
                   onClick={submitFamily}
                 >
-                  Add family
+                  {tp('parts.variantsTab.addFamily')}
                 </Button>
               </div>
             </div>

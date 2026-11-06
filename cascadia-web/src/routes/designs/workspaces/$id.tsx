@@ -4,6 +4,7 @@
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, FileBox, GitBranch, GitMerge, Trash2 } from 'lucide-react'
 import { z } from 'zod'
 import { PageContainer } from '@/components/layout'
@@ -53,6 +54,8 @@ export const Route = createFileRoute('/designs/workspaces/$id')({
 })
 
 function WorkspaceDetailPage() {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { id } = Route.useParams()
   const router = useRouter()
   const { confirm } = useAlertDialog()
@@ -96,13 +99,13 @@ function WorkspaceDetailPage() {
     description += '\n\nThis action cannot be undone.'
 
     confirm({
-      title: 'Delete Workspace',
+      title: tp('workspaces.deleteTitle'),
       description,
       actionLabel:
         draftCount > 0
-          ? `Delete Workspace and ${draftCount} Item${draftCount === 1 ? '' : 's'}`
-          : 'Delete Workspace',
-      cancelLabel: 'Cancel',
+          ? tp('workspaces.deleteActionWithItems', { draftCount })
+          : tp('workspaces.deleteAction'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -110,11 +113,16 @@ function WorkspaceDetailPage() {
             method: 'DELETE',
           })
 
-          showSuccess('Workspace deleted', `"${displayName}" has been deleted`)
+          showSuccess(
+            tp('workspaces.deletedTitle'),
+            `"${displayName}"`,
+          )
           await invalidate('workspaces')
           router.navigate({ to: '/designs/workspaces' })
         } catch (error) {
-          handleError(error, { title: 'Failed to delete workspace' })
+          handleError(error, {
+            title: tp('workspaces.detail.deleteFailedTitle'),
+          })
         }
       },
     })
@@ -137,7 +145,7 @@ function WorkspaceDetailPage() {
                 {displayName}
               </h1>
               <Badge variant="secondary" className="text-base">
-                Workspace
+                {tp('workspaces.detail.badge')}
               </Badge>
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
@@ -153,7 +161,7 @@ function WorkspaceDetailPage() {
             disabled={workspace.itemCount === 0}
           >
             <FileBox className="h-4 w-4 mr-2" />
-            Convert to ECO
+            {tp('workspaces.detail.convertToEco')}
           </Button>
           <Button
             variant="outline"
@@ -161,11 +169,11 @@ function WorkspaceDetailPage() {
             disabled={workspace.itemCount === 0}
           >
             <GitMerge className="h-4 w-4 mr-2" />
-            Merge to ECO
+            {tp('workspaces.detail.mergeToEco')}
           </Button>
           <Button variant="destructive" onClick={handleDelete}>
             <Trash2 className="h-4 w-4 mr-2" />
-            Delete
+            {tc('actions.delete')}
           </Button>
         </div>
       </div>
@@ -177,25 +185,27 @@ function WorkspaceDetailPage() {
         className="w-full"
       >
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="items">Items</TabsTrigger>
-          <TabsTrigger value="commits">Commits ({commits.length})</TabsTrigger>
+          <TabsTrigger value="overview">{tc('tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="items">{tc('tabs.items')}</TabsTrigger>
+          <TabsTrigger value="commits">
+            {tp('workspaces.detail.tabs.commits', { count: commits.length })}
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Workspace Summary</CardTitle>
+              <CardTitle>{tp('workspaces.detail.summaryTitle')}</CardTitle>
               <CardDescription>
-                Overview of your workspace changes
+                {tp('workspaces.detail.summaryDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    Workspace Name
+                    {tp('workspaces.detail.workspaceName')}
                   </dt>
                   <dd className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
                     {displayName}
@@ -203,7 +213,7 @@ function WorkspaceDetailPage() {
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    Design
+                    {tc('fields.design')}
                   </dt>
                   <dd className="mt-1">
                     <Link
@@ -217,16 +227,17 @@ function WorkspaceDetailPage() {
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    Items
+                    {tc('tabs.items')}
                   </dt>
                   <dd className="mt-1 text-lg text-slate-900 dark:text-white">
-                    {workspace.itemCount} item
-                    {workspace.itemCount !== 1 ? 's' : ''}
+                    {tp('workspaces.detail.itemCount', {
+                      count: workspace.itemCount,
+                    })}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    Created
+                    {tc('columns.created')}
                   </dt>
                   <dd className="mt-1 text-lg text-slate-900 dark:text-white">
                     {new Date(workspace.createdAt).toLocaleDateString()}
@@ -239,8 +250,10 @@ function WorkspaceDetailPage() {
           {/* Actions Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Workspace Actions</CardTitle>
-              <CardDescription>Convert or merge this workspace</CardDescription>
+              <CardTitle>{tp('workspaces.detail.actionsTitle')}</CardTitle>
+              <CardDescription>
+                {tp('workspaces.detail.actionsDescription')}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="p-4 border border-slate-300 dark:border-slate-700 rounded-lg">
@@ -248,12 +261,10 @@ function WorkspaceDetailPage() {
                   <FileBox className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-1" />
                   <div className="flex-1">
                     <h3 className="font-medium text-slate-900 dark:text-white mb-1">
-                      Convert to ECO
+                      {tp('workspaces.detail.convertTitle')}
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                      Create a new Engineering Change Order from all items in
-                      this workspace. This will move all changes to a formal
-                      change control process.
+                      {tp('workspaces.detail.convertDescription')}
                     </p>
                     <Button
                       size="sm"
@@ -261,7 +272,7 @@ function WorkspaceDetailPage() {
                       disabled={workspace.itemCount === 0}
                     >
                       <FileBox className="h-4 w-4 mr-2" />
-                      Convert to ECO
+                      {tp('workspaces.detail.convertToEco')}
                     </Button>
                   </div>
                 </div>
@@ -272,12 +283,10 @@ function WorkspaceDetailPage() {
                   <GitMerge className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-1" />
                   <div className="flex-1">
                     <h3 className="font-medium text-slate-900 dark:text-white mb-1">
-                      Merge to Existing ECO
+                      {tp('workspaces.detail.mergeExistingTitle')}
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                      Add all items from this workspace to an existing ECO. This
-                      combines your workspace changes with other changes already
-                      in the ECO.
+                      {tp('workspaces.detail.mergeExistingDescription')}
                     </p>
                     <Button
                       size="sm"
@@ -286,7 +295,7 @@ function WorkspaceDetailPage() {
                       disabled={workspace.itemCount === 0}
                     >
                       <GitMerge className="h-4 w-4 mr-2" />
-                      Merge to ECO
+                      {tp('workspaces.detail.mergeToEco')}
                     </Button>
                   </div>
                 </div>
@@ -304,24 +313,24 @@ function WorkspaceDetailPage() {
         <TabsContent value="commits" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Commit History</CardTitle>
+              <CardTitle>{tp('workspaces.detail.commitHistoryTitle')}</CardTitle>
               <CardDescription>
-                All commits made on this workspace branch
+                {tp('workspaces.detail.commitHistoryDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loadingCommits ? (
                 <div className="text-center py-8 text-slate-500">
-                  Loading commits...
+                  {tp('workspaces.detail.loadingCommits')}
                 </div>
               ) : commits.length === 0 ? (
                 <div className="text-center py-8 border rounded-lg">
                   <GitBranch className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
                   <p className="text-slate-500 dark:text-slate-400">
-                    No commits yet
+                    {tp('workspaces.detail.noCommits')}
                   </p>
                   <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">
-                    Commits will appear here as you save changes to items
+                    {tp('workspaces.detail.noCommitsHint')}
                   </p>
                 </div>
               ) : (
@@ -332,7 +341,7 @@ function WorkspaceDetailPage() {
                       className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-700"
                     >
                       <div className="font-medium text-slate-900 dark:text-white">
-                        {commit.message || '(No message)'}
+                        {commit.message || tp('workspaces.detail.noCommitMessage')}
                       </div>
                       <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         {commit.createdAt instanceof Date

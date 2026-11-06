@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart3, Plus } from 'lucide-react'
 import type { Report } from '@cascadia/commons/reports/types'
@@ -27,6 +28,8 @@ export const Route = createFileRoute('/reports/')({
 })
 
 function ReportsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -36,10 +39,10 @@ function ReportsListPage() {
     if (!report.id) return
 
     confirm({
-      title: 'Delete Report',
-      description: `Are you sure you want to delete "${report.name}"? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('reports.deleteTitle'),
+      description: t('reports.deleteDescription', { name: report.name }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -49,7 +52,7 @@ function ReportsListPage() {
 
           await invalidate('reports')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete report' })
+          handleError(error, { title: tc('dialog.failedDelete') })
         }
       },
     })
@@ -81,16 +84,16 @@ function ReportsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-            Reports
+            {t('reports.title')}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Create and manage custom reports
+            {t('reports.subtitle')}
           </p>
         </div>
         <Link to="/reports/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Report
+            {t('reports.create')}
           </Button>
         </Link>
       </div>
@@ -99,13 +102,13 @@ function ReportsListPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Total Reports</CardDescription>
+            <CardDescription>{t('reports.total')}</CardDescription>
             <CardTitle className="text-3xl">{reports.length}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Public Reports</CardDescription>
+            <CardDescription>{t('reports.public')}</CardDescription>
             <CardTitle className="text-3xl">
               {reports.filter((r) => r.isPublic).length}
             </CardTitle>
@@ -113,7 +116,7 @@ function ReportsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Private Reports</CardDescription>
+            <CardDescription>{t('reports.private')}</CardDescription>
             <CardTitle className="text-3xl">
               {reports.filter((r) => !r.isPublic).length}
             </CardTitle>
@@ -121,7 +124,7 @@ function ReportsListPage() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardDescription>Item Types</CardDescription>
+            <CardDescription>{t('reports.itemTypes')}</CardDescription>
             <CardTitle className="text-3xl">
               {Object.keys(reportsByType).length}
             </CardTitle>
@@ -136,16 +139,16 @@ function ReportsListPage() {
             <div className="text-center">
               <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-                No reports yet
+                {t('reports.emptyTitle')}
               </h3>
               <p className="mt-2 text-sm text-gray-500">
-                Get started by creating your first report.
+                {t('reports.emptyDescription')}
               </p>
               <div className="mt-6">
                 <Link to="/reports/new">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Report
+                    {t('reports.create')}
                   </Button>
                 </Link>
               </div>
@@ -157,11 +160,12 @@ function ReportsListPage() {
           <Card key={itemType}>
             <CardHeader>
               <CardTitle>
-                {itemTypeLabels[itemType] || itemType} Reports
+                {t('reports.groupTitle', {
+                  itemTypeLabel: itemTypeLabels[itemType] || itemType,
+                })}
               </CardTitle>
               <CardDescription>
-                {typeReports.length}{' '}
-                {typeReports.length === 1 ? 'report' : 'reports'}
+                {t('reports.groupDescription', { count: typeReports.length })}
               </CardDescription>
             </CardHeader>
             <CardContent>

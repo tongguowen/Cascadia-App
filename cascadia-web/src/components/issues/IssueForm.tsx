@@ -3,6 +3,7 @@
 
 import { useForm } from '@tanstack/react-form'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { issueSchema } from '@cascadia/commons/items/types/issue'
 import type { Issue } from '@cascadia/commons/items/types/issue'
 import { AttributesEditor } from '@/components/items/AttributesEditor'
@@ -33,6 +34,8 @@ export function IssueForm({
   onCancel,
   isSubmitting,
 }: IssueFormProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const [attributes, setAttributes] = useState<Record<string, unknown>>(
     issue?.attributes ?? {},
   )
@@ -79,7 +82,7 @@ export function IssueForm({
           {(field) => (
             <ItemNumberField
               itemType="Issue"
-              label="Issue Number"
+              label={tp('issues.form.issueNumber')}
               name={field.name}
               value={field.state.value}
               onChange={field.handleChange}
@@ -93,7 +96,7 @@ export function IssueForm({
         <form.Field name="name">
           {(field) => (
             <FormField
-              label="Issue Title"
+              label={tp('issues.form.issueTitle')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -102,7 +105,7 @@ export function IssueForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Brief title describing the issue"
+                placeholder={tp('issues.form.titlePlaceholder')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -113,7 +116,7 @@ export function IssueForm({
         <form.Field name="description">
           {(field) => (
             <FormField
-              label="Description"
+              label={tc('fields.description')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -122,7 +125,7 @@ export function IssueForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Detailed description of the issue..."
+                placeholder={tp('issues.form.descriptionPlaceholder')}
                 rows={4}
                 error={!!field.state.meta.errors.length}
               />
@@ -133,7 +136,7 @@ export function IssueForm({
         {/* Severity */}
         <form.Field name="severity">
           {(field) => (
-            <FormField label="Severity" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.severity')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(value) =>
@@ -146,10 +149,13 @@ export function IssueForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
+                  {(['Critical', 'High', 'Medium', 'Low'] as const).map(
+                    (value) => (
+                      <SelectItem key={value} value={value}>
+                        {tc(`enum.severity.${value}`)}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </FormField>
@@ -159,7 +165,7 @@ export function IssueForm({
         {/* Priority */}
         <form.Field name="priority">
           {(field) => (
-            <FormField label="Priority" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.priority')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(value) =>
@@ -172,10 +178,13 @@ export function IssueForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Critical">Critical</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
+                  {(['Critical', 'High', 'Medium', 'Low'] as const).map(
+                    (value) => (
+                      <SelectItem key={value} value={value}>
+                        {tc(`enum.priority.${value}`)}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </FormField>
@@ -185,7 +194,7 @@ export function IssueForm({
         {/* Category */}
         <form.Field name="category">
           {(field) => (
-            <FormField label="Category" error={field.state.meta.errors[0]}>
+            <FormField label={tc('fields.category')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value || ''}
                 onValueChange={(value) =>
@@ -193,15 +202,23 @@ export function IssueForm({
                 }
               >
                 <SelectTrigger error={!!field.state.meta.errors.length}>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={tc('labels.selectCategory')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="Quality">Quality</SelectItem>
-                  <SelectItem value="Customer">Customer</SelectItem>
-                  <SelectItem value="Safety">Safety</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {(
+                    [
+                      'Design',
+                      'Manufacturing',
+                      'Quality',
+                      'Customer',
+                      'Safety',
+                      'Other',
+                    ] as const
+                  ).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {tc(`enum.issueCategory.${value}`)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>
@@ -211,7 +228,7 @@ export function IssueForm({
         {/* State */}
         <form.Field name="state">
           {(field) => (
-            <FormField label="State" error={field.state.meta.errors[0]}>
+            <FormField label={tc('columns.state')} error={field.state.meta.errors[0]}>
               <Select
                 value={field.state.value}
                 onValueChange={(value) => field.handleChange(value)}
@@ -220,13 +237,21 @@ export function IssueForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Open">Open</SelectItem>
-                  <SelectItem value="InProgress">In Progress</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Resolved">Resolved</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Closed">Closed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  {(
+                    [
+                      'Open',
+                      'InProgress',
+                      'Pending',
+                      'Resolved',
+                      'Verified',
+                      'Closed',
+                      'Cancelled',
+                    ] as const
+                  ).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {tc(`enum.issueStatus.${value}`)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>
@@ -237,7 +262,7 @@ export function IssueForm({
         <form.Field name="assignedTo">
           {(field) => (
             <FormField
-              label="Assigned To"
+              label={tc('fields.assignee')}
               error={field.state.meta.errors[0]}
               helpText="UUID of the assigned user"
             >
@@ -246,7 +271,7 @@ export function IssueForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="user-uuid..."
+                placeholder={tc('placeholders.userUuid')}
                 error={!!field.state.meta.errors.length}
               />
             </FormField>
@@ -257,7 +282,7 @@ export function IssueForm({
         <form.Field name="rootCause">
           {(field) => (
             <FormField
-              label="Root Cause"
+              label={tc('fields.rootCause')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -266,7 +291,7 @@ export function IssueForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="Root cause analysis..."
+                placeholder={tp('issues.form.rootCausePlaceholder')}
                 rows={3}
                 error={!!field.state.meta.errors.length}
               />
@@ -278,7 +303,7 @@ export function IssueForm({
         <form.Field name="resolution">
           {(field) => (
             <FormField
-              label="Resolution"
+              label={tc('fields.resolution')}
               error={field.state.meta.errors[0]}
               className="md:col-span-2"
             >
@@ -287,7 +312,7 @@ export function IssueForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                placeholder="How the issue was resolved..."
+                placeholder={tp('issues.form.resolutionPlaceholder')}
                 rows={3}
                 error={!!field.state.meta.errors.length}
               />
@@ -312,15 +337,15 @@ export function IssueForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {tc('actions.cancel')}
           </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : issue?.id
-              ? 'Update Issue'
-              : 'Create Issue'}
+              ? tp('issues.form.updateSubmit')
+              : tp('issues.form.createSubmit')}
         </Button>
       </div>
     </form>

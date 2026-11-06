@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Component } from 'react'
+import i18n from '@/i18n'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -90,6 +91,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = (key: string) => i18n.t(key, { ns: 'common' })
+
       // Use custom fallback if provided
       if (this.props.fallback) {
         return this.props.fallback
@@ -100,9 +103,9 @@ export class ErrorBoundary extends Component<Props, State> {
         return (
           <div className="flex items-center gap-2 p-4 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            <span>Something went wrong</span>
+            <span>{t('errorBoundary.title')}</span>
             <Button size="sm" variant="ghost" onClick={this.handleRetry}>
-              Try again
+              {t('actions.tryAgain')}
             </Button>
           </div>
         )
@@ -115,18 +118,17 @@ export class ErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
-                Something went wrong
+                {t('errorBoundary.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                An unexpected error occurred. Please try again or contact
-                support if the problem persists.
+                {t('errorBoundary.description')}
               </p>
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <div className="mt-4">
                   <p className="text-sm font-medium text-destructive mb-2">
-                    Error details:
+                    {t('errorBoundary.errorDetails')}
                   </p>
                   <pre className="p-3 bg-muted rounded-lg text-xs overflow-auto max-h-40">
                     {this.state.error.message}
@@ -134,7 +136,8 @@ export class ErrorBoundary extends Component<Props, State> {
                     {this.state.error.stack}
                     {this.state.componentStack !== undefined && (
                       <>
-                        {'\n\nComponent stack:'}
+                        {'\n\n'}
+                        {t('errorBoundary.componentStack')}
                         {this.state.componentStack}
                       </>
                     )}
@@ -145,14 +148,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <CardFooter className="flex gap-2">
               <Button onClick={this.handleRetry} className="flex-1">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
+                {t('actions.tryAgain')}
               </Button>
               <Button
                 variant="outline"
                 onClick={this.handleReload}
                 className="flex-1"
               >
-                Reload Page
+                {t('errorBoundary.reloadPage')}
               </Button>
               <Button variant="ghost" onClick={this.handleHome} size="icon">
                 <Home className="h-4 w-4" />
@@ -195,16 +198,17 @@ export class InlineErrorBoundary extends Component<
         return this.props.fallback
       }
 
+      const t = (key: string) => i18n.t(key, { ns: 'common' })
       return (
         <div className="flex items-center gap-2 p-2 text-sm text-destructive bg-destructive/10 rounded">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-          <span className="flex-1">Failed to load</span>
+          <span className="flex-1">{t('errorBoundary.failedToLoad')}</span>
           <button
             type="button"
             onClick={this.handleRetry}
             className="font-medium hover:underline"
           >
-            Retry
+            {t('errorBoundary.retry')}
           </button>
         </div>
       )

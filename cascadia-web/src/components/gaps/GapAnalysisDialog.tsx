@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   ArrowLeft,
@@ -45,68 +46,32 @@ interface GapAnalysisDialogProps {
 
 type WizardStep = 'configure' | 'analyzing' | 'results'
 
-const gapTypeOptions: Array<{
-  value: GapType
-  label: string
-  description: string
-}> = [
-  {
-    value: 'unallocated_requirement',
-    label: 'Unallocated Requirements',
-    description: 'Requirements not allocated to design elements',
-  },
-  {
-    value: 'unsatisfied_requirement',
-    label: 'Unsatisfied Requirements',
-    description: 'Requirements not satisfied by any part',
-  },
-  {
-    value: 'unverified_requirement',
-    label: 'Unverified Requirements',
-    description: 'Requirements without test cases',
-  },
-  {
-    value: 'suspect_requirement',
-    label: 'Suspect Trace Links',
-    description:
-      'Requirements with a claim whose end revised since it was affirmed',
-  },
-  {
-    value: 'untested_part',
-    label: 'Untested Parts',
-    description: 'Parts without validation test cases',
-  },
-  {
-    value: 'unmapped_ebom_item',
-    label: 'Unmapped EBOM Items',
-    description: 'EBOM items not mapped to MBOM',
-  },
-  {
-    value: 'orphan_mbom_item',
-    label: 'Orphan MBOM Items',
-    description: 'MBOM items with broken EBOM links',
-  },
+const GAP_TYPES: Array<GapType> = [
+  'unallocated_requirement',
+  'unsatisfied_requirement',
+  'unverified_requirement',
+  'suspect_requirement',
+  'untested_part',
+  'unmapped_ebom_item',
+  'orphan_mbom_item',
 ]
 
-const severityOptions: Array<{
-  value: GapSeverity
-  label: string
-  color: string
-}> = [
-  { value: 'critical', label: 'Critical', color: 'bg-red-600' },
-  { value: 'major', label: 'Major', color: 'bg-orange-500' },
-  { value: 'minor', label: 'Minor', color: 'bg-blue-400' },
-]
+const GAP_SEVERITIES: Array<GapSeverity> = ['critical', 'major', 'minor']
 
-const domainOptions: Array<{
+const SEVERITY_COLORS: Record<GapSeverity, string> = {
+  critical: 'bg-red-600',
+  major: 'bg-orange-500',
+  minor: 'bg-blue-400',
+}
+
+const DOMAIN_OPTIONS: Array<{
   value: ThreadDomain
-  label: string
   Icon: typeof Cog
 }> = [
-  { value: 'requirements', label: 'Requirements', Icon: FileText },
-  { value: 'engineering', label: 'Engineering', Icon: Cog },
-  { value: 'manufacturing', label: 'Manufacturing', Icon: Factory },
-  { value: 'validation', label: 'Validation', Icon: FlaskConical },
+  { value: 'requirements', Icon: FileText },
+  { value: 'engineering', Icon: Cog },
+  { value: 'manufacturing', Icon: Factory },
+  { value: 'validation', Icon: FlaskConical },
 ]
 
 /**
@@ -119,6 +84,38 @@ export function GapAnalysisDialog({
   designCode,
   designName,
 }: GapAnalysisDialogProps) {
+  const { t: tc } = useTranslation('common')
+
+  const gapTypeOptions = useMemo(
+    () =>
+      GAP_TYPES.map((value) => ({
+        value,
+        label: tc(`dialogs.gap.types.${value}.label`),
+        description: tc(`dialogs.gap.types.${value}.description`),
+      })),
+    [tc],
+  )
+
+  const severityOptions = useMemo(
+    () =>
+      GAP_SEVERITIES.map((value) => ({
+        value,
+        label: tc(`labels.severity.${value}`),
+        color: SEVERITY_COLORS[value],
+      })),
+    [tc],
+  )
+
+  const domainOptions = useMemo(
+    () =>
+      DOMAIN_OPTIONS.map(({ value, Icon }) => ({
+        value,
+        label: tc(`labels.domains.${value}`),
+        Icon,
+      })),
+    [tc],
+  )
+
   // Wizard state
   const [step, setStep] = useState<WizardStep>('configure')
 
@@ -195,10 +192,12 @@ export function GapAnalysisDialog({
       setResult(response.data)
       setStep('results')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed')
+      setError(
+        err instanceof Error ? err.message : tc('dialogs.gap.analysisFailed'),
+      )
       setStep('configure')
     }
-  }, [designId, includeTypes, includeDomains, includeSeverities])
+  }, [designId, includeTypes, includeDomains, includeSeverities, tc])
 
   // Reset dialog state when closed
   const handleOpenChange = (nextOpen: boolean) => {
@@ -233,13 +232,10 @@ export function GapAnalysisDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Gap Analysis
+            {tc('dialogs.gap.title')}
           </DialogTitle>
           <DialogDescription>
-            Identify traceability gaps in{' '}
-            <span className="font-medium text-slate-900 dark:text-slate-100">
-              {designCode}
-            </span>
+            {tc('dialogs.gap.description', { designCode })}
             {designName && <> ({designName})</>}
           </DialogDescription>
         </DialogHeader>
@@ -251,7 +247,7 @@ export function GapAnalysisDialog({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium">
-                  Which gap types to include?
+                  {tc('dialogs.gap.gapTypesQuestion')}
                 </Label>
                 <div className="flex gap-2">
                   <button
@@ -259,7 +255,7 @@ export function GapAnalysisDialog({
                     onClick={selectAllTypes}
                     className="text-xs text-cyan-600 dark:text-cyan-400 hover:underline"
                   >
-                    Select All
+                    {tc('actions.selectAll')}
                   </button>
                   <span className="text-slate-300">|</span>
                   <button
@@ -267,7 +263,7 @@ export function GapAnalysisDialog({
                     onClick={clearAllTypes}
                     className="text-xs text-cyan-600 dark:text-cyan-400 hover:underline"
                   >
-                    Clear All
+                    {tc('actions.clearAll')}
                   </button>
                 </div>
               </div>
@@ -301,7 +297,9 @@ export function GapAnalysisDialog({
 
             {/* Domains */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Include Domains</Label>
+              <Label className="text-sm font-medium">
+                {tc('labels.includeDomains')}
+              </Label>
               <div className="flex flex-wrap gap-3">
                 {domainOptions.map(({ value, label, Icon }) => (
                   <label
@@ -328,7 +326,9 @@ export function GapAnalysisDialog({
 
             {/* Severities */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Include Severities</Label>
+              <Label className="text-sm font-medium">
+                {tc('labels.includeSeverities')}
+              </Label>
               <div className="flex flex-wrap gap-3">
                 {severityOptions.map(({ value, label, color }) => (
                   <label
@@ -357,19 +357,19 @@ export function GapAnalysisDialog({
             {includeTypes.length === 0 && (
               <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
-                Select at least one gap type
+                {tc('dialogs.gap.selectOneGapType')}
               </p>
             )}
             {includeDomains.length === 0 && (
               <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
-                Select at least one domain
+                {tc('dialogs.impact.selectOneDomain')}
               </p>
             )}
             {includeSeverities.length === 0 && (
               <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
-                Select at least one severity level
+                {tc('dialogs.gap.selectOneSeverity')}
               </p>
             )}
 
@@ -388,10 +388,10 @@ export function GapAnalysisDialog({
           <div className="py-12 flex flex-col items-center justify-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
             <p className="text-slate-600 dark:text-slate-400">
-              Analyzing gaps...
+              {tc('dialogs.gap.analyzing')}
             </p>
             <p className="text-sm text-slate-500">
-              Checking requirements, parts, and relationships
+              {tc('dialogs.gap.analyzingHint')}
             </p>
           </div>
         )}
@@ -405,7 +405,9 @@ export function GapAnalysisDialog({
             {/* Detailed Results */}
             {result.gaps.length > 0 && (
               <div className="space-y-3 w-full max-w-full min-w-0">
-                <h3 className="text-lg font-medium">Gap Details</h3>
+                <h3 className="text-lg font-medium">
+                  {tc('dialogs.gap.gapDetails')}
+                </h3>
                 <GapResultsTable gaps={result.gaps} />
               </div>
             )}
@@ -415,11 +417,10 @@ export function GapAnalysisDialog({
               <div className="text-center py-8">
                 <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400 mx-auto mb-3" />
                 <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                  No Gaps Found
+                  {tc('dialogs.gap.noGapsTitle')}
                 </h3>
                 <p className="text-slate-500 mt-1">
-                  This design has complete traceability coverage for the
-                  selected criteria.
+                  {tc('dialogs.gap.noGapsDescription')}
                 </p>
               </div>
             )}
@@ -430,7 +431,7 @@ export function GapAnalysisDialog({
           {step === 'configure' && (
             <>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button
                 onClick={runAnalysis}
@@ -441,14 +442,14 @@ export function GapAnalysisDialog({
                 }
               >
                 <Search className="h-4 w-4 mr-2" />
-                Analyze Gaps
+                {tc('actions.analyzeGaps')}
               </Button>
             </>
           )}
 
           {step === 'analyzing' && (
             <Button variant="outline" onClick={() => setStep('configure')}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           )}
 
@@ -460,10 +461,10 @@ export function GapAnalysisDialog({
                 className="mr-auto"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Reconfigure
+                {tc('actions.reconfigure')}
               </Button>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Close
+                {tc('actions.close')}
               </Button>
             </>
           )}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Plus, Tag } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
 import { cn } from '@/utils'
 
@@ -81,7 +82,7 @@ export function QuickJumpPills({
         >
           <Plus className="h-3 w-3 mr-1" />
           Create Tag
-        </Button>
+          {tp('designs.pageHeader.createTag')}
       )}
     </div>
   )

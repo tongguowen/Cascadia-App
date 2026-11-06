@@ -10,6 +10,7 @@ import {
   RefreshCw,
   ShieldAlert,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { AdminApiKeyRecord, ApiKeyRecord } from '@/query'
 import type { ApiKeyStatus } from '@cascadia/commons/auth/api-key-types'
 import { Badge, Button } from '@/components/ui'
@@ -76,6 +77,8 @@ export function ApiKeyTable({
   onViewActivity,
   busyKeyId,
 }: ApiKeyTableProps) {
+  const { t: tc } = useTranslation('common')
+
   if (keys.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -89,14 +92,20 @@ export function ApiKeyTable({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-700 text-left">
-            <th className="py-2 pr-4 font-medium">Name</th>
-            {showOwner && <th className="py-2 pr-4 font-medium">Owner</th>}
-            <th className="py-2 pr-4 font-medium">Permissions</th>
-            <th className="py-2 pr-4 font-medium">Roles</th>
-            <th className="py-2 pr-4 font-medium">Expires</th>
-            <th className="py-2 pr-4 font-medium">Last used</th>
-            <th className="py-2 pr-4 font-medium">Status</th>
-            <th className="py-2 font-medium text-right">Actions</th>
+            <th className="py-2 pr-4 font-medium">{tc('columns.name')}</th>
+            {showOwner && (
+              <th className="py-2 pr-4 font-medium">{tc('columns.owner')}</th>
+            )}
+            <th className="py-2 pr-4 font-medium">
+              {tc('columns.permissions')}
+            </th>
+            <th className="py-2 pr-4 font-medium">{tc('columns.roles')}</th>
+            <th className="py-2 pr-4 font-medium">{tc('columns.expires')}</th>
+            <th className="py-2 pr-4 font-medium">{tc('columns.lastUsed')}</th>
+            <th className="py-2 pr-4 font-medium">{tc('columns.status')}</th>
+            <th className="py-2 font-medium text-right">
+              {tc('columns.actions')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -156,7 +165,7 @@ export function ApiKeyTable({
                   {key.roles === null ? (
                     <span
                       className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400"
-                      title="This key inherits every role its owner holds, including role-gated actions like import branch-protection bypass."
+                      title={tc('apiKeyManager.inheritsRolesTooltip')}
                     >
                       <ShieldAlert className="w-3 h-3" />
                       All owner roles

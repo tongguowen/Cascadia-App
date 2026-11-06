@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Maximize2,
   Minimize2,
@@ -65,6 +66,8 @@ export function SvgViewer({
   toolbarExtra,
   className,
 }: SvgViewerProps) {
+  const { t: tp } = useTranslation('pages')
+  const dv = (key: string) => tp(`vault.documentViewer.${key}`)
   const [rotation, setRotation] = useState(0)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isPanning, setIsPanning] = useState(false)
@@ -138,8 +141,8 @@ export function SvgViewer({
           size="icon"
           onClick={() => stepZoom(-1)}
           disabled={!canZoomOut}
-          title="Zoom out"
-          aria-label="Zoom out"
+          title={dv('zoomOut')}
+          aria-label={dv('zoomOut')}
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -147,7 +150,7 @@ export function SvgViewer({
           type="button"
           onClick={resetView}
           className="min-w-14 rounded px-1 text-sm text-slate-600 tabular-nums hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-          title="Reset view"
+          title={dv('resetView')}
         >
           {Math.round(zoom * 100)}%
         </button>
@@ -156,8 +159,8 @@ export function SvgViewer({
           size="icon"
           onClick={() => stepZoom(1)}
           disabled={!canZoomIn}
-          title="Zoom in"
-          aria-label="Zoom in"
+          title={dv('zoomIn')}
+          aria-label={dv('zoomIn')}
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -165,8 +168,8 @@ export function SvgViewer({
           variant="ghost"
           size="icon"
           onClick={() => setRotation((r) => (r + 90) % 360)}
-          title="Rotate 90°"
-          aria-label="Rotate 90 degrees"
+          title={dv('rotate90')}
+          aria-label={dv('rotate90')}
         >
           <RotateCw className="h-4 w-4" />
         </Button>

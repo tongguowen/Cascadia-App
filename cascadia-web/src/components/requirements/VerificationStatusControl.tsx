@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Loader2, ShieldOff } from 'lucide-react'
 import type { Requirement } from '@cascadia/commons/items/types/requirement'
 import { apiFetch } from '@/api/client'
@@ -18,14 +19,6 @@ import {
   Label,
   Textarea,
 } from '@/components/ui'
-
-const STATUS_LABELS: Record<string, string> = {
-  NotStarted: 'Not Started',
-  InProgress: 'In Progress',
-  Passed: 'Passed',
-  Failed: 'Failed',
-  Waived: 'Waived',
-}
 
 const statusVariant = (
   status: string | undefined,
@@ -54,6 +47,8 @@ export function VerificationStatusControl({
 }: {
   requirement: Requirement
 }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError } = useErrorHandler()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [note, setNote] = useState('')
@@ -84,7 +79,7 @@ export function VerificationStatusControl({
     try {
       await waive.mutateAsync(note.trim())
     } catch (error) {
-      handleError(error, { title: 'Could not waive verification' })
+      handleError(error, { title: tp('requirements.waiveVerificationFailedTitle') })
     }
   }
 
@@ -92,18 +87,18 @@ export function VerificationStatusControl({
     try {
       await clearWaiver.mutateAsync()
     } catch (error) {
-      handleError(error, { title: 'Could not clear the waiver' })
+      handleError(error, { title: tp('requirements.clearWaiverFailedTitle') })
     }
   }
 
   return (
     <div>
       <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-        Verification Status
+        {tp('requirements.verification.statusLabel')}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={statusVariant(status)}>
-          {STATUS_LABELS[status] ?? status}
+          {tc(`enum.verificationStatus.${status}`, { defaultValue: status })}
         </Badge>
         {requirement.id &&
           (waiver ? (
@@ -113,12 +108,12 @@ export function VerificationStatusControl({
               size="sm"
               onClick={submitClear}
               disabled={clearWaiver.isPending}
-              title="Let the derived status take over again"
+              title={tp('requirements.verification.clearDerivedStatusTitle')}
             >
               {clearWaiver.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-1" />
               ) : null}
-              Clear waiver
+              {tp('requirements.verification.clearWaiver')}
             </Button>
           ) : (
             <Button
@@ -126,36 +121,38 @@ export function VerificationStatusControl({
               variant="ghost"
               size="sm"
               onClick={() => setDialogOpen(true)}
-              title="Record that verification is waived, with the reason"
+              title={tp('requirements.verification.recordWaiverTitle')}
             >
               <ShieldOff className="h-4 w-4 mr-1" />
-              Waive
+              {tp('requirements.verification.waiveAction')}
             </Button>
           ))}
       </div>
       <p className="mt-1 text-xs text-slate-500">
         {waiver
-          ? `Waived ${new Date(waiver.waivedAt).toLocaleDateString()}: ${waiver.note}`
-          : "Derived from the verifying tests' latest executions."}
+          ? tp('requirements.verification.waivedAtNote', {
+              date: new Date(waiver.waivedAt).toLocaleDateString(),
+              note: waiver.note,
+            })
+          : tp('requirements.verification.derivedFromTestsHint')}
       </p>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Waive verification</DialogTitle>
+            <DialogTitle>{tc('dialogs.waiveVerification.title')}</DialogTitle>
             <DialogDescription>
-              The status reads Waived until the waiver is cleared, whatever the
-              verifying tests say. Say why.
+              {tc('dialogs.waiveVerification.description')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="waiver-note">Reason</Label>
+            <Label htmlFor="waiver-note">{tc('labels.reason')}</Label>
             <Textarea
               id="waiver-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
-              placeholder="Verified by analysis in report X; no test applies"
+              placeholder={tp('requirements.verification.waiverReasonPlaceholder')}
             />
           </div>
           <div className="flex justify-end gap-2">
@@ -165,7 +162,7 @@ export function VerificationStatusControl({
               onClick={() => setDialogOpen(false)}
               disabled={waive.isPending}
             >
-              Cancel
+              {tc('actions.cancel')}
             </Button>
             <Button
               type="button"
@@ -175,7 +172,7 @@ export function VerificationStatusControl({
               {waive.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-1" />
               ) : null}
-              Waive
+              {tp('requirements.verification.waiveAction')}
             </Button>
           </div>
         </DialogContent>

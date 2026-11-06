@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -322,7 +323,7 @@ export function PartValidationPanel({
                   to="/test-cases/$id"
                   params={{ id: test.id! }}
                   className="flex items-center gap-3 flex-grow"
-                >
+            {tp('parts.detail.validation.empty')}
                   {getStatusIcon(test.executionStatus)}
                   <span className="font-mono text-sm">{test.itemNumber}</span>
                   <span className="text-slate-600 dark:text-slate-400">
@@ -344,12 +345,13 @@ export function PartValidationPanel({
                   <AffirmButton
                     relationshipId={test.relationshipId}
                     pendingIds={pendingIds}
-                    onAffirm={affirm}
-                    title="Record that this test still validates the part as it now stands"
-                  />
-                )}
-                {isEditable && (
-                  <Button
+                    {test.executionStatus ||
+                      tp('parts.detail.validation.executionNotRun')}
+                  </Badge>
+                  {test.suspect && (
+                    <SuspectBadge
+                      reasons={test.suspectReasons}
+                      labels={suspectReasonLabels}
                     variant="ghost"
                     size="icon"
                     onClick={() => handleUnlinkTest(test.id!)}
@@ -358,7 +360,7 @@ export function PartValidationPanel({
                   >
                     {unlinking === test.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
+                    title={tp('parts.detail.validation.affirmOneTitle')}
                       <Trash2 className="h-4 w-4" />
                     )}
                   </Button>

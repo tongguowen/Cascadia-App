@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type {
   Make,
   OptionCondition,
@@ -75,6 +76,8 @@ export function EditRelationshipDialog({
   optionModel,
   onSuccess,
 }: EditRelationshipDialogProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
   const [quantity, setQuantity] = useState(relationship.quantity ?? '')
@@ -114,7 +117,7 @@ export function EditRelationshipDialog({
       onOpenChange(false)
       onSuccess?.()
     } catch (error) {
-      handleError(error, { title: 'Failed to update relationship' })
+      handleError(error, { title: tp('relationships.updateFailedTitle') })
     } finally {
       setSaving(false)
     }
@@ -124,7 +127,11 @@ export function EditRelationshipDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit {relationship.relationshipType} Line</DialogTitle>
+          <DialogTitle>
+            {tp('relationships.editLineTitle', {
+              type: relationship.relationshipType,
+            })}
+          </DialogTitle>
           <DialogDescription>
             {relationship.targetItem.itemNumber}
             {relationship.targetItem.name
@@ -160,18 +167,18 @@ export function EditRelationshipDialog({
           </div>
 
           <div>
-            <Label htmlFor="edit-rel-refdes">Ref Designator</Label>
+            <Label htmlFor="edit-rel-refdes">{tc('fields.refDesignator')}</Label>
             <Input
               id="edit-rel-refdes"
               type="text"
-              placeholder="R1, C1"
+              placeholder={tc('placeholders.referenceDesignatorExample')}
               value={referenceDesignator}
               onChange={(e) => setReferenceDesignator(e.target.value)}
             />
           </div>
 
           <div>
-            <Label htmlFor="edit-rel-findnum">Find Number</Label>
+            <Label htmlFor="edit-rel-findnum">{tc('fields.findNumber')}</Label>
             <Input
               id="edit-rel-findnum"
               type="number"
@@ -184,13 +191,17 @@ export function EditRelationshipDialog({
 
         {isBom && (relationship.targetItem.makes?.length ?? 0) > 0 && (
           <div>
-            <Label htmlFor="edit-rel-execution">Target execution</Label>
+            <Label htmlFor="edit-rel-execution">
+              {tc('dialogs.addPartToStructure.targetExecutionLabel')}
+            </Label>
             <Select value={targetMakeCode} onValueChange={setTargetMakeCode}>
               <SelectTrigger id="edit-rel-execution">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Unspecified</SelectItem>
+                <SelectItem value="__none__">
+                  {tc('dialogs.addPartToStructure.unspecified')}
+                </SelectItem>
                 {relationship.targetItem.makes
                   ?.filter((make) => make.active)
                   .map((make) => (

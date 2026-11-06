@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Edit, Save, Tag, Trash2, X } from 'lucide-react'
 import type { Task } from '@cascadia/commons/items/types/task'
@@ -14,6 +15,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
   Collapsible,
@@ -33,13 +35,6 @@ import { useAlertDialog } from '@/hooks/useAlertDialog'
 import { itemAtContextQuery } from '@/query/options/items'
 import { StateBadge } from '@/components/items/StateBadge'
 import { FreeTransitionControl } from '@/components/items/FreeTransitionControl'
-
-const PRIORITY_OPTIONS = [
-  { value: 'Low', label: 'Low' },
-  { value: 'Medium', label: 'Medium' },
-  { value: 'High', label: 'High' },
-  { value: 'Critical', label: 'Critical' },
-]
 
 const priorityVariant = (priority: string) => {
   const variants: Record<
@@ -108,6 +103,18 @@ export function TaskDetail({
   onTabChange,
 }: TaskDetailProps) {
   const { confirm } = useAlertDialog()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+
+  const priorityOptions = useMemo(
+    () =>
+      (['Low', 'Medium', 'High', 'Critical'] as const).map((value) => ({
+        value,
+        label: tc(`enum.priority.${value}`),
+      })),
+    [tc],
+  )
+  const ttk = (key: string) => tp(`tasks.detail.${key}`)
 
   const isCreateMode = !initialTask?.id
 
@@ -164,10 +171,12 @@ export function TaskDetail({
   const handleDelete = () => {
     if (!onDelete || !currentTask.id) return
     confirm({
-      title: 'Delete Task',
-      description: `Are you sure you want to delete ${currentTask.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('tasks.deleteTitle'),
+      description: tp('tasks.detail.deleteDescription', {
+        itemNumber: currentTask.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: onDelete,
     })
@@ -193,12 +202,14 @@ export function TaskDetail({
           </Link>
           <div>
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              {isCreateMode ? 'Create New Task' : currentTask.itemNumber}
+              {isCreateMode
+                ? tp('tasks.form.createTitle')
+                : currentTask.itemNumber}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new task'
-                : currentTask.name || 'Unnamed'}
+                ? tp('tasks.form.createSubtitle')
+                : currentTask.name || tc('labels.unnamed')}
             </p>
           </div>
         </div>
@@ -212,27 +223,27 @@ export function TaskDetail({
                 disabled={isSubmitting}
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button onClick={handleSave} disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-2" />
                 {isSubmitting
-                  ? 'Saving...'
+                  ? tc('actions.saving')
                   : isCreateMode
-                    ? 'Create Task'
-                    : 'Save Changes'}
+                    ? tp('tasks.form.createSubmit')
+                    : tc('actions.saveChanges')}
               </Button>
             </>
           ) : (
             <>
               <Button variant="outline" onClick={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                {tc('actions.edit')}
               </Button>
               {onDelete && (
                 <Button variant="destructive" onClick={handleDelete}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
+                  {tc('actions.delete')}
                 </Button>
               )}
             </>
@@ -271,8 +282,8 @@ export function TaskDetail({
         className="w-full"
       >
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
@@ -280,44 +291,46 @@ export function TaskDetail({
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
+                  <CardDescription>{ttk('overviewDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditText
-                      label="Item Number"
+                      label={tc('fields.itemNumber')}
                       value={
                         isEditing ? task.itemNumber : currentTask.itemNumber
                       }
                       onChange={(v) => updateField('itemNumber', v)}
                       isEditing={isEditing && isCreateMode}
-                      placeholder="TASK-001"
+                      placeholder={ttk('itemNumberPlaceholder')}
                       required
                     />
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={isEditing ? task.name : currentTask.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="Task name"
+                      placeholder={ttk('namePlaceholder')}
                       required
                     />
                     <ViewEditBadge
-                      label="Priority"
+                      label={tc('fields.priority')}
                       value={isEditing ? task.priority : currentTask.priority}
                       onChange={(v) => updateField('priority', v)}
                       isEditing={isEditing}
-                      options={PRIORITY_OPTIONS}
+                      options={priorityOptions}
+                      placeholder={tc('placeholders.selectGeneric')}
                       variant={priorityVariant}
                     />
                     <ViewEditTextarea
-                      label="Description"
+                      label={tc('fields.description')}
                       value={
                         isEditing ? task.description : currentTask.description
                       }
                       onChange={(v) => updateField('description', v)}
                       isEditing={isEditing}
-                      placeholder="Task description"
+                      placeholder={ttk('descriptionPlaceholder')}
                       className="md:col-span-2"
                     />
                   </dl>
@@ -328,12 +341,12 @@ export function TaskDetail({
               isEditing ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Tags</CardTitle>
+                    <CardTitle>{tc('sections.tags')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {isEditing ? (
                       <ViewEditText
-                        label="Tags (comma-separated)"
+                        label={tc('labels.tagsCommaSeparated')}
                         value={task.tags?.join(', ') ?? ''}
                         onChange={(v) =>
                           updateField(
@@ -345,7 +358,7 @@ export function TaskDetail({
                           )
                         }
                         isEditing={isEditing}
-                        placeholder="tag1, tag2, tag3"
+                        placeholder={ttk('tagsPlaceholder')}
                       />
                     ) : (
                       <div className="flex flex-wrap gap-2">
@@ -365,18 +378,18 @@ export function TaskDetail({
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Assignment</CardTitle>
+                  <CardTitle>{tc('sections.assignment')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ViewEditText
-                    label="Assignee"
+                    label={tc('fields.assignee')}
                     value={isEditing ? task.assignee : currentTask.assignee}
                     onChange={(v) => updateField('assignee', v)}
                     isEditing={isEditing}
-                    placeholder="user@example.com"
+                    placeholder={ttk('assigneePlaceholder')}
                   />
                   <ViewEditText
-                    label="Due Date"
+                    label={tc('fields.dueDate')}
                     value={
                       isEditing
                         ? task.dueDate
@@ -386,10 +399,10 @@ export function TaskDetail({
                     }
                     onChange={(v) => updateField('dueDate', v)}
                     isEditing={isEditing}
-                    placeholder="YYYY-MM-DD"
+                    placeholder={ttk('dueDatePlaceholder')}
                   />
                   <ViewEditNumber
-                    label="Estimated Hours"
+                    label={tc('fields.estimatedHours')}
                     value={
                       isEditing
                         ? task.estimatedHours
@@ -406,7 +419,7 @@ export function TaskDetail({
                     step="0.5"
                   />
                   <ViewEditNumber
-                    label="Actual Hours"
+                    label={tc('fields.actualHours')}
                     value={
                       isEditing ? task.actualHours : currentTask.actualHours
                     }
@@ -424,26 +437,26 @@ export function TaskDetail({
                 <Card>
                   <CardHeader>
                     <CollapsibleTrigger className="hover:opacity-70">
-                      <CardTitle>Metadata</CardTitle>
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
                     </CollapsibleTrigger>
                   </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
                       <ViewEditStatic
-                        label="Revision"
+                        label={tc('fields.revision')}
                         value={currentTask.revision}
                       />
                       <ViewEditStatic
-                        label="Created"
+                        label={tc('columns.created')}
                         value={formatDate(currentTask.createdAt)}
                       />
                       <ViewEditStatic
-                        label="Last Modified"
+                        label={tc('fields.lastModified')}
                         value={formatDate(currentTask.modifiedAt)}
                       />
                       {!isCreateMode && (
                         <ViewEditStatic
-                          label="Task ID"
+                          label={ttk('taskId')}
                           value={currentTask.id}
                           mono
                         />

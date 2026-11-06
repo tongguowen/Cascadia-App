@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Eye, EyeOff, GitCompare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { CADCompareState } from './useCADCompareState'
 import type { CADSelectionState } from './useCADSelectionState'
 import type { CADViewerState } from './useCADViewerState'
@@ -37,6 +38,9 @@ export function PartCADSection({
   selection: CADSelectionState
   onError: (error: unknown, options: { title: string }) => void
 }) {
+  const { t: tp } = useTranslation('pages')
+  const cadT = (key: string, options?: Record<string, unknown>) =>
+    tp(`parts.detail.cad.${key}`, options)
   const { selectedFile } = viewer
   const files = viewer.files
 
@@ -47,19 +51,23 @@ export function PartCADSection({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>3D CAD Model</CardTitle>
+            <CardTitle>{cadT('title')}</CardTitle>
             <CardDescription>
               {compare.isOpen ? (
-                'Comparing two versions — pick each side in the panel'
+                cadT('comparingDescription')
               ) : (
                 <>
                   {selection.selectable
-                    ? `${selection.nodes.length} selectable parts`
-                    : 'Interactive 3D visualization'}{' '}
+                    ? cadT('selectableParts', {
+                        count: selection.nodes.length,
+                      })
+                    : cadT('interactiveViz')}{' '}
                   • {selectedFile.fileName}
                   {selectedFile.source === 'cad_doc' &&
                     selectedFile.sourceItemNumber &&
-                    ` (from ${selectedFile.sourceItemNumber})`}
+                    ` ${cadT('fromDocument', {
+                      itemNumber: selectedFile.sourceItemNumber,
+                    })}`}
                 </>
               )}
             </CardDescription>
@@ -79,19 +87,19 @@ export function PartCADSection({
                 if (compare.isOpen) compare.close()
                 else compare.open()
               }}
-              title="Compare two versions of this part"
+              title={cadT('compareTitle')}
             >
               <GitCompare className="h-4 w-4 mr-2" />
-              Compare
+              {cadT('compare')}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => viewer.setShowViewer(false)}
-              title="Hide 3D viewer"
+              title={cadT('hideViewerTitle')}
             >
               <EyeOff className="h-4 w-4 mr-2" />
-              Hide Viewer
+              {cadT('hideViewer')}
             </Button>
           </div>
         </div>
@@ -126,8 +134,13 @@ export function PartCADSection({
  * never looks like a part without them.
  */
 export function PartCADHiddenPrompt({ viewer }: { viewer: CADViewerState }) {
+  const { t: tp } = useTranslation('pages')
+  const cadT = (key: string, options?: Record<string, unknown>) =>
+    tp(`parts.detail.cad.${key}`, options)
   const { files } = viewer
   if (files.length === 0 || viewer.showViewer) return null
+
+  const hasDocs = files.some((f) => f.source === 'cad_doc')
 
   return (
     <Card>
@@ -135,23 +148,21 @@ export function PartCADHiddenPrompt({ viewer }: { viewer: CADViewerState }) {
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium text-slate-900 dark:text-white">
-              3D CAD Model Available
+              {cadT('hiddenTitle')}
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              {files.length} viewable CAD{' '}
-              {files.length === 1 ? 'file' : 'files'}
-              {files.some((f) => f.source === 'cad_doc')
-                ? ' (includes related documents)'
-                : ' attached'}
+              {hasDocs
+                ? cadT('viewableFilesWithDocs', { count: files.length })
+                : cadT('viewableFiles', { count: files.length })}
             </p>
           </div>
           <Button
             variant="default"
             onClick={() => viewer.setShowViewer(true)}
-            title="Show 3D viewer"
+            title={cadT('showViewerTitle')}
           >
             <Eye className="h-4 w-4 mr-2" />
-            Show 3D Viewer
+            {cadT('showViewer')}
           </Button>
         </div>
       </CardContent>

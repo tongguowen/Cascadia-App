@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { RotateCcw, SkipForward } from 'lucide-react'
 import type { EventConsumerStatus } from '@/query'
 import { Button } from '@/components/ui'
@@ -59,6 +60,9 @@ export function ConsumerErrorDialog({
   onSkip,
   busy = false,
 }: ConsumerErrorDialogProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+
   return (
     <Dialog
       open={consumer !== null}
@@ -73,40 +77,47 @@ export function ConsumerErrorDialog({
               </DialogTitle>
               <DialogDescription>
                 {consumer.abandonedAt
-                  ? 'Retention gave up waiting for this consumer. Its backlog is forfeit — resuming it will not bring the skipped events back.'
+                  ? tp('admin.events.consumerDialog.descAbandoned')
                   : consumer.parkedAt
-                    ? 'Parked after repeated failures. It will not retry on its own until you resume it or skip the event it is stuck on.'
-                    : 'Still retrying. The cursor has not moved past the event below.'}
+                    ? tp('admin.events.consumerDialog.descParked')
+                    : tp('admin.events.consumerDialog.descRetrying')}
               </DialogDescription>
             </DialogHeader>
 
             <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Field label="Consecutive failures">
+              <Field label={tp('admin.events.consumerDialog.consecutiveFailures')}>
                 {consumer.failureCount}
               </Field>
-              <Field label="Stuck at seq">{consumer.lastErrorSeq ?? '—'}</Field>
-              <Field label="Cursor">{consumer.lastSeq}</Field>
-              <Field label="Last failure">
+              <Field label={tp('admin.events.consumerDialog.stuckAtSeq')}>
+                {consumer.lastErrorSeq ?? '—'}
+              </Field>
+              <Field label={tp('admin.events.consumerDialog.cursor')}>
+                {consumer.lastSeq}
+              </Field>
+              <Field label={tp('admin.events.consumerDialog.lastFailure')}>
                 {formatWhen(consumer.lastErrorAt)}
               </Field>
-              <Field label="Next attempt">
+              <Field label={tp('admin.events.consumerDialog.nextAttempt')}>
                 {formatWhen(consumer.nextAttemptAt)}
               </Field>
-              <Field label="Parked">{formatWhen(consumer.parkedAt)}</Field>
+              <Field label={tp('admin.events.consumerDialog.parked')}>
+                {formatWhen(consumer.parkedAt)}
+              </Field>
             </dl>
 
             <div>
               <div className="mb-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                Error
+                {tp('admin.events.consumerDialog.errorLabel')}
               </div>
               <pre className="max-h-64 overflow-auto rounded border border-slate-300 bg-slate-50 p-3 font-mono text-xs whitespace-pre-wrap text-red-700 dark:border-slate-700 dark:bg-slate-900 dark:text-red-400">
-                {consumer.lastError ?? 'No error recorded.'}
+                {consumer.lastError ??
+                  tp('admin.events.consumerDialog.noErrorRecorded')}
               </pre>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>
-                Close
+                {tc('actions.close')}
               </Button>
               <Button
                 variant="outline"
@@ -114,11 +125,13 @@ export function ConsumerErrorDialog({
                 onClick={() => onSkip(consumer)}
               >
                 <SkipForward className="mr-2 h-4 w-4" />
-                Skip seq {consumer.lastErrorSeq ?? ''}
+                {tp('admin.events.consumerDialog.skipSeq', {
+                  seq: consumer.lastErrorSeq ?? '',
+                })}
               </Button>
               <Button disabled={busy} onClick={() => onResume(consumer)}>
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Resume
+                {tp('admin.events.consumerDialog.resume')}
               </Button>
             </DialogFooter>
           </>

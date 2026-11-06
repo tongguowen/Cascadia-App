@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { Button } from './Button'
 import { Input } from './Input'
@@ -28,11 +29,17 @@ export function SearchableSelect({
   value,
   onValueChange,
   options,
-  placeholder = 'Select...',
-  searchPlaceholder = 'Search...',
-  emptyMessage = 'No results found.',
+  placeholder,
+  searchPlaceholder,
+  emptyMessage,
   className,
 }: SearchableSelectProps) {
+  const { t: tc } = useTranslation('common')
+  const resolvedPlaceholder = placeholder ?? tc('ui.searchableSelect.select')
+  const resolvedSearchPlaceholder =
+    searchPlaceholder ?? tc('ui.searchableSelect.search')
+  const resolvedEmptyMessage =
+    emptyMessage ?? tc('ui.searchableSelect.empty')
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -77,7 +84,7 @@ export function SearchableSelect({
             className,
           )}
         >
-          <span className="truncate">{selectedLabel ?? placeholder}</span>
+          <span className="truncate">{selectedLabel ?? resolvedPlaceholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -88,7 +95,7 @@ export function SearchableSelect({
         <div className="p-2">
           <Input
             ref={inputRef}
-            placeholder={searchPlaceholder}
+            placeholder={resolvedSearchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8"
@@ -97,7 +104,7 @@ export function SearchableSelect({
         <div className="max-h-60 overflow-y-auto px-1 pb-1">
           {filtered.length === 0 && (
             <p className="px-3 py-2 text-sm text-muted-foreground">
-              {emptyMessage}
+              {resolvedEmptyMessage}
             </p>
           )}
           {[...groups.entries()].map(([group, items]) => (

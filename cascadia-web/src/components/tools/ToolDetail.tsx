@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Edit, Save, Trash2, X } from 'lucide-react'
 import {
   TOOL_SUBTYPES,
@@ -27,11 +28,12 @@ import {
 } from '@/components/items/apply-enrichment'
 import { useErrorHandler } from '@/hooks/useErrorHandler'
 import { ItemHistoryTab } from '@/components/items/ItemHistoryTab'
-import { ITEM_NUMBER_PLACEHOLDER } from '@/items/numbering/format'
+import { getItemNumberPlaceholder } from '@/items/numbering/format'
 import {
   Button,
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
   Collapsible,
@@ -50,13 +52,6 @@ import {
 import { useAlertDialog } from '@/hooks/useAlertDialog'
 import { StateBadge } from '@/components/items/StateBadge'
 import { FreeTransitionControl } from '@/components/items/FreeTransitionControl'
-
-// Tool state options match lifecycle: Draft -> Active -> Maintenance -> Retired
-const TOOL_TYPE_OPTIONS = [
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'quality', label: 'Quality' },
-  { value: 'utility', label: 'Utility' },
-]
 
 function subtypeLabel(subtype?: string): string {
   if (!subtype) return '-'
@@ -115,6 +110,20 @@ export function ToolDetail({
   onTabChange,
 }: ToolDetailProps) {
   const { confirm } = useAlertDialog()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const tto = (key: string) => tp(`tools.detail.${key}`)
+  const toolTypeOptions = useMemo(
+    () =>
+      (
+        [
+          ['manufacturing', 'tools.form.toolTypeManufacturing'],
+          ['quality', 'tools.form.toolTypeQuality'],
+          ['utility', 'tools.form.toolTypeUtility'],
+        ] as const
+      ).map(([value, key]) => ({ value, label: tp(key) })),
+    [tp],
+  )
 
   const isCreateMode = !initialTool?.id
 
@@ -207,10 +216,12 @@ export function ToolDetail({
   const handleDelete = () => {
     if (!onDelete || !currentTool.id) return
     confirm({
-      title: 'Delete Tool',
-      description: `Are you sure you want to delete ${currentTool.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('tools.deleteTitle'),
+      description: tp('tools.detail.deleteDescription', {
+        itemNumber: currentTool.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: onDelete,
     })
@@ -251,12 +262,14 @@ export function ToolDetail({
             </Link>
             <div>
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-                {isCreateMode ? 'Create New Tool' : currentTool.itemNumber}
+                {isCreateMode
+                  ? tp('tools.form.createTitle')
+                  : currentTool.itemNumber}
               </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
                 {isCreateMode
-                  ? 'Enter the details for the new tool'
-                  : currentTool.name || 'Unnamed'}
+                  ? tp('tools.form.createSubtitle')
+                  : currentTool.name || tc('labels.unnamed')}
               </p>
             </div>
           </div>
@@ -270,27 +283,27 @@ export function ToolDetail({
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button onClick={handleSave} disabled={isSubmitting}>
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create Tool'
-                      : 'Save Changes'}
+                      ? tp('tools.form.createSubmit')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="outline" onClick={handleEdit}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit
+                  {tc('actions.edit')}
                 </Button>
                 {onDelete && (
                   <Button variant="destructive" onClick={handleDelete}>
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    {tc('actions.delete')}
                   </Button>
                 )}
               </>
@@ -321,8 +334,8 @@ export function ToolDetail({
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="mt-6">
@@ -331,25 +344,26 @@ export function ToolDetail({
                 {/* Overview Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Overview</CardTitle>
+                    <CardTitle>{tc('sections.overview')}</CardTitle>
+                    <CardDescription>{tto('overviewDescription')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <ViewEditText
-                        label="Item Number"
+                        label={tc('fields.itemNumber')}
                         value={
                           isEditing ? tool.itemNumber : currentTool.itemNumber
                         }
                         onChange={(v) => updateField('itemNumber', v)}
                         isEditing={isEditing && isCreateMode}
-                        placeholder={ITEM_NUMBER_PLACEHOLDER}
+                        placeholder={getItemNumberPlaceholder()}
                       />
                       <ViewEditText
-                        label="Name"
+                        label={tc('fields.name')}
                         value={isEditing ? tool.name : currentTool.name}
                         onChange={(v) => updateField('name', v)}
                         isEditing={isEditing}
-                        placeholder="e.g., Prusa MK4S"
+                        placeholder={tto('namePlaceholder')}
                         required
                       />
                     </dl>
@@ -359,21 +373,21 @@ export function ToolDetail({
                 {/* Tool Information Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Tool Information</CardTitle>
+                    <CardTitle>{tc('sections.toolInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <ViewEditSelect
-                        label="Tool Type"
+                        label={tc('fields.toolType')}
                         value={isEditing ? tool.toolType : currentTool.toolType}
                         onChange={(v) => updateField('toolType', v)}
                         isEditing={isEditing}
-                        options={TOOL_TYPE_OPTIONS}
+                        options={toolTypeOptions}
                       />
                       {isEditing ? (
                         <div>
                           <dt className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                            Subtype
+                            {tc('columns.subtype')}
                           </dt>
                           <dd>
                             <SearchableSelect
@@ -383,21 +397,24 @@ export function ToolDetail({
                               }
                               options={[
                                 ...subtypeOptions,
-                                { value: 'other', label: 'Other' },
+                                {
+                                  value: 'other',
+                                  label: tp('tools.form.otherSubtype'),
+                                },
                               ]}
-                              placeholder="Search subtypes..."
-                              searchPlaceholder="Type to filter..."
+                              placeholder={tp('tools.form.searchSubtypes')}
+                              searchPlaceholder={tp('tools.form.typeToFilter')}
                             />
                           </dd>
                         </div>
                       ) : (
                         <ViewEditStatic
-                          label="Subtype"
+                          label={tc('columns.subtype')}
                           value={subtypeLabel(currentTool.toolSubtype)}
                         />
                       )}
                       <ViewEditText
-                        label="Manufacturer"
+                        label={tc('columns.manufacturer')}
                         value={
                           isEditing
                             ? tool.manufacturer
@@ -405,14 +422,14 @@ export function ToolDetail({
                         }
                         onChange={(v) => updateField('manufacturer', v)}
                         isEditing={isEditing}
-                        placeholder="e.g., Prusa Research"
+                        placeholder={tto('manufacturerPlaceholder')}
                       />
                       <ViewEditText
-                        label="Model"
+                        label={tc('fields.model')}
                         value={isEditing ? tool.model : currentTool.model}
                         onChange={(v) => updateField('model', v)}
                         isEditing={isEditing}
-                        placeholder="e.g., MK4S"
+                        placeholder={tto('modelPlaceholder')}
                       />
                     </dl>
                   </CardContent>
@@ -424,7 +441,7 @@ export function ToolDetail({
                     Object.keys(currentTool.capabilities).length > 0)) && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Capabilities</CardTitle>
+                      <CardTitle>{tc('sections.capabilities')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {isEditing ? (
@@ -447,15 +464,15 @@ export function ToolDetail({
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Status & Location</CardTitle>
+                    <CardTitle>{tc('sections.statusAndLocation')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <ViewEditText
-                      label="Location"
+                      label={tc('fields.location')}
                       value={isEditing ? tool.location : currentTool.location}
                       onChange={(v) => updateField('location', v)}
                       isEditing={isEditing}
-                      placeholder="e.g., Workshop bench 3"
+                      placeholder={tto('locationPlaceholder')}
                     />
                   </CardContent>
                 </Card>
@@ -463,7 +480,7 @@ export function ToolDetail({
                 {/* Notes */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Notes</CardTitle>
+                    <CardTitle>{tc('sections.notes')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ViewEditTextarea
@@ -471,7 +488,7 @@ export function ToolDetail({
                       value={isEditing ? tool.notes : currentTool.notes}
                       onChange={(v) => updateField('notes', v)}
                       isEditing={isEditing}
-                      placeholder="Free-form notes about this tool..."
+                      placeholder={tto('notesPlaceholder')}
                     />
                   </CardContent>
                 </Card>
@@ -495,7 +512,7 @@ export function ToolDetail({
                     >
                       <CardHeader className="pb-3">
                         <CollapsibleTrigger className="hover:opacity-70">
-                          <CardTitle>Custom Attributes</CardTitle>
+                          <CardTitle>{tc('sections.customAttributes')}</CardTitle>
                         </CollapsibleTrigger>
                       </CardHeader>
                       <CollapsibleContent>
@@ -518,7 +535,7 @@ export function ToolDetail({
                             </dl>
                           ) : (
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                              No custom attributes defined.
+                              {tc('messages.noCustomAttributes')}
                             </p>
                           )}
                         </CardContent>
@@ -531,26 +548,26 @@ export function ToolDetail({
                   <Card>
                     <CardHeader>
                       <CollapsibleTrigger className="hover:opacity-70">
-                        <CardTitle>Metadata</CardTitle>
+                        <CardTitle>{tc('sections.metadata')}</CardTitle>
                       </CollapsibleTrigger>
                     </CardHeader>
                     <CollapsibleContent>
                       <CardContent className="space-y-3">
                         <ViewEditStatic
-                          label="Revision"
+                          label={tc('fields.revision')}
                           value={currentTool.revision}
                         />
                         <ViewEditStatic
-                          label="Created"
+                          label={tc('columns.created')}
                           value={formatDate(currentTool.createdAt)}
                         />
                         <ViewEditStatic
-                          label="Last Modified"
+                          label={tc('fields.lastModified')}
                           value={formatDate(currentTool.modifiedAt)}
                         />
                         {!isCreateMode && (
                           <ViewEditStatic
-                            label="Tool ID"
+                            label={tto('toolId')}
                             value={currentTool.id}
                             mono
                           />

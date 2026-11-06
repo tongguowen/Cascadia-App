@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Maximize2, Minimize2, X } from 'lucide-react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Button } from './Button'
@@ -34,7 +35,7 @@ interface FullscreenGraphWrapperProps {
  */
 export function FullscreenGraphWrapper({
   children,
-  title = 'Graph View',
+  title,
   subtitle,
   inlineHeight = '600px',
   headerControls,
@@ -42,6 +43,8 @@ export function FullscreenGraphWrapper({
   className,
   disabled = false,
 }: FullscreenGraphWrapperProps) {
+  const { t: tc } = useTranslation('common')
+  const resolvedTitle = title ?? tc('tabs.graphView')
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   return (
@@ -58,7 +61,7 @@ export function FullscreenGraphWrapper({
             className="absolute top-2 right-2 z-10 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 shadow-sm"
             onClick={() => setIsFullscreen(true)}
             disabled={disabled}
-            aria-label="Open fullscreen view"
+            aria-label={tc('graphs.openFullscreen')}
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
@@ -87,7 +90,7 @@ export function FullscreenGraphWrapper({
               <div className="flex items-center gap-4">
                 <div>
                   <DialogPrimitive.Title className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    {title}
+                    {resolvedTitle}
                   </DialogPrimitive.Title>
                   {subtitle && (
                     <DialogPrimitive.Description className="text-sm text-slate-500 dark:text-slate-400">
@@ -107,7 +110,7 @@ export function FullscreenGraphWrapper({
                   variant="outline"
                   size="icon"
                   onClick={() => setIsFullscreen(false)}
-                  aria-label="Exit fullscreen"
+                  aria-label={tc('graphs.exitFullscreen')}
                 >
                   <Minimize2 className="h-4 w-4" />
                 </Button>
@@ -115,7 +118,7 @@ export function FullscreenGraphWrapper({
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label="Close fullscreen view"
+                    aria-label={tc('graphs.closeFullscreen')}
                   >
                     <X className="h-4 w-4" />
                   </Button>

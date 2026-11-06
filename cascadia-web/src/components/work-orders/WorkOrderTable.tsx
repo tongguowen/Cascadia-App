@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import { WorkOrderStatusBadge } from './WorkOrderStatusBadge'
 import type { WorkOrder } from '@cascadia/commons/items/types/work-order'
@@ -35,10 +36,11 @@ export function WorkOrderTable({
   onEdit,
   onDelete,
 }: WorkOrderTableProps) {
+  const { t } = useTranslation('common')
   const columns: Array<DataGridColumn<WorkOrder>> = [
     {
       id: 'workOrderNumber',
-      header: 'WO Number',
+      header: t('columns.woNumber'),
       accessorKey: 'workOrderNumber',
       enableFiltering: true,
       cell: ({ row }) => (
@@ -53,7 +55,7 @@ export function WorkOrderTable({
     },
     {
       id: 'part',
-      header: 'Part',
+      header: t('columns.part'),
       accessorFn: (row) =>
         row.part ? `${row.part.itemNumber} ${row.part.name || ''}` : '—',
       cell: ({ row }) =>
@@ -72,7 +74,7 @@ export function WorkOrderTable({
     },
     {
       id: 'quantity',
-      header: 'Qty',
+      header: t('columns.qty'),
       accessorKey: 'quantity',
       cell: ({ row }) => (
         <span className="tabular-nums">
@@ -82,14 +84,14 @@ export function WorkOrderTable({
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('columns.status'),
       accessorKey: 'status',
       enableFiltering: true,
       cell: ({ row }) => <WorkOrderStatusBadge status={row.original.status} />,
     },
     {
       id: 'priority',
-      header: 'Priority',
+      header: t('columns.priority'),
       accessorKey: 'priority',
       enableFiltering: true,
       cell: ({ row }) => {
@@ -103,7 +105,7 @@ export function WorkOrderTable({
     },
     {
       id: 'dueDate',
-      header: 'Due Date',
+      header: t('columns.dueDate'),
       accessorKey: 'dueDate',
       enableSorting: true,
       cell: ({ row }) => {
@@ -139,11 +141,11 @@ export function WorkOrderTable({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onView?.(row.original)}>
               <Eye className="h-4 w-4 mr-2" />
-              View
+              {t('actions.view')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit?.(row.original)}>
               <Edit className="h-4 w-4 mr-2" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -151,7 +153,7 @@ export function WorkOrderTable({
               onClick={() => onDelete?.(row.original)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              {t('actions.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

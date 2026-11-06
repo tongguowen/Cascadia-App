@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ClipboardCheck, Plus } from 'lucide-react'
 import type { WorkInstruction } from '@cascadia/commons/items/types/work-instruction'
@@ -61,6 +62,8 @@ export const Route = createFileRoute('/work-instructions/')({
 })
 
 function WorkInstructionsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -98,10 +101,12 @@ function WorkInstructionsListPage() {
     if (!workInstruction.id) return
 
     confirm({
-      title: 'Delete Work Instruction',
-      description: `Are you sure you want to delete ${workInstruction.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('workInstructions.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: workInstruction.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -110,12 +115,14 @@ function WorkInstructionsListPage() {
           })
 
           showSuccess(
-            'Work Instruction deleted',
-            `${workInstruction.itemNumber} has been deleted`,
+            t('workInstructions.deletedTitle'),
+            tc('dialog.deletedMessage', {
+              identifier: workInstruction.itemNumber,
+            }),
           )
           await invalidate('work-instructions')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete work instruction' })
+          handleError(error, { title: t('workInstructions.deleteFailed') })
         }
       },
     })
@@ -131,17 +138,17 @@ function WorkInstructionsListPage() {
           </div>
           <div>
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              Work Instructions
+              {t('workInstructions.title')}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Step-by-step manufacturing procedures
+              {t('workInstructions.subtitle')}
             </p>
           </div>
         </div>
         <Link to="/work-instructions/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Create Work Instruction
+            {t('workInstructions.create')}
           </Button>
         </Link>
       </div>
@@ -151,16 +158,15 @@ function WorkInstructionsListPage() {
         itemType="WorkInstruction"
         filters={WORK_INSTRUCTION_FILTERS}
         total={total}
-        totalLabel="Total"
+        totalLabel={t('workInstructions.total')}
       />
 
       {/* Work Instructions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Work Instructions</CardTitle>
+          <CardTitle>{t('workInstructions.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'work instruction' : 'work instructions'} in
-            the system
+            {t('workInstructions.tableDescription', { count: total })}
           </CardDescription>
         </CardHeader>
         <CardContent>

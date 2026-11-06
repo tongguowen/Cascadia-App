@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -51,6 +52,10 @@ const CHANGE_ORDER_TYPES = ['ECO', 'ECN', 'Deviation', 'MCO', 'XCO'] as const
 
 function ItemTypeConfigEditPage() {
   const { itemType } = Route.useParams()
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const td = (key: string, options?: Record<string, unknown>) =>
+    t(`admin.itemTypes.detail.${key}`, options)
   const invalidate = useInvalidateResources()
 
   // Read-only view of the code-defined numbering scheme for this item type.
@@ -134,11 +139,11 @@ function ItemTypeConfigEditPage() {
         body: JSON.stringify({ itemType, config }),
       })
 
-      setSuccessMessage('Configuration saved successfully!')
+      setSuccessMessage(td('saveSuccess'))
       await invalidate('admin')
       setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : td('genericError'))
     } finally {
       setSaving(false)
     }
@@ -161,7 +166,7 @@ function ItemTypeConfigEditPage() {
     return (
       <PageContainer maxWidth="wide">
         <p className="text-slate-600 dark:text-slate-400">
-          {loadError ? loadError.message : 'Loading configuration...'}
+          {loadError ? loadError.message : td('loading')}
         </p>
       </PageContainer>
     )
@@ -177,22 +182,25 @@ function ItemTypeConfigEditPage() {
           <Link to="/admin/item-types">
             <Button variant="outline" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {tc('actions.back')}
             </Button>
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-              Configure {codeConfig?.label ?? itemType}
+              {td('configureTitle', {
+                label: codeConfig?.label ?? itemType,
+              })}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Type: <code className="text-sm">{itemType}</code>
+              {td('typePrefix')}{' '}
+              <code className="text-sm">{itemType}</code>
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? tc('actions.saving') : tc('actions.saveChanges')}
           </Button>
         </div>
       </div>
@@ -223,14 +231,11 @@ function ItemTypeConfigEditPage() {
           <div className="flex items-start gap-2">
             <Badge variant="secondary">v{runtimeConfigVersion}</Badge>
             <span className="text-sm text-blue-800 dark:text-blue-200">
-              The lifecycle assignment below is the runtime setting for an item
-              type. Its name, icon, fields, relationships and numbering are
-              defined in code — see the reference at the bottom of this page —
-              and access is granted by role, under{' '}
+              {td('runtimeBannerBeforeRoles')}{' '}
               <Link to="/admin/roles" className="underline">
-                Roles
+                {t('admin.roles.title')}
               </Link>
-              .
+              {td('runtimeBannerAfterRoles')}
             </span>
           </div>
         </CardContent>
@@ -239,38 +244,34 @@ function ItemTypeConfigEditPage() {
       {/* Numbering Scheme (read-only) */}
       <Card>
         <CardHeader>
-          <CardTitle>Item Numbering</CardTitle>
-          <CardDescription>
-            How item numbers are generated for this type. Defined in code (
-            <code className="text-xs">
-              cascadia-commons/src/items/numbering/schemes.ts
-            </code>
-            ).
-          </CardDescription>
+          <CardTitle>{td('numberingTitle')}</CardTitle>
+          <CardDescription>{td('numberingDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {numbering ? (
             <>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  Example
+                  {td('example')}
                 </span>
                 <code className="text-base font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded">
                   {numbering.example ?? '—'}
                 </code>
                 <Badge variant="secondary">
                   {numbering.allowManualEntry
-                    ? 'Manual entry allowed'
-                    : 'Always auto-generated'}
+                    ? td('manualEntryAllowed')
+                    : td('alwaysAutoGenerated')}
                 </Badge>
                 {numbering.familyVariants.enabled && (
                   <Badge variant="secondary">
-                    Family variants (e.g. {numbering.familyVariants.example})
+                    {td('familyVariants', {
+                      example: numbering.familyVariants.example,
+                    })}
                   </Badge>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Pattern</Label>
+                <Label>{td('pattern')}</Label>
                 <ol className="space-y-1.5">
                   {numbering.segments.map((seg, i) => (
                     <li
@@ -285,14 +286,13 @@ function ItemTypeConfigEditPage() {
                   ))}
                 </ol>
                 <p className="text-xs text-slate-500">
-                  Segments are joined with{' '}
-                  <code className="text-xs">"{numbering.separator}"</code>.
+                  {td('segmentsJoined', { separator: numbering.separator })}
                 </p>
               </div>
             </>
           ) : (
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              No numbering scheme is defined for this item type.
+              {td('noNumberingScheme')}
             </p>
           )}
         </CardContent>
@@ -304,10 +304,9 @@ function ItemTypeConfigEditPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Lifecycle Assignment</CardTitle>
+                <CardTitle>{td('lifecycleAssignmentTitle')}</CardTitle>
                 <CardDescription>
-                  Select the lifecycle that controls states and transitions for
-                  this item type
+                  {td('lifecycleAssignmentDescription')}
                 </CardDescription>
               </div>
               {selectedLifecycle && (
@@ -317,7 +316,7 @@ function ItemTypeConfigEditPage() {
                 >
                   <Button variant="outline" size="sm">
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Edit Lifecycle
+                    {td('editLifecycle')}
                   </Button>
                 </Link>
               )}
@@ -325,7 +324,7 @@ function ItemTypeConfigEditPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Lifecycle</Label>
+              <Label>{td('lifecycle')}</Label>
               <Select
                 value={lifecycleDefinitionId || '__none__'}
                 onValueChange={(value) =>
@@ -333,7 +332,7 @@ function ItemTypeConfigEditPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a lifecycle..." />
+                  <SelectValue placeholder={td('selectLifecycle')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableLifecycles.map((lifecycle) => (
@@ -345,7 +344,7 @@ function ItemTypeConfigEditPage() {
               </Select>
               {codeConfig?.lifecycleDefinitionId && (
                 <p className="text-xs text-slate-500">
-                  Code default:{' '}
+                  {td('codeDefault')}{' '}
                   {availableLifecycles.find(
                     (l) => l.id === codeConfig.lifecycleDefinitionId,
                   )?.name || codeConfig.lifecycleDefinitionId}
@@ -357,7 +356,7 @@ function ItemTypeConfigEditPage() {
             {selectedLifecycle && (
               <div className="space-y-2">
                 <Label className="text-slate-600 dark:text-slate-400">
-                  States in "{selectedLifecycle.name}"
+                  {td('statesIn', { name: selectedLifecycle.name })}
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   {selectedLifecycle.states.map((state) => (
@@ -366,8 +365,8 @@ function ItemTypeConfigEditPage() {
                       className={`${getStateColorClass(state.color)} text-xs`}
                     >
                       {state.name}
-                      {state.isInitial && ' (Initial)'}
-                      {state.isFinal && ' (Final)'}
+                      {state.isInitial && ` ${td('stateInitial')}`}
+                      {state.isFinal && ` ${td('stateFinal')}`}
                     </Badge>
                   ))}
                 </div>
@@ -376,14 +375,14 @@ function ItemTypeConfigEditPage() {
 
             {availableLifecycles.length === 0 && (
               <div className="p-3 bg-slate-100 border border-slate-300 rounded text-slate-600 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
-                No lifecycles available.{' '}
+                {td('noLifecyclesAvailable')}{' '}
                 <Link
                   to="/lifecycles/new"
                   className="text-blue-600 hover:underline dark:text-blue-400"
                 >
-                  Create a lifecycle
+                  {td('createLifecycle')}
                 </Link>{' '}
-                to assign it to this item type.
+                {td('assignLifecycleSuffix')}
               </div>
             )}
           </CardContent>
@@ -394,26 +393,23 @@ function ItemTypeConfigEditPage() {
       {itemType === 'ChangeOrder' && (
         <Card>
           <CardHeader>
-            <CardTitle>Default Workflows by Change Type</CardTitle>
+            <CardTitle>{td('workflowsByChangeTypeTitle')}</CardTitle>
             <CardDescription>
-              Assign default approval workflows for each type of change order.
-              When a change order is created, the corresponding workflow will be
-              automatically started. All change types must have a workflow
-              assigned.
+              {td('workflowsByChangeTypeDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {availableWorkflows.length === 0 ? (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400">
                 <AlertCircle className="w-4 h-4 inline mr-2" />
-                No workflows available.{' '}
+                {td('noWorkflowsAvailable')}{' '}
                 <Link
                   to="/workflows/new"
                   className="text-yellow-900 underline dark:text-yellow-300"
                 >
-                  Create a workflow
+                  {td('createWorkflow')}
                 </Link>{' '}
-                to assign it to change order types.
+                {td('assignWorkflowSuffix')}
               </div>
             ) : (
               <>
@@ -430,7 +426,7 @@ function ItemTypeConfigEditPage() {
                       }
                     >
                       <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select a workflow..." />
+                        <SelectValue placeholder={td('selectWorkflow')} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableWorkflows.map((workflow) => (
@@ -458,8 +454,7 @@ function ItemTypeConfigEditPage() {
                 ) && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
                     <AlertCircle className="w-4 h-4 inline mr-2" />
-                    All change types must have a workflow assigned. Change
-                    orders cannot be created without a workflow.
+                    {td('allChangeTypesNeedWorkflow')}
                   </div>
                 )}
               </>
@@ -472,11 +467,8 @@ function ItemTypeConfigEditPage() {
       {codeConfig && (
         <Card className="opacity-70">
           <CardHeader>
-            <CardTitle>Code Defaults (Read-Only Reference)</CardTitle>
-            <CardDescription>
-              Original configuration defined in code. Cannot be modified at
-              runtime.
-            </CardDescription>
+            <CardTitle>{td('codeDefaultsTitle')}</CardTitle>
+            <CardDescription>{td('codeDefaultsDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="text-xs bg-slate-100 dark:bg-slate-800 p-4 rounded overflow-auto max-h-64">

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, KeyRound } from 'lucide-react'
 import { PageContainer } from '@/components/layout'
@@ -30,6 +31,7 @@ export const Route = createFileRoute('/profile/api-keys')({
  * point: issuing a key for your own integrations should not require an admin.
  */
 function MyApiKeysPage() {
+  const { t } = useTranslation('pages')
   const { data, isPending, error } = useQuery(myApiKeysQuery())
 
   const keys = data?.apiKeys ?? []
@@ -43,17 +45,16 @@ function MyApiKeysPage() {
           className="inline-flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 hover:underline"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to profile
+          {t('profile.backToProfile')}
         </Link>
         <div className="flex items-center gap-3 mt-3">
           <KeyRound className="w-8 h-8 text-slate-700 dark:text-slate-300" />
           <div>
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              API Keys
+              {t('profile.apiKeysPageTitle')}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-2">
-              Credentials for headless clients that act as you — CI jobs, CAD
-              connectors, and MCP.
+              {t('profile.apiKeysPageSubtitle')}
             </p>
           </div>
         </div>
@@ -62,18 +63,18 @@ function MyApiKeysPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CardTitle>Your keys</CardTitle>
-            <Badge variant="secondary">{activeCount} active</Badge>
+            <CardTitle>{t('profile.yourKeys')}</CardTitle>
+            <Badge variant="secondary">
+              {t('profile.activeCount', { count: activeCount })}
+            </Badge>
           </div>
-          <CardDescription>
-            A key can only ever do less than you can, never more. Scope each one
-            to what its client actually needs — if it leaks, the scope is the
-            blast radius.
-          </CardDescription>
+          <CardDescription>{t('profile.keysScopeDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           {isPending && (
-            <p className="text-sm text-muted-foreground">Loading keys…</p>
+            <p className="text-sm text-muted-foreground">
+              {t('profile.loadingKeys')}
+            </p>
           )}
           {error && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
@@ -93,10 +94,8 @@ function MyApiKeysPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Using a key</CardTitle>
-          <CardDescription>
-            Send it as a bearer token on any <code>/api/v1</code> request.
-          </CardDescription>
+          <CardTitle>{t('profile.usingKey')}</CardTitle>
+          <CardDescription>{t('profile.usingKeyDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="p-3 bg-slate-100 dark:bg-slate-800 rounded text-xs overflow-x-auto">
@@ -104,9 +103,7 @@ function MyApiKeysPage() {
   ${typeof window === 'undefined' ? '' : window.location.origin}/api/v1/parts`}
           </pre>
           <p className="text-xs text-muted-foreground mt-3">
-            The same key authenticates the MCP endpoint at{' '}
-            <code>/api/v1/mcp</code>, which accepts keys only — never browser
-            sessions.
+            {t('profile.mcpNote')}
           </p>
         </CardContent>
       </Card>

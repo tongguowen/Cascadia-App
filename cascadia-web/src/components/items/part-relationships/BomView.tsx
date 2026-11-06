@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import {
   Download,
   ExternalLink,
@@ -45,6 +46,7 @@ export function BomView({
   optionModel?: OptionModel | null
 }) {
   const navigate = useNavigate()
+  const { t: tp } = useTranslation('pages')
 
   // Product variants: show the Option column only when the tree has a
   // conditioned line somewhere, so an unconfigured BOM looks as it always did.
@@ -58,7 +60,7 @@ export function BomView({
   const bomColumns: Array<ColumnDefinition> = [
     {
       id: 'item',
-      label: 'Item',
+      label: tp('relationships.colItem'),
       width: 'flex-[2] min-w-[200px]',
       renderCell: (node) => (
         <span className="font-medium text-slate-900 dark:text-white truncate">
@@ -74,7 +76,7 @@ export function BomView({
     },
     {
       id: 'execution',
-      label: 'Execution',
+      label: tp('relationships.colExecution'),
       width: 'w-20 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -85,7 +87,7 @@ export function BomView({
     },
     {
       id: 'name',
-      label: 'Name',
+      label: tp('relationships.colName'),
       width: 'flex-[2] min-w-[150px]',
       renderCell: (node) => (
         <span className="truncate text-slate-600 dark:text-slate-400">
@@ -95,7 +97,7 @@ export function BomView({
     },
     {
       id: 'type',
-      label: 'Type',
+      label: tp('relationships.colType'),
       width: 'w-20 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -106,7 +108,7 @@ export function BomView({
     },
     {
       id: 'qty',
-      label: 'Qty',
+      label: tp('relationships.colQty'),
       width: 'w-14 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -115,7 +117,7 @@ export function BomView({
     },
     {
       id: 'findNum',
-      label: 'Find #',
+      label: tp('relationships.colFind'),
       width: 'w-14 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -126,7 +128,7 @@ export function BomView({
       ? [
           {
             id: 'option',
-            label: 'Option',
+            label: tp('relationships.colOption'),
             width: 'w-40 flex-shrink-0',
             renderCell: (node: BOMTreeNode) => (
               <OptionConditionChips
@@ -140,7 +142,7 @@ export function BomView({
       : []),
     {
       id: 'rev',
-      label: 'Rev',
+      label: tp('relationships.colRev'),
       width: 'w-14 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -149,7 +151,7 @@ export function BomView({
     },
     {
       id: 'state',
-      label: 'State',
+      label: tp('relationships.colState'),
       width: 'w-24 flex-shrink-0',
       align: 'center',
       renderCell: (node) => (
@@ -169,7 +171,7 @@ export function BomView({
     return (
       <ContextMenuItem onClick={() => navigate({ to: route })}>
         <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-        View
+        {tp('relationships.view')}
       </ContextMenuItem>
     )
   }
@@ -185,10 +187,10 @@ export function BomView({
           <div className="text-center py-8">
             <FolderTree className="h-12 w-12 mx-auto mb-4 opacity-50 text-slate-400" />
             <p className="text-slate-500 dark:text-slate-400">
-              No BOM structure found
+              {tp('relationships.emptyBomTitle')}
             </p>
             <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">
-              Add BOM relationships to see the hierarchy
+              {tp('relationships.emptyBomDescription')}
             </p>
           </div>
         ) : (
@@ -203,7 +205,7 @@ export function BomView({
             />
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Showing BOM hierarchy with direct children
+                {tp('relationships.bomHierarchyHint')}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -216,7 +218,7 @@ export function BomView({
                   }
                 >
                   <Download className="h-4 w-4 mr-1" />
-                  Export CSV
+                  {tp('relationships.exportCsv')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -225,7 +227,7 @@ export function BomView({
                   disabled={bomLoading}
                 >
                   <RefreshCw className="h-4 w-4 mr-1" />
-                  Refresh
+                  {tp('relationships.refresh')}
                 </Button>
               </div>
             </div>

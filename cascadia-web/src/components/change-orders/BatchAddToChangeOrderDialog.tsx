@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { formatRevision } from '@cascadia/commons/types/lifecycle'
@@ -29,6 +30,7 @@ import {
 import { apiFetch } from '@/api/client'
 import { useAlertDialog } from '@/hooks/useAlertDialog'
 import { useErrorHandler } from '@/hooks/useErrorHandler'
+import { translateStateName } from '@/i18n'
 
 interface BatchAddToChangeOrderDialogProps {
   open: boolean
@@ -47,6 +49,7 @@ export function BatchAddToChangeOrderDialog({
 }: BatchAddToChangeOrderDialogProps) {
   const { alert } = useAlertDialog()
   const { handleError, showWarning } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
   const [loading, setLoading] = useState(false)
   const [description, setDescription] = useState('')
 
@@ -98,8 +101,8 @@ export function BatchAddToChangeOrderDialog({
 
       if (itemsPayload.length === 0) {
         showWarning(
-          'Nothing to add',
-          'None of the selected items are in a state this change order can act on.',
+          tc('dialogs.batchAddToEco.nothingToAddTitle'),
+          tc('dialogs.batchAddToEco.nothingToAddDescription'),
         )
         return
       }
@@ -111,15 +114,17 @@ export function BatchAddToChangeOrderDialog({
       })
 
       alert({
-        title: 'Items Added',
-        description: `${itemsPayload.length} item${itemsPayload.length !== 1 ? 's' : ''} added to the change order.`,
+        title: tc('dialogs.batchAddToEco.addedTitle'),
+        description: tc('dialogs.batchAddToEco.addedDescription', {
+          count: itemsPayload.length,
+        }),
       })
 
       setDescription('')
       setActionOverrides({})
       onSuccess()
     } catch (error) {
-      handleError(error, { title: 'Failed to add items to the change order' })
+      handleError(error, { title: tc('dialogs.batchAddToEco.failedTitle') })
     } finally {
       setLoading(false)
     }
@@ -129,10 +134,11 @@ export function BatchAddToChangeOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl max-h-[85vh] grid-rows-[auto_1fr_auto] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Add {items.length} Items to Change Order</DialogTitle>
+          <DialogTitle>
+            {tc('dialogs.batchAddToEco.title', { count: items.length })}
+          </DialogTitle>
           <DialogDescription>
-            Review the change actions for each item before adding them to the
-            ECO.
+            {tc('dialogs.batchAddToEco.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -142,12 +148,24 @@ export function BatchAddToChangeOrderDialog({
             <table className="w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
                 <tr className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                  <th className="text-left px-3 py-1.5">Item</th>
-                  <th className="text-left px-3 py-1.5">Name</th>
-                  <th className="text-center px-3 py-1.5">Rev</th>
-                  <th className="text-center px-3 py-1.5">State</th>
-                  <th className="text-center px-3 py-1.5">Action</th>
-                  <th className="text-center px-3 py-1.5">Target</th>
+                  <th className="text-left px-3 py-1.5">
+                    {tc('columns.item')}
+                  </th>
+                  <th className="text-left px-3 py-1.5">
+                    {tc('columns.name')}
+                  </th>
+                  <th className="text-center px-3 py-1.5">
+                    {tc('labels.rev')}
+                  </th>
+                  <th className="text-center px-3 py-1.5">
+                    {tc('labels.state')}
+                  </th>
+                  <th className="text-center px-3 py-1.5">
+                    {tc('labels.action')}
+                  </th>
+                  <th className="text-center px-3 py-1.5">
+                    {tc('labels.target')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y dark:divide-slate-700">
@@ -212,15 +230,19 @@ export function BatchAddToChangeOrderDialog({
                             }
                             className="text-xs"
                           >
-                            {available.at(0)?.label ?? 'No action available'}
+                            {available.at(0)?.label ??
+                              tc('dialogs.batchAddToEco.noActionAvailable')}
                           </Badge>
                         )}
                       </td>
                       <td className="px-3 py-1.5 text-center text-xs text-slate-500 dark:text-slate-400">
                         {target?.targetState
                           ? target.targetRevision
-                            ? `Rev ${target.targetRevision} (${target.targetState})`
-                            : target.targetState
+                            ? tc('dialogs.addToEco.targetRev', {
+                                revision: target.targetRevision,
+                                state: translateStateName(target.targetState),
+                              })
+                            : translateStateName(target.targetState)
                           : (itemOptions?.blockedReason ?? '—')}
                       </td>
                     </tr>
@@ -232,10 +254,12 @@ export function BatchAddToChangeOrderDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="batch-description">Description (optional)</Label>
+            <Label htmlFor="batch-description">
+              {tc('labels.descriptionOptional')}
+            </Label>
             <Textarea
               id="batch-description"
-              placeholder="Describe the changes..."
+              placeholder={tc('dialogs.batchAddToEco.describePlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
@@ -245,14 +269,14 @@ export function BatchAddToChangeOrderDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tc('actions.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || loadingOptions || addableCount === 0}
           >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Add {addableCount} Item{addableCount !== 1 ? 's' : ''} to ECO
+            {tc('dialogs.batchAddToEco.addItems', { count: addableCount })}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -12,6 +12,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type {
   DialogFormField,
   FormDialogPayload,
@@ -136,6 +137,7 @@ export function DialogForm({
   onSubmit,
   onCancel,
 }: DialogFormProps) {
+  const { t: tc } = useTranslation('common')
   const [values, setValues] = useState(() => initialValues(payload.fields))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const sources = useOptionSources(payload.fields)
@@ -199,8 +201,8 @@ export function DialogForm({
               <SelectValue
                 placeholder={
                   sources.loading && field.optionsFrom
-                    ? 'Loading…'
-                    : (field.placeholder ?? 'Select…')
+                    ? tc('dataGrid.loading')
+                    : (field.placeholder ?? tc('placeholders.selectGeneric'))
                 }
               />
             </SelectTrigger>
@@ -276,9 +278,11 @@ export function DialogForm({
 
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {tc('actions.cancel')}
         </Button>
-        <Button type="submit">{payload.submitLabel ?? 'Submit'}</Button>
+        <Button type="submit">
+          {payload.submitLabel ?? tc('actions.submit')}
+        </Button>
       </div>
     </form>
   )

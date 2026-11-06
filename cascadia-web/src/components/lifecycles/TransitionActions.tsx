@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronRight, RotateCcw, Send, X } from 'lucide-react'
 import { TransitionDialog } from './TransitionDialog'
@@ -14,6 +15,7 @@ import {
   changeOrderTransitionsQuery,
 } from '@/query/options/lifecycles'
 import { apiFetch } from '@/api/client'
+import { translateStateName } from '@/i18n'
 
 interface TransitionResultResponse {
   data: {
@@ -36,6 +38,7 @@ export function TransitionActions({
   onTransitionComplete,
 }: TransitionActionsProps) {
   const { handleError, showSuccess } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [pendingTransitionId, setPendingTransitionId] = useState<string | null>(
@@ -72,8 +75,13 @@ export function TransitionActions({
           (s) => s.id === toStateId,
         )
         showSuccess(
-          'Workflow Transition Complete',
-          `${itemNumber} has been transitioned to ${targetState?.name || toStateId}`,
+          tc('dialogs.transitionActions.successTitle'),
+          tc('dialogs.transitionActions.successDescription', {
+            itemNumber,
+            stateName: targetState
+              ? translateStateName(targetState.name)
+              : toStateId,
+          }),
         )
         setPendingTransitionId(null)
         // A transition can release the ECO, which rewrites revisions across
@@ -81,10 +89,14 @@ export function TransitionActions({
         await invalidate('lifecycles')
         onTransitionComplete?.()
       } else {
-        throw new Error(data.data.error || 'Transition failed')
+        throw new Error(
+          data.data.error || tc('dialogs.transitionActions.transitionFailed'),
+        )
       }
     } catch (error) {
-      handleError(error, { title: 'Failed to complete workflow transition' })
+      handleError(error, {
+        title: tc('dialogs.transitionActions.failedTitle'),
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -115,7 +127,7 @@ export function TransitionActions({
     if (availableTransitions.length > 0 && executableTransitions.length === 0) {
       return (
         <div className="text-sm text-muted-foreground">
-          No workflow actions available (guards not satisfied)
+          {tc('dialogs.transitionActions.noActionsAvailable')}
         </div>
       )
     }

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { AlertTriangle, CheckCircle2, Info, X, XCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ToastVariant } from '@/hooks/useToast'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils'
@@ -31,6 +32,7 @@ const variantIcons: Record<ToastVariant, React.ReactNode> = {
  * Should be placed in your root layout.
  */
 export function ToastContainer() {
+  const { t: tc } = useTranslation('common')
   const { toasts, removeToast } = useToast()
 
   if (toasts.length === 0) {
@@ -77,7 +79,7 @@ export function ToastContainer() {
               type="button"
               onClick={() => removeToast(toast.id)}
               className="flex-shrink-0 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 rounded"
-              aria-label="Dismiss notification"
+              aria-label={tc('ui.toast.dismiss')}
             >
               <X className="h-4 w-4" />
             </button>

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { VersionContext } from '@/hooks/useVersionContext'
 import type { DataGridColumn } from '@/components/ui/DataGrid'
 import type { DesignItem, GridParams } from '@/query'
@@ -31,95 +33,107 @@ const getTypeBadgeVariant = (itemType: string) => {
   }
 }
 
-const columns: Array<DataGridColumn<DesignItem>> = [
-  {
-    id: 'itemNumber',
-    header: 'Item Number',
-    accessorKey: 'itemNumber',
-    enableFiltering: true,
-    filterType: 'text',
-    filterPlaceholder: 'Filter...',
-    cell: ({ row }) => (
-      <ItemLink
-        itemType={row.original.itemType}
-        itemId={row.original.id}
-        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-      >
-        {row.original.itemNumber}
-      </ItemLink>
-    ),
-  },
-  {
-    id: 'itemType',
-    header: 'Type',
-    accessorKey: 'itemType',
-    enableFiltering: true,
-    filterType: 'multiSelect',
-    filterOptions: [
-      { label: 'Part', value: 'Part' },
-      { label: 'Document', value: 'Document' },
-      { label: 'Requirement', value: 'Requirement' },
-    ],
-    cell: ({ getValue }) => (
-      <Badge
-        variant={getTypeBadgeVariant(getValue() as string)}
-        className="text-xs"
-      >
-        {getValue() as string}
-      </Badge>
-    ),
-  },
-  {
-    id: 'name',
-    header: 'Name',
-    accessorKey: 'name',
-    enableFiltering: true,
-    filterType: 'text',
-    filterPlaceholder: 'Filter...',
-  },
-  {
-    id: 'revision',
-    header: 'Revision',
-    accessorKey: 'revision',
-    meta: { align: 'center' },
-  },
-  {
-    id: 'state',
-    header: 'State',
-    accessorKey: 'state',
-    enableFiltering: true,
-    // Library items span item types, each with its own lifecycle — a free
-    // text filter rather than one type's state list
-    filterType: 'text',
-    filterPlaceholder: 'Filter state...',
-    cell: ({ row, getValue }) => (
-      <StateBadge
-        itemType={row.original.itemType}
-        state={getValue() as string}
-        className="text-xs"
-      />
-    ),
-  },
-  {
-    id: 'modifiedAt',
-    header: 'Modified',
-    accessorKey: 'modifiedAt',
-    cell: ({ getValue }) => {
-      const val = getValue() as string
-      return (
-        <span className="text-slate-700 dark:text-slate-300">
-          {val ? new Date(val).toLocaleDateString() : '-'}
-        </span>
-      )
-    },
-  },
-]
-
 export function LibraryItemsTab({
   designId,
   versionContext,
   isHistoricalView,
 }: LibraryItemsTabProps) {
+  const { t: tp } = useTranslation('pages')
+
+  const columns = useMemo<Array<DataGridColumn<DesignItem>>>(
+    () => [
+      {
+        id: 'itemNumber',
+        header: tp('designs.libraryItemsTab.colItemNumber'),
+        accessorKey: 'itemNumber',
+        enableFiltering: true,
+        filterType: 'text',
+        filterPlaceholder: tp('designs.libraryItemsTab.filterPlaceholder'),
+        cell: ({ row }) => (
+          <ItemLink
+            itemType={row.original.itemType}
+            itemId={row.original.id}
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+          >
+            {row.original.itemNumber}
+          </ItemLink>
+        ),
+      },
+      {
+        id: 'itemType',
+        header: tp('designs.libraryItemsTab.colType'),
+        accessorKey: 'itemType',
+        enableFiltering: true,
+        filterType: 'multiSelect',
+        filterOptions: [
+          {
+            label: tp('designs.libraryItemsTab.typePart'),
+            value: 'Part',
+          },
+          {
+            label: tp('designs.libraryItemsTab.typeDocument'),
+            value: 'Document',
+          },
+          {
+            label: tp('designs.libraryItemsTab.typeRequirement'),
+            value: 'Requirement',
+          },
+        ],
+        cell: ({ getValue }) => (
+          <Badge
+            variant={getTypeBadgeVariant(getValue() as string)}
+            className="text-xs"
+          >
+            {getValue() as string}
+          </Badge>
+        ),
+      },
+      {
+        id: 'name',
+        header: tp('designs.libraryItemsTab.colName'),
+        accessorKey: 'name',
+        enableFiltering: true,
+        filterType: 'text',
+        filterPlaceholder: tp('designs.libraryItemsTab.filterPlaceholder'),
+      },
+      {
+        id: 'revision',
+        header: tp('designs.libraryItemsTab.colRevision'),
+        accessorKey: 'revision',
+        meta: { align: 'center' },
+      },
+      {
+        id: 'state',
+        header: tp('designs.libraryItemsTab.colState'),
+        accessorKey: 'state',
+        enableFiltering: true,
+        filterType: 'text',
+        filterPlaceholder: tp('designs.libraryItemsTab.filterStatePlaceholder'),
+        cell: ({ row, getValue }) => (
+          <StateBadge
+            itemType={row.original.itemType}
+            state={getValue() as string}
+            className="text-xs"
+          />
+        ),
+      },
+      {
+        id: 'modifiedAt',
+        header: tp('designs.libraryItemsTab.colModified'),
+        accessorKey: 'modifiedAt',
+        cell: ({ getValue }) => {
+          const val = getValue() as string
+          return (
+            <span className="text-slate-700 dark:text-slate-300">
+              {val ? new Date(val).toLocaleDateString() : '-'}
+            </span>
+          )
+        },
+      },
+    ],
+    [tp],
+  )
+
   const { items, dataGridProps } = useServerDataGrid<DesignItem>({
     query: (grid: GridParams) =>
       designItemsGridQuery(designId, grid, {
@@ -137,10 +151,10 @@ export function LibraryItemsTab({
       getRowUrl={(row) => getItemDetailPath(row.itemType, row.id) ?? undefined}
       emptyMessage={
         isHistoricalView
-          ? 'No items found at this point in history'
-          : 'No items in this library'
+          ? tp('designs.libraryItemsTab.emptyHistorical')
+          : tp('designs.libraryItemsTab.empty')
       }
-      emptyDescription="Items added to this library design will appear here."
+      emptyDescription={tp('designs.libraryItemsTab.emptyDescription')}
       exportFilename="library-items"
       defaultSorting={[{ id: 'itemNumber', desc: false }]}
       {...dataGridProps}

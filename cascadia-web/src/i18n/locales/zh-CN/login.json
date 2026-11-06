@@ -1,0 +1,27 @@
+{
+  "title": "Watchlink PLM",
+  "subtitle": "登录您的账户",
+  "username": "用户名",
+  "password": "密码",
+  "usernamePlaceholder": "请输入用户名",
+  "passwordPlaceholder": "请输入密码",
+  "signIn": "登录",
+  "signingIn": "正在登录…",
+  "orContinueWith": "或使用以下方式",
+  "signInGoogle": "使用 Google 登录",
+  "signInGitHub": "使用 GitHub 登录",
+  "genericError": "发生错误，请重试。",
+  "loginFailed": "登录失败",
+  "oauth": {
+    "missing_params": "OAuth 回调缺少必要参数。",
+    "invalid_state": "OAuth 状态校验失败，请重试。",
+    "github_api_error": "无法与 GitHub 通信。",
+    "google_api_error": "无法与 Google 通信。",
+    "no_email": "GitHub 账户须有已验证邮箱。",
+    "email_unverified": "邮箱未通过提供商验证。",
+    "wrong_domain": "该账户不属于允许登录的组织。请使用工作 Google 账户。",
+    "account_inactive": "账户已停用，请联系管理员。",
+    "oauth_failed": "OAuth 认证失败，请重试。",
+    "auth_failed": "认证失败，请重试。"
+  }
+}

@@ -9,6 +9,7 @@ export { SidebarNavItem } from './SidebarNavItem'
 export { SidebarSection } from './SidebarSection'
 export { NavSubItem } from './NavSubItem'
 export { ThemeToggle } from './ThemeToggle'
+export { LanguageToggle } from './LanguageToggle'
 export type {
   UserInfo,
   SidebarNavItemProps,

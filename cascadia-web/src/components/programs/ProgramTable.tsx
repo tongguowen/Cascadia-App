@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import type { Program } from '@cascadia/commons/types/program'
 import type {
@@ -81,14 +82,31 @@ export function ProgramTable({
   pagination,
   onPaginationChange,
 }: ProgramTableProps) {
+  const { t } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const programStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      Active: tp('programs.form.statusActive'),
+      'On Hold': tp('programs.form.statusOnHold'),
+      Completed: tp('programs.form.statusCompleted'),
+      Cancelled: tp('programs.form.statusCancelled'),
+    }
+    return labels[status] ?? status
+  }
+  const programStatusFilterOptions = (
+    ['Active', 'On Hold', 'Completed', 'Cancelled'] as const
+  ).map((value) => ({
+    label: programStatusLabel(value),
+    value,
+  }))
   const columns: Array<DataGridColumn<Program>> = [
     {
       id: 'code',
-      header: 'Code',
+      header: t('columns.code'),
       accessorKey: 'code',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ row }) => (
         <Link
           to="/programs/$id"
@@ -101,41 +119,40 @@ export function ProgramTable({
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
     },
     {
       id: 'status',
-      header: 'Status',
+      header: t('columns.status'),
       accessorKey: 'status',
       enableFiltering: true,
       filterType: 'multiSelect',
-      filterOptions: [
-        { label: 'Active', value: 'Active' },
-        { label: 'On Hold', value: 'On Hold' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Cancelled', value: 'Cancelled' },
-      ],
+      filterOptions: programStatusFilterOptions,
       cell: ({ getValue }) => {
         const value = getValue() as string
-        return <Badge variant={statusColors[value] ?? 'default'}>{value}</Badge>
+        return (
+          <Badge variant={statusColors[value] ?? 'default'}>
+            {programStatusLabel(value)}
+          </Badge>
+        )
       },
     },
     {
       id: 'customer',
-      header: 'Customer',
+      header: t('columns.customer'),
       accessorKey: 'customer',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'startDate',
-      header: 'Start Date',
+      header: t('columns.startDate'),
       accessorKey: 'startDate',
       cell: ({ getValue }) => {
         const value = getValue() as string | Date | null
@@ -145,7 +162,7 @@ export function ProgramTable({
     },
     {
       id: 'targetEndDate',
-      header: 'Target End',
+      header: t('columns.targetEnd'),
       accessorKey: 'targetEndDate',
       cell: ({ getValue }) => {
         const value = getValue() as string | Date | null
@@ -162,20 +179,20 @@ export function ProgramTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link to="/programs/$id" params={{ id: program.id }}>
               <Eye className="mr-2 h-4 w-4" />
-              View details
+              {t('actions.viewDetails')}
             </Link>
           </DropdownMenuItem>
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(program)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -186,7 +203,7 @@ export function ProgramTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -207,7 +224,7 @@ export function ProgramTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(program)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -218,7 +235,7 @@ export function ProgramTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import type { Task } from '@cascadia/commons/items/types/task'
 import { TaskDetail } from '@/components/tasks/TaskDetail'
@@ -13,6 +14,8 @@ export const Route = createFileRoute('/tasks/new')({
 })
 
 function NewTaskPage() {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const navigate = useNavigate()
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -32,7 +35,7 @@ function NewTaskPage() {
       )
       navigate({ to: '/tasks/$id', params: { id: result.data.item.id! } })
     } catch (error) {
-      handleError(error, { title: 'Failed to create task' })
+      handleError(error, { title: tp('tasks.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)

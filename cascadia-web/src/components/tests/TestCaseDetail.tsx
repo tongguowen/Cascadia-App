@@ -4,6 +4,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -72,20 +73,6 @@ import { StateBadge } from '@/components/items/StateBadge'
 import { FreeTransitionControl } from '@/components/items/FreeTransitionControl'
 import { useReleasedFamily } from '@/hooks/useReleasedFamily'
 import { ItemCreateDesignSection } from '@/components/items/ItemCreateDesignSection'
-
-const TEST_TYPE_OPTIONS = [
-  { value: 'Unit', label: 'Unit' },
-  { value: 'Integration', label: 'Integration' },
-  { value: 'System', label: 'System' },
-  { value: 'Acceptance', label: 'Acceptance' },
-]
-
-const EXECUTION_STATUS_OPTIONS = [
-  { value: 'NotRun', label: 'Not Run' },
-  { value: 'Passed', label: 'Passed' },
-  { value: 'Failed', label: 'Failed' },
-  { value: 'Blocked', label: 'Blocked' },
-]
 
 const executionStatusVariant = (status: string) => {
   const variants: Record<
@@ -167,6 +154,31 @@ export function TestCaseDetail({
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const td = (key: string, options?: Record<string, unknown>) =>
+    tp(`testCases.detail.${key}`, options)
+
+  const testTypeOptions = [
+    { value: 'Unit', label: td('testTypes.Unit') },
+    { value: 'Integration', label: td('testTypes.Integration') },
+    { value: 'System', label: td('testTypes.System') },
+    { value: 'Acceptance', label: td('testTypes.Acceptance') },
+  ]
+
+  const executionStatusOptions = [
+    { value: 'NotRun', label: td('executionStatus.NotRun') },
+    { value: 'Passed', label: td('executionStatus.Passed') },
+    { value: 'Failed', label: td('executionStatus.Failed') },
+    { value: 'Blocked', label: td('executionStatus.Blocked') },
+  ]
+
+  const executionStatusLabel = (status: string | undefined) => {
+    if (!status || status === 'NotRun') return td('executionStatus.NotRun')
+    const key = `executionStatus.${status}`
+    const translated = td(key)
+    return translated === `testCases.detail.${key}` ? status : translated
+  }
 
   const isCreateMode = !initialTestCase?.id
 
@@ -311,7 +323,7 @@ export function TestCaseDetail({
       try {
         await editLock.acquire()
       } catch (error) {
-        handleError(error, { title: 'Cannot edit item' })
+        handleError(error, { title: tc('errors.cannotEditItem') })
         return
       }
     }
@@ -380,10 +392,12 @@ export function TestCaseDetail({
   const handleDelete = () => {
     if (!onDelete || !currentTestCase.id) return
     confirm({
-      title: 'Delete Test Case',
-      description: `Are you sure you want to delete ${currentTestCase.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: tp('testCases.deleteTitle'),
+      description: tp('testCases.detail.deleteDescription', {
+        itemNumber: currentTestCase.itemNumber ?? '',
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: onDelete,
     })
@@ -441,7 +455,7 @@ export function TestCaseDetail({
       setActualResults('')
       setExecutionNotes('')
     } catch (error) {
-      handleError(error, { title: 'Could not record execution' })
+      handleError(error, { title: td('recordExecutionFailed') })
     } finally {
       setExecutingTest(false)
     }
@@ -497,7 +511,7 @@ export function TestCaseDetail({
             <div className="flex items-center gap-3">
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                 {isCreateMode
-                  ? 'Create New Test Case'
+                  ? tp('testCases.form.createTitle')
                   : currentTestCase.itemNumber}
               </h1>
               {!isCreateMode && isLoadingVersion && (
@@ -526,9 +540,7 @@ export function TestCaseDetail({
                     currentTestCase.executionStatus,
                   )}
                 >
-                  {currentTestCase.executionStatus === 'NotRun'
-                    ? 'Not Run'
-                    : currentTestCase.executionStatus}
+                  {executionStatusLabel(currentTestCase.executionStatus)}
                 </Badge>
               )}
               {!isCreateMode &&
@@ -553,8 +565,11 @@ export function TestCaseDetail({
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new test case'
-                : `Revision ${currentTestCase.revision} • ${currentTestCase.name || 'Unnamed'}`}
+                ? tp('testCases.form.createSubtitle')
+                : tp('testCases.detail.revisionSubtitle', {
+                    revision: currentTestCase.revision,
+                    name: currentTestCase.name || tc('labels.unnamed'),
+                  })}
             </p>
           </div>
         </div>
@@ -568,7 +583,7 @@ export function TestCaseDetail({
                 disabled={!isEditable}
               >
                 <Play className="h-4 w-4 mr-2" />
-                Execute Test
+                {td('executeTest')}
               </Button>
             )}
             {isEditing ? (
@@ -579,7 +594,7 @@ export function TestCaseDetail({
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -590,10 +605,10 @@ export function TestCaseDetail({
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create Test Case'
-                      : 'Save Changes'}
+                      ? tp('testCases.form.createSubmit')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
@@ -677,13 +692,11 @@ export function TestCaseDetail({
       {showExecutionForm && (
         <Card className="my-4 border-2 border-blue-500">
           <CardHeader>
-            <CardTitle>Record Test Execution</CardTitle>
-            <CardDescription>
-              Record the results of running this test case
-            </CardDescription>
+            <CardTitle>{td('recordExecutionTitle')}</CardTitle>
+            <CardDescription>{td('recordExecutionDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Status" required>
+            <FormField label={tc('columns.status')} required>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -696,7 +709,7 @@ export function TestCaseDetail({
                   }
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Passed
+                  {td('executionStatus.Passed')}
                 </Button>
                 <Button
                   type="button"
@@ -709,7 +722,7 @@ export function TestCaseDetail({
                   }
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Failed
+                  {td('executionStatus.Failed')}
                 </Button>
                 <Button
                   type="button"
@@ -723,23 +736,23 @@ export function TestCaseDetail({
                       : ''
                   }
                 >
-                  Blocked
+                  {td('executionStatus.Blocked')}
                 </Button>
               </div>
             </FormField>
-            <FormField label="Actual Results">
+            <FormField label={td('actualResultsLabel')}>
               <Textarea
                 value={actualResults}
                 onChange={(e) => setActualResults(e.target.value)}
-                placeholder="Describe what actually happened..."
+                placeholder={td('actualResultsPlaceholder')}
                 rows={3}
               />
             </FormField>
-            <FormField label="Notes">
+            <FormField label={tc('fields.notes')}>
               <Textarea
                 value={executionNotes}
                 onChange={(e) => setExecutionNotes(e.target.value)}
-                placeholder="Additional notes..."
+                placeholder={td('notesPlaceholder')}
                 rows={2}
               />
             </FormField>
@@ -749,10 +762,10 @@ export function TestCaseDetail({
                 onClick={() => setShowExecutionForm(false)}
                 disabled={executingTest}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button onClick={handleExecuteTest} disabled={executingTest}>
-                {executingTest ? 'Recording...' : 'Record Execution'}
+                {executingTest ? td('recording') : td('recordExecution')}
               </Button>
             </div>
           </CardContent>
@@ -767,12 +780,16 @@ export function TestCaseDetail({
         <TabsList
           className={`grid w-full ${isCreateMode ? 'grid-cols-2' : 'grid-cols-4'}`}
         >
-          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
           {!isCreateMode && (
-            <TabsTrigger value="executions">Executions</TabsTrigger>
+            <TabsTrigger value="executions">{td('tabs.executions')}</TabsTrigger>
           )}
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
-          {!isCreateMode && <TabsTrigger value="history">History</TabsTrigger>}
+          <TabsTrigger value="relationships">
+            {tc('tabs.relationships')}
+          </TabsTrigger>
+          {!isCreateMode && (
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent
@@ -782,15 +799,13 @@ export function TestCaseDetail({
         >
           <Card>
             <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>
-                General information about this test case
-              </CardDescription>
+              <CardTitle>{tc('sections.overview')}</CardTitle>
+              <CardDescription>{td('overviewDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ViewEditText
-                  label="Item Number"
+                  label={tc('fields.itemNumber')}
                   value={
                     isEditing ? testCase.itemNumber : currentTestCase.itemNumber
                   }
@@ -801,17 +816,17 @@ export function TestCaseDetail({
                   data-testid="test-case-item-number"
                 />
                 <ViewEditText
-                  label="Revision"
+                  label={tc('fields.revision')}
                   value={currentTestCase.revision}
                   onChange={() => {}}
                   isEditing={false}
                 />
                 <ViewEditText
-                  label="Name"
+                  label={tc('fields.name')}
                   value={isEditing ? testCase.name : currentTestCase.name}
                   onChange={(v) => updateField('name', v)}
                   isEditing={isEditing}
-                  placeholder="Test case name"
+                  placeholder={td('namePlaceholder')}
                   required
                   data-testid="test-case-name"
                 />
@@ -829,14 +844,14 @@ export function TestCaseDetail({
                       isCreateMode={isCreateMode}
                       selectedBranchId={selectedBranchId}
                       onBranchChange={setSelectedBranchId}
-                      itemLabel="test case"
+                      itemLabel={td('itemLabel')}
                     />
                   )}
                 {/* Once saved the parent plan is a link; while creating it is
                     a picker over the plans in the chosen design. */}
                 {testPlan ? (
                   <ViewEditStatic
-                    label="Test Plan"
+                    label={td('fields.testPlan')}
                     value={
                       <Link
                         to="/test-plans/$id"
@@ -851,7 +866,7 @@ export function TestCaseDetail({
                 ) : (
                   isCreateMode && (
                     <ViewEditSelect
-                      label="Test Plan"
+                      label={td('fields.testPlan')}
                       value={testCase.testPlanId}
                       onChange={(v) => updateField('testPlanId', v)}
                       isEditing={isEditing}
@@ -861,8 +876,8 @@ export function TestCaseDetail({
                       }))}
                       placeholder={
                         testCase.designId
-                          ? 'Select a test plan (optional)...'
-                          : 'Choose a design first'
+                          ? td('testPlanPlaceholder')
+                          : td('chooseDesignFirst')
                       }
                       data-testid="test-plan-selector"
                     />
@@ -874,25 +889,23 @@ export function TestCaseDetail({
 
           <Card>
             <CardHeader>
-              <CardTitle>Test Details</CardTitle>
-              <CardDescription>
-                Test type, environment, and conditions
-              </CardDescription>
+              <CardTitle>{td('detailsTitle')}</CardTitle>
+              <CardDescription>{td('detailsDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ViewEditSelect
-                  label="Test Type"
+                  label={td('fields.testType')}
                   value={
                     isEditing ? testCase.testType : currentTestCase.testType
                   }
                   onChange={(v) => updateField('testType', v)}
                   isEditing={isEditing}
-                  options={TEST_TYPE_OPTIONS}
-                  placeholder="Select test type..."
+                  options={testTypeOptions}
+                  placeholder={td('testTypePlaceholder')}
                 />
                 <ViewEditText
-                  label="Environment"
+                  label={tc('columns.environment')}
                   value={
                     isEditing
                       ? testCase.environment
@@ -900,26 +913,26 @@ export function TestCaseDetail({
                   }
                   onChange={(v) => updateField('environment', v)}
                   isEditing={isEditing}
-                  placeholder="Lab, Staging, Production, etc."
+                  placeholder={td('environmentPlaceholder')}
                 />
                 <ViewEditBadge
-                  label="Execution Status"
+                  label={td('fields.executionStatus')}
                   value={currentTestCase.executionStatus}
                   onChange={() => {}}
                   isEditing={false}
-                  options={EXECUTION_STATUS_OPTIONS}
+                  options={executionStatusOptions}
                   variant={executionStatusVariant}
                 />
                 {currentTestCase.lastExecutedAt && (
                   <ViewEditStatic
-                    label="Last Executed"
+                    label={td('fields.lastExecuted')}
                     value={new Date(
                       currentTestCase.lastExecutedAt,
                     ).toLocaleString()}
                   />
                 )}
                 <ViewEditTextarea
-                  label="Preconditions"
+                  label={td('fields.preconditions')}
                   value={
                     isEditing
                       ? testCase.preconditions
@@ -939,10 +952,8 @@ export function TestCaseDetail({
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Test Steps</CardTitle>
-                  <CardDescription>
-                    Step-by-step instructions for executing this test
-                  </CardDescription>
+                  <CardTitle>{td('testStepsTitle')}</CardTitle>
+                  <CardDescription>{td('testStepsDescription')}</CardDescription>
                 </div>
                 {isEditing && (
                   <Button
@@ -952,7 +963,7 @@ export function TestCaseDetail({
                     onClick={addStep}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Step
+                    {td('addStep')}
                   </Button>
                 )}
               </div>
@@ -961,7 +972,7 @@ export function TestCaseDetail({
               {(isEditing ? steps : currentTestCase.steps || []).length ===
               0 ? (
                 <div className="text-center py-8 text-slate-500">
-                  No test steps defined
+                  {td('noTestSteps')}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -978,7 +989,7 @@ export function TestCaseDetail({
                         </div>
                         <div className="col-span-5">
                           <div className="text-sm font-medium text-slate-500 mb-1">
-                            Action
+                            {td('actionLabel')}
                           </div>
                           {isEditing ? (
                             <Textarea
@@ -986,7 +997,7 @@ export function TestCaseDetail({
                               onChange={(e) =>
                                 updateStep(index, 'action', e.target.value)
                               }
-                              placeholder="Describe the action..."
+                              placeholder={td('actionPlaceholder')}
                               rows={2}
                             />
                           ) : (
@@ -997,7 +1008,7 @@ export function TestCaseDetail({
                         </div>
                         <div className="col-span-5">
                           <div className="text-sm font-medium text-slate-500 mb-1">
-                            Expected Result
+                            {td('expectedResultLabel')}
                           </div>
                           {isEditing ? (
                             <Textarea
@@ -1009,7 +1020,7 @@ export function TestCaseDetail({
                                   e.target.value,
                                 )
                               }
-                              placeholder="Describe expected result..."
+                              placeholder={td('expectedResultPlaceholder')}
                               rows={2}
                             />
                           ) : (
@@ -1043,15 +1054,15 @@ export function TestCaseDetail({
             <Card>
               <CardHeader>
                 <CollapsibleTrigger className="hover:opacity-70">
-                  <CardTitle>Metadata</CardTitle>
+                  <CardTitle>{tc('sections.metadata')}</CardTitle>
                 </CollapsibleTrigger>
-                <CardDescription>System information</CardDescription>
+                <CardDescription>{td('metadataDescription')}</CardDescription>
               </CardHeader>
               <CollapsibleContent>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditStatic
-                      label="Created"
+                      label={tc('columns.created')}
                       value={
                         currentTestCase.createdAt
                           ? new Date(
@@ -1061,7 +1072,7 @@ export function TestCaseDetail({
                       }
                     />
                     <ViewEditStatic
-                      label="Last Modified"
+                      label={tp('programs.detail.lastModified')}
                       value={
                         currentTestCase.modifiedAt
                           ? new Date(
@@ -1073,12 +1084,12 @@ export function TestCaseDetail({
                     {!isCreateMode && (
                       <>
                         <ViewEditStatic
-                          label="Master ID"
+                          label={tp('testPlans.detail.masterId')}
                           value={currentTestCase.masterId}
                           mono
                         />
                         <ViewEditStatic
-                          label="Test Case ID"
+                          label={td('testCaseId')}
                           value={currentTestCase.id}
                           mono
                         />
@@ -1097,14 +1108,14 @@ export function TestCaseDetail({
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Execution History</CardTitle>
+                    <CardTitle>{td('executionHistoryTitle')}</CardTitle>
                     <CardDescription>
-                      History of test executions
+                      {td('executionHistoryDescription')}
                     </CardDescription>
                   </div>
                   <Button size="sm" onClick={() => setShowExecutionForm(true)}>
                     <Play className="h-4 w-4 mr-2" />
-                    Execute Test
+                    {td('executeTest')}
                   </Button>
                 </div>
               </CardHeader>
@@ -1115,7 +1126,7 @@ export function TestCaseDetail({
                   </div>
                 ) : executions.length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
-                    No executions recorded yet
+                    {td('noExecutions')}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1138,14 +1149,14 @@ export function TestCaseDetail({
                             <Badge
                               variant={executionStatusVariant(exec.status)}
                             >
-                              {exec.status}
+                              {executionStatusLabel(exec.status)}
                             </Badge>
                             <span className="text-sm text-slate-500">
                               {new Date(exec.executedAt).toLocaleString()}
                             </span>
                             {exec.executorName && (
                               <span className="text-sm text-slate-500">
-                                by {exec.executorName}
+                                {td('executedBy', { name: exec.executorName })}
                               </span>
                             )}
                             {exec.duration && (
@@ -1156,7 +1167,8 @@ export function TestCaseDetail({
                           </div>
                           {exec.actualResults && (
                             <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                              <strong>Results:</strong> {exec.actualResults}
+                              <strong>{td('resultsLabel')}</strong>{' '}
+                              {exec.actualResults}
                             </p>
                           )}
                           {exec.notes && (
@@ -1192,9 +1204,7 @@ export function TestCaseDetail({
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-slate-500">
-                  Save the test case first to manage relationships
-                </p>
+                <p className="text-slate-500">{td('saveFirstRelationships')}</p>
               </CardContent>
             </Card>
           )}

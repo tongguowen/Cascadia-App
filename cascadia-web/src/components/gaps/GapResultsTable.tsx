@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Cog,
   ExternalLink,
@@ -36,14 +37,6 @@ const domainIcons: Record<ThreadDomain, typeof Cog> = {
   physical: Package,
 }
 
-const domainLabels: Record<ThreadDomain, string> = {
-  requirements: 'Requirements',
-  engineering: 'Engineering',
-  manufacturing: 'Manufacturing',
-  validation: 'Validation',
-  physical: 'Physical',
-}
-
 const severityVariants: Record<
   GapSeverity,
   'destructive' | 'warning' | 'outline'
@@ -53,22 +46,29 @@ const severityVariants: Record<
   minor: 'outline',
 }
 
-const severityLabels: Record<GapSeverity, string> = {
-  critical: 'Critical',
-  major: 'Major',
-  minor: 'Minor',
-}
+const GAP_TYPES: Array<GapType> = [
+  'unallocated_requirement',
+  'unsatisfied_requirement',
+  'unverified_requirement',
+  'suspect_requirement',
+  'untested_part',
+  'unmapped_ebom_item',
+  'orphan_mbom_item',
+  'missing_documentation',
+]
 
-const gapTypeLabels: Record<GapType, string> = {
-  unallocated_requirement: 'Not Allocated',
-  unsatisfied_requirement: 'Not Satisfied',
-  unverified_requirement: 'Not Verified',
-  suspect_requirement: 'Suspect Link',
-  untested_part: 'Not Tested',
-  unmapped_ebom_item: 'Not Mapped to MBOM',
-  orphan_mbom_item: 'Orphan MBOM Item',
-  missing_documentation: 'Missing Docs',
-}
+const FILTER_DOMAINS: Array<ThreadDomain> = [
+  'requirements',
+  'engineering',
+  'manufacturing',
+  'validation',
+]
+
+const SEVERITIES: Array<GapSeverity> = ['critical', 'major', 'minor']
+
+const PRIORITIES = ['MustHave', 'ShouldHave', 'CouldHave', 'WontHave'] as const
+
+const FILTER_ITEM_TYPES = ['Part', 'Requirement', 'Document', 'TestCase'] as const
 
 /**
  * Table showing detailed gap analysis results.
@@ -79,9 +79,13 @@ export function GapResultsTable({
   onSelectionChange,
   className,
 }: GapResultsTableProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: ti } = useTranslation('itemTypes')
+  const rt = (key: string) =>
+    tc(`dialogs.gap.resultsTable.${key}` as 'dialogs.gap.resultsTable.itemNumber')
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // Toggle selection of a single item
   const toggleSelection = (itemId: string) => {
     const newSelection = new Set(selectedIds)
     if (newSelection.has(itemId)) {
@@ -93,7 +97,6 @@ export function GapResultsTable({
     onSelectionChange?.(Array.from(newSelection))
   }
 
-  // Toggle all items
   const toggleAll = () => {
     if (selectedIds.size === gaps.length) {
       setSelectedIds(new Set())
@@ -105,10 +108,8 @@ export function GapResultsTable({
     }
   }
 
-  // Define columns
   const columns = useMemo<Array<DataGridColumn<Gap>>>(
     () => [
-      // Selection column
       {
         id: 'select',
         header: '',
@@ -116,17 +117,18 @@ export function GapResultsTable({
           <Checkbox
             checked={selectedIds.has(row.original.itemId)}
             onCheckedChange={() => toggleSelection(row.original.itemId)}
-            aria-label={`Select ${row.original.itemNumber}`}
+            aria-label={tc('dialogs.gap.resultsTable.selectGap', {
+              itemNumber: row.original.itemNumber,
+            })}
           />
         ),
         enableSorting: false,
         enableFiltering: false,
         meta: { width: '40px' },
       },
-      // Item Number
       {
         id: 'itemNumber',
-        header: 'Item Number',
+        header: rt('itemNumber'),
         accessorFn: (row) => row.itemNumber,
         cell: ({ row }) => {
           const gap = row.original
@@ -153,12 +155,11 @@ export function GapResultsTable({
         enableSorting: true,
         enableFiltering: true,
         filterType: 'text',
-        filterPlaceholder: 'Filter by item number...',
+        filterPlaceholder: rt('filterItemNumber'),
       },
-      // Name
       {
         id: 'name',
-        header: 'Name',
+        header: rt('name'),
         accessorFn: (row) => row.itemName ?? '',
         cell: ({ row }) => (
           <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px] block">
@@ -169,30 +170,26 @@ export function GapResultsTable({
         enableFiltering: true,
         filterType: 'text',
       },
-      // Type
       {
         id: 'itemType',
-        header: 'Item Type',
+        header: rt('itemType'),
         accessorFn: (row) => row.itemType,
         cell: ({ row }) => (
           <span className="text-slate-700 dark:text-slate-300">
-            {row.original.itemType}
+            {ti(row.original.itemType === 'TestCase' ? 'Test Case' : row.original.itemType)}
           </span>
         ),
         enableSorting: true,
         enableFiltering: true,
         filterType: 'select',
-        filterOptions: [
-          { label: 'Part', value: 'Part' },
-          { label: 'Requirement', value: 'Requirement' },
-          { label: 'Document', value: 'Document' },
-          { label: 'TestCase', value: 'TestCase' },
-        ],
+        filterOptions: FILTER_ITEM_TYPES.map((value) => ({
+          label: ti(value === 'TestCase' ? 'Test Case' : value),
+          value,
+        })),
       },
-      // Domain
       {
         id: 'domain',
-        header: 'Domain',
+        header: rt('domain'),
         accessorFn: (row) => row.domain,
         cell: ({ row }) => {
           const domain = row.original.domain
@@ -200,70 +197,58 @@ export function GapResultsTable({
           return (
             <div className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
               <Icon className="h-3.5 w-3.5" />
-              <span>{domainLabels[domain]}</span>
+              <span>{rt(`domains.${domain}`)}</span>
             </div>
           )
         },
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: [
-          { label: 'Requirements', value: 'requirements' },
-          { label: 'Engineering', value: 'engineering' },
-          { label: 'Manufacturing', value: 'manufacturing' },
-          { label: 'Validation', value: 'validation' },
-        ],
+        filterOptions: FILTER_DOMAINS.map((value) => ({
+          label: rt(`domains.${value}`),
+          value,
+        })),
       },
-      // Gap Type
       {
         id: 'type',
-        header: 'Gap Type',
+        header: rt('gapType'),
         accessorFn: (row) => row.type,
         cell: ({ row }) => (
           <Badge variant="secondary" className="text-xs">
-            {gapTypeLabels[row.original.type]}
+            {rt(`gapTypes.${row.original.type}`)}
           </Badge>
         ),
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: [
-          { label: 'Not Allocated', value: 'unallocated_requirement' },
-          { label: 'Not Satisfied', value: 'unsatisfied_requirement' },
-          { label: 'Not Verified', value: 'unverified_requirement' },
-          { label: 'Suspect Link', value: 'suspect_requirement' },
-          { label: 'Not Tested', value: 'untested_part' },
-          { label: 'Not Mapped to MBOM', value: 'unmapped_ebom_item' },
-          { label: 'Orphan MBOM', value: 'orphan_mbom_item' },
-          { label: 'Missing Docs', value: 'missing_documentation' },
-        ],
+        filterOptions: GAP_TYPES.map((value) => ({
+          label: rt(`gapTypes.${value}`),
+          value,
+        })),
       },
-      // Severity
       {
         id: 'severity',
-        header: 'Severity',
+        header: rt('severity'),
         accessorFn: (row) => row.severity,
         cell: ({ row }) => {
           const severity = row.original.severity
           return (
             <Badge variant={severityVariants[severity]}>
-              {severityLabels[severity]}
+              {rt(`severities.${severity}`)}
             </Badge>
           )
         },
         enableSorting: true,
         enableFiltering: true,
         filterType: 'multiSelect',
-        filterOptions: [
-          { label: 'Critical', value: 'critical' },
-          { label: 'Major', value: 'major' },
-          { label: 'Minor', value: 'minor' },
-        ],
+        filterOptions: SEVERITIES.map((value) => ({
+          label: rt(`severities.${value}`),
+          value,
+        })),
       },
-      // Priority (for requirements)
       {
         id: 'priority',
-        header: 'Priority',
+        header: rt('priority'),
         accessorFn: (row) => row.priority ?? '',
         cell: ({ row }) => {
           const priority = row.original.priority
@@ -273,24 +258,21 @@ export function GapResultsTable({
               variant={priority === 'MustHave' ? 'destructive' : 'secondary'}
               className="text-xs"
             >
-              {priority}
+              {rt(`priorities.${priority}`)}
             </Badge>
           )
         },
         enableSorting: true,
         enableFiltering: true,
         filterType: 'select',
-        filterOptions: [
-          { label: 'MustHave', value: 'MustHave' },
-          { label: 'ShouldHave', value: 'ShouldHave' },
-          { label: 'CouldHave', value: 'CouldHave' },
-          { label: 'WontHave', value: 'WontHave' },
-        ],
+        filterOptions: PRIORITIES.map((value) => ({
+          label: rt(`priorities.${value}`),
+          value,
+        })),
       },
-      // Suggestion
       {
         id: 'suggestion',
-        header: 'Suggested Action',
+        header: rt('suggestedAction'),
         accessorFn: (row) => row.suggestion,
         cell: ({ row }) => (
           <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -301,28 +283,29 @@ export function GapResultsTable({
         enableFiltering: false,
       },
     ],
-    [selectedIds],
+    [selectedIds, tc, ti],
   )
 
   return (
     <div className={cn('space-y-3 w-full max-w-full min-w-0', className)}>
-      {/* Selection Controls */}
       {onSelectionChange && (
         <div className="flex items-center gap-3">
           <Checkbox
             checked={selectedIds.size === gaps.length && gaps.length > 0}
             onCheckedChange={toggleAll}
-            aria-label="Select all gaps"
+            aria-label={rt('selectAllGaps')}
           />
           <span className="text-sm text-slate-500">
             {selectedIds.size > 0
-              ? `${selectedIds.size} of ${gaps.length} selected`
-              : `${gaps.length} gaps`}
+              ? tc('dialogs.gap.resultsTable.selectedCount', {
+                  selected: selectedIds.size,
+                  total: gaps.length,
+                })
+              : tc('dialogs.gap.resultsTable.gapCount', { count: gaps.length })}
           </span>
         </div>
       )}
 
-      {/* Table */}
       <DataGrid
         data={gaps}
         columns={columns}
@@ -335,8 +318,8 @@ export function GapResultsTable({
         exportFilename="gap-analysis"
         defaultPageSize={20}
         pageSizeOptions={[10, 20, 50, 100]}
-        emptyMessage="No gaps found"
-        emptyDescription="This design has complete traceability coverage"
+        emptyMessage={rt('emptyMessage')}
+        emptyDescription={rt('emptyDescription')}
       />
     </div>
   )

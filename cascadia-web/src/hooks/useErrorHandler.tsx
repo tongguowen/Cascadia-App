@@ -8,6 +8,7 @@ import { useToast } from './useToast'
 import { useAlertDialog } from './useAlertDialog'
 import type { ErrorPresentation } from '@cascadia/commons/errors/severity'
 import { ApiError } from '@/api/client'
+import i18n, { translateErrorCode } from '@/i18n'
 
 /**
  * The text to show for an error. A validation failure's `message` is the bare
@@ -17,12 +18,13 @@ import { ApiError } from '@/api/client'
  * asking the reader to open the network tab.
  */
 function describeError(error: ApiError): string {
+  const localized = translateErrorCode(error.code, error.message)
   const fields = error.fieldErrors ?? []
-  if (fields.length === 0) return error.message
+  if (fields.length === 0) return localized
   const detail = fields
     .map((f) => (f.field ? `${f.field}: ${f.message}` : f.message))
     .join('; ')
-  return `${error.message} — ${detail}`
+  return `${localized} — ${detail}`
 }
 
 interface ErrorHandlerOptions {
@@ -69,7 +71,7 @@ export function useErrorHandler() {
               ErrorCode.INTERNAL_ERROR,
               error instanceof Error
                 ? error.message
-                : 'An unexpected error occurred',
+                : i18n.t('unexpected', { ns: 'errors' }),
               500,
             )
 
@@ -101,7 +103,7 @@ export function useErrorHandler() {
 
         case 'toast':
           addToast({
-            title: options.title ?? 'Error',
+            title: options.title ?? i18n.t('title', { ns: 'errors' }),
             description: describeError(apiError),
             variant: 'destructive',
           })
@@ -109,7 +111,7 @@ export function useErrorHandler() {
 
         case 'dialog':
           alert({
-            title: options.title ?? 'Error',
+            title: options.title ?? i18n.t('title', { ns: 'errors' }),
             description: describeError(apiError),
             variant: 'destructive',
           })

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ClipboardCheck } from 'lucide-react'
 import type { InstructionExecution } from '@cascadia/commons/items/types/work-order'
@@ -60,6 +61,8 @@ function ExecutionDetailContent({
   execution: InstructionExecution
 }) {
   const navigate = useNavigate()
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const { data: instruction } = useQuery(
     workOrderInstructionQuery(workOrderId, execution.workOrderInstructionId),
@@ -89,6 +92,11 @@ function ExecutionDetailContent({
 
   if (!instruction) return null
 
+  const executor =
+    execution.executor?.name ||
+    execution.executor?.email ||
+    tc('labels.unknown')
+
   return (
     <PageContainer>
       {/* Header */}
@@ -113,7 +121,7 @@ function ExecutionDetailContent({
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Execution Record
+              {t('workOrders.executionDetail.pageTitle')}
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {instruction.title}
@@ -135,13 +143,15 @@ function ExecutionDetailContent({
 
       <Card>
         <CardHeader>
-          <CardTitle>Captured Data</CardTitle>
+          <CardTitle>
+            {t('workOrders.executionDetail.capturedDataTitle')}
+          </CardTitle>
           <CardDescription>
-            Executed by{' '}
-            {execution.executor?.name || execution.executor?.email || 'Unknown'}{' '}
-            on {new Date(execution.startedAt).toLocaleDateString()} — against
-            the snapshot frozen{' '}
-            {new Date(instruction.snapshotAt).toLocaleDateString()}
+            {t('workOrders.executionDetail.capturedDataDescription', {
+              executor,
+              startedDate: new Date(execution.startedAt).toLocaleDateString(),
+              snapshotDate: new Date(instruction.snapshotAt).toLocaleDateString(),
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>

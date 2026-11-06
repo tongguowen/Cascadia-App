@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ClipboardCheck, Clock, PlayCircle } from 'lucide-react'
@@ -57,6 +58,8 @@ export function WorkInstructionsForPartPanel({
   partId,
   onError,
 }: WorkInstructionsForPartPanelProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const {
     data: workInstructions = [],
     isPending: loading,
@@ -81,26 +84,25 @@ export function WorkInstructionsForPartPanel({
       <CardHeader>
         <div className="flex items-center gap-2">
           <ClipboardCheck className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-          <CardTitle>Work Instructions</CardTitle>
+          <CardTitle>{tp('parts.detail.workInstructionsPanel.title')}</CardTitle>
         </div>
         <CardDescription>
-          Work instructions associated with this part
+          {tp('parts.detail.workInstructionsPanel.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
           <p className="text-slate-500 text-center py-8">
-            Loading work instructions...
+            {tp('parts.detail.workInstructionsPanel.loading')}
           </p>
         ) : workInstructions.length === 0 ? (
           <div className="text-center py-8">
             <ClipboardCheck className="h-12 w-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
             <p className="text-slate-500 dark:text-slate-400">
-              No work instructions attached to this part.
+              {tp('parts.detail.workInstructionsPanel.empty')}
             </p>
             <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-              Work instructions can be attached from the Work Instructions
-              module.
+              {tp('parts.detail.workInstructionsPanel.emptyHint')}
             </p>
           </div>
         ) : (
@@ -132,7 +134,7 @@ export function WorkInstructionsForPartPanel({
                     )}
                   </div>
                   <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
-                    {wi.name || 'Untitled Work Instruction'}
+                    {wi.name || tp('parts.detail.workInstructionsPanel.untitled')}
                   </p>
                   {(wi.estimatedTime || wi.description) && (
                     <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -157,12 +159,12 @@ export function WorkInstructionsForPartPanel({
                   >
                     <Button variant="outline" size="sm">
                       <PlayCircle className="h-4 w-4 mr-2" />
-                      Present
+                      {tc('actions.present')}
                     </Button>
                   </Link>
                   <Link to="/work-instructions/$id" params={{ id: wi.id }}>
                     <Button variant="ghost" size="sm">
-                      View
+                      {tc('actions.view')}
                     </Button>
                   </Link>
                 </div>

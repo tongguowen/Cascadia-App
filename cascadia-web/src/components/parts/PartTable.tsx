@@ -3,6 +3,7 @@
 
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import { PartThumbnail } from './PartThumbnail'
 import type { Part } from '@cascadia/commons/items/types/part'
@@ -142,27 +143,30 @@ export function PartTable({
         { label: 'Configurable', value: 'yes' },
         { label: 'Not configurable', value: 'no' },
       ],
+        { label: tp('parts.configurable'), value: 'yes' },
+        { label: tp('parts.notConfigurable'), value: 'no' },
+      ],
       cell: ({ getValue }) =>
         getValue() === 'yes' ? (
           <Badge
             variant="outline"
             className="text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-700"
           >
-            Configurable
+            {tp('parts.configurable')}
           </Badge>
         ) : null,
     },
     {
       id: 'partType',
-      header: 'Type',
+      header: t('columns.type'),
       accessorKey: 'partType',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Manufacture', value: 'Manufacture' },
-        { label: 'Purchase', value: 'Purchase' },
-        { label: 'Software', value: 'Software' },
-        { label: 'Phantom', value: 'Phantom' },
+        { label: tp('parts.partType.Manufacture'), value: 'Manufacture' },
+        { label: tp('parts.partType.Purchase'), value: 'Purchase' },
+        { label: tp('parts.partType.Software'), value: 'Software' },
+        { label: tp('parts.partType.Phantom'), value: 'Phantom' },
       ],
       cell: ({ getValue }) => {
         const value = getValue() as
@@ -179,26 +183,23 @@ export function PartTable({
               }[value]
             }
           >
-            {value}
+            {tp(`parts.partType.${value}`)}
           </Badge>
         )
       },
     },
     {
       id: 'material',
-      header: 'Material',
+      header: t('columns.material'),
       accessorKey: 'material',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter...',
+      filterPlaceholder: t('filters.placeholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'state',
-      header: 'State',
-      accessorKey: 'state',
-      enableFiltering: true,
-      filterType: 'multiSelect',
+      header: t('columns.state'),
       filterOptions: stateFilterOptions,
       cell: ({ getValue }) => (
         <StateBadge itemType="Part" state={getValue() as string} />
@@ -209,7 +210,7 @@ export function PartTable({
       header: 'Phase',
       enableSorting: false,
       enableFiltering: false,
-      meta: { width: '120px' },
+      header: t('columns.phase'),
       cell: ({ row }) => (
         <PhaseBadge
           itemType="Part"
@@ -223,8 +224,11 @@ export function PartTable({
       header: 'Cost',
       accessorKey: 'cost',
       enableFiltering: true,
+      header: t('columns.cost'),
+      accessorKey: 'cost',
+      enableFiltering: true,
       filterType: 'range',
-      filterPlaceholder: 'Any',
+      filterPlaceholder: t('actions.any'),
       meta: { align: 'right' },
       cell: ({ row }) => {
         const cost = row.original.cost
@@ -235,10 +239,7 @@ export function PartTable({
     },
     {
       id: 'usageCount',
-      header: 'Used In',
-      accessorKey: 'usageCount',
-      enableFiltering: false,
-      enableSorting: true,
+      header: t('columns.usedIn'),
       meta: { align: 'center' },
       cell: ({ row }) => {
         const count = row.original.usageCount
@@ -249,7 +250,7 @@ export function PartTable({
             {count} {count === 1 ? 'design' : 'designs'}
           </Badge>
         )
-      },
+            {count} {t('units.design', { count })}
     },
   ]
 
@@ -266,7 +267,7 @@ export function PartTable({
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+            <span className="sr-only">{t('actions.openMenu')}</span>
           {part.id && (
             <DropdownMenuItem asChild>
               <Link to="/parts/$id" params={{ id: part.id }}>
@@ -274,11 +275,14 @@ export function PartTable({
                 View details
               </Link>
             </DropdownMenuItem>
+                {t('actions.viewDetails')}
+              </Link>
+            </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(part)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -289,10 +293,7 @@ export function PartTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </>
-          )}
+                {t('actions.delete')}
         </DropdownMenuContent>
       </DropdownMenu>
     )
@@ -313,6 +314,9 @@ export function PartTable({
               Edit
             </ContextMenuItem>
           )}
+              {t('actions.edit')}
+            </ContextMenuItem>
+          )}
           {onDelete && (
             <>
               <ContextMenuSeparator />
@@ -321,10 +325,7 @@ export function PartTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </ContextMenuItem>
-            </>
-          )}
+                {t('actions.delete')}
         </>
       )
     },
@@ -356,8 +357,8 @@ export function PartTable({
         emptyMessage="No parts found"
         emptyDescription="Create your first part to get started"
         exportFilename="parts"
-        serverSidePagination={serverSidePagination}
-        totalRows={totalRows}
+        emptyMessage={tp('parts.emptyMessage')}
+        emptyDescription={tp('parts.emptyDescription')}
         onPageChange={onPageChange}
         isLoading={isLoading}
         // Server-side operations (controlled state)

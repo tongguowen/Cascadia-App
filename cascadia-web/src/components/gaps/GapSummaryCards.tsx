@@ -15,6 +15,7 @@ import type {
   GapSeverity,
 } from '@cascadia/commons/services/types/gap-analysis'
 import type { ThreadDomain } from '@cascadia/commons/thread/types'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { cn } from '@/utils'
 
@@ -29,14 +30,6 @@ const domainIcons: Record<ThreadDomain, typeof Cog> = {
   manufacturing: Factory,
   validation: FlaskConical,
   physical: Package,
-}
-
-const domainLabels: Record<ThreadDomain, string> = {
-  requirements: 'Requirements',
-  engineering: 'Engineering',
-  manufacturing: 'Manufacturing',
-  validation: 'Validation',
-  physical: 'Physical',
 }
 
 const domainColors: Record<ThreadDomain, string> = {
@@ -57,17 +50,17 @@ const severityColors: Record<GapSeverity, string> = {
   minor: 'bg-blue-400',
 }
 
-const severityLabels: Record<GapSeverity, string> = {
-  critical: 'Critical',
-  major: 'Major',
-  minor: 'Minor',
-}
-
 /**
  * Summary cards showing gap analysis results with completeness score,
  * severity distribution, and domain breakdown.
  */
 export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const severityLabel = (severity: GapSeverity) =>
+    tc(`enum.gapSeverity.${severity}`)
+  const domainLabel = (domain: ThreadDomain) =>
+    tc(`enum.threadDomain.${domain}`)
   const { summary, coverage } = result
   const domains: Array<ThreadDomain> = [
     'requirements',
@@ -126,7 +119,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
             ) : (
               <AlertTriangle className="h-5 w-5 text-orange-500" />
             )}
-            Design Completeness
+            {tp('gapAnalysis.summary.designCompleteness')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -141,7 +134,9 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
               >
                 {summary.completeness}%
               </div>
-              <div className="text-xs text-slate-500 mt-1">Completeness</div>
+              <div className="text-xs text-slate-500 mt-1">
+                {tp('gapAnalysis.summary.completeness')}
+              </div>
             </div>
 
             {/* Severity Counts */}
@@ -149,25 +144,33 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {summary.bySeverity.critical}
               </div>
-              <div className="text-xs text-slate-500">Critical</div>
+              <div className="text-xs text-slate-500">
+                {severityLabel('critical')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-orange-50 dark:bg-orange-950">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {summary.bySeverity.major}
               </div>
-              <div className="text-xs text-slate-500">Major</div>
+              <div className="text-xs text-slate-500">
+                {severityLabel('major')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {summary.bySeverity.minor}
               </div>
-              <div className="text-xs text-slate-500">Minor</div>
+              <div className="text-xs text-slate-500">
+                {severityLabel('minor')}
+              </div>
             </div>
             <div className="text-center p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
               <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {summary.totalGaps}
               </div>
-              <div className="text-xs text-slate-500">Total Gaps</div>
+              <div className="text-xs text-slate-500">
+                {tp('gapAnalysis.summary.totalGaps')}
+              </div>
             </div>
           </div>
 
@@ -175,7 +178,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
           {totalSeverity > 0 && (
             <div className="mt-4">
               <div className="text-xs text-slate-500 mb-1">
-                Gap Distribution
+                {tp('gapAnalysis.summary.gapDistribution')}
               </div>
               <div className="h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800">
                 {severities.map((severity) => {
@@ -187,7 +190,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
                       key={severity}
                       className={cn(severityColors[severity], 'transition-all')}
                       style={{ width: `${width}%` }}
-                      title={`${severityLabels[severity]}: ${count}`}
+                      title={`${severityLabel(severity)}: ${count}`}
                     />
                   )
                 })}
@@ -205,7 +208,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
                         )}
                       />
                       <span>
-                        {severityLabels[severity]}: {count}
+                        {severityLabel(severity)}: {count}
                       </span>
                     </div>
                   )
@@ -219,14 +222,16 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
       {/* Coverage Metrics Card */}
       <Card className="w-full max-w-full overflow-hidden">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Coverage Metrics</CardTitle>
+          <CardTitle className="text-lg">
+            {tc('sections.coverageMetrics')}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 overflow-hidden">
           {/* Requirements Coverage */}
           <div>
             <div className="flex justify-between mb-1">
               <span className="text-sm font-medium">
-                Requirements Allocated
+                {tp('gapAnalysis.summary.requirementsAllocated')}
               </span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 {coverage.requirements.allocated}/{coverage.requirements.total}{' '}
@@ -244,7 +249,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
           <div>
             <div className="flex justify-between mb-1">
               <span className="text-sm font-medium">
-                Requirements Satisfied
+                {tp('gapAnalysis.summary.requirementsSatisfied')}
               </span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 {coverage.requirements.satisfied}/{coverage.requirements.total}{' '}
@@ -261,7 +266,9 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
 
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">Requirements Verified</span>
+              <span className="text-sm font-medium">
+                {tp('gapAnalysis.summary.requirementsVerified')}
+              </span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 {coverage.requirements.verified}/{coverage.requirements.total} (
                 {verifiedPercent}%)
@@ -280,7 +287,7 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
           <div>
             <div className="flex justify-between mb-1">
               <span className="text-sm font-medium">
-                Requirements with Suspect Links
+                {tp('gapAnalysis.summary.requirementsSuspectLinks')}
               </span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 {suspectCount}/{coverage.requirements.total} ({suspectPercent}
@@ -297,7 +304,9 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
 
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">Parts Tested</span>
+              <span className="text-sm font-medium">
+                {tp('gapAnalysis.summary.partsTested')}
+              </span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 {coverage.engineering.tested}/{coverage.engineering.total} (
                 {testedPercent}%)
@@ -334,12 +343,12 @@ export function GapSummaryCards({ result, className }: GapSummaryCardsProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <Icon className="h-4 w-4" />
                   <span className="text-sm font-medium">
-                    {domainLabels[domain]}
+                    {domainLabel(domain)}
                   </span>
                 </div>
                 <div className="text-3xl font-bold">{count}</div>
                 <div className="text-xs opacity-70">
-                  {count === 1 ? 'gap' : 'gaps'}
+                  {tp('gapAnalysis.summary.gap', { count })}
                 </div>
               </CardContent>
             </Card>

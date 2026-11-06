@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
+import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import type {
   CreateProgramInput,
@@ -107,7 +108,7 @@ export function ProgramForm({
             <FormField
               label="Program Name"
               required
-              error={field.state.meta.errors[0]}
+              label={tp('programs.form.name')}
               className="md:col-span-2"
             >
               <Input
@@ -117,7 +118,7 @@ export function ProgramForm({
                 onBlur={field.handleBlur}
                 placeholder="F-35 Lightning II Program"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('programs.form.namePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -128,10 +129,10 @@ export function ProgramForm({
             <FormField
               label="Program Code"
               required
+              label={tp('programs.form.code')}
+              required
               error={field.state.meta.errors[0]}
-              helpText="Unique identifier (uppercase, hyphens allowed)"
-            >
-              <Input
+              helpText={tc('labels.codeHelp')}
                 name={field.name}
                 value={field.state.value}
                 onChange={(e) =>
@@ -140,7 +141,7 @@ export function ProgramForm({
                 onBlur={field.handleBlur}
                 placeholder="F35-PROG"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('programs.form.codePlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -150,6 +151,8 @@ export function ProgramForm({
           {(field) => (
             <FormField label="Status" error={field.state.meta.errors[0]}>
               <Select
+            <FormField label={tc('fields.status')} error={field.state.meta.errors[0]}>
+              <Select
                 value={field.state.value}
                 onValueChange={(value) =>
                   field.handleChange(
@@ -158,15 +161,21 @@ export function ProgramForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder={tc('labels.selectStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="On Hold">On Hold</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectItem value="Active">
+                    {tp('programs.form.statusActive')}
+                  </SelectItem>
+                  <SelectItem value="On Hold">
+                    {tp('programs.form.statusOnHold')}
+                  </SelectItem>
+                  <SelectItem value="Completed">
+                    {tp('programs.form.statusCompleted')}
+                  </SelectItem>
+                  <SelectItem value="Cancelled">
+                    {tp('programs.form.statusCancelled')}
+                  </SelectItem>
             </FormField>
           )}
         </form.Field>
@@ -177,7 +186,7 @@ export function ProgramForm({
             <FormField
               label="Description"
               error={field.state.meta.errors[0]}
-              className="md:col-span-2"
+              label={tc('fields.description')}
             >
               <Textarea
                 name={field.name}
@@ -186,7 +195,7 @@ export function ProgramForm({
                 onBlur={field.handleBlur}
                 placeholder="Program description..."
                 rows={3}
-                error={!!field.state.meta.errors.length}
+                placeholder={tp('programs.form.descriptionPlaceholder')}
               />
             </FormField>
           )}
@@ -197,13 +206,13 @@ export function ProgramForm({
           {(field) => (
             <FormField label="Customer" error={field.state.meta.errors[0]}>
               <Input
-                name={field.name}
+            <FormField label={tc('fields.customer')} error={field.state.meta.errors[0]}>
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
                 placeholder="U.S. Department of Defense"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('programs.form.customerPlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -214,7 +223,7 @@ export function ProgramForm({
             <FormField
               label="Contract Number"
               error={field.state.meta.errors[0]}
-            >
+              label={tc('fields.contractNumber')}
               <Input
                 name={field.name}
                 value={field.state.value}
@@ -222,7 +231,7 @@ export function ProgramForm({
                 onBlur={field.handleBlur}
                 placeholder="FA8615-09-C-6000"
                 error={!!field.state.meta.errors.length}
-              />
+                placeholder={tp('programs.form.contractNumberPlaceholder')}
             </FormField>
           )}
         </form.Field>
@@ -232,7 +241,7 @@ export function ProgramForm({
           {(field) => (
             <FormField label="Start Date" error={field.state.meta.errors[0]}>
               <Input
-                name={field.name}
+            <FormField label={tc('fields.startDate')} error={field.state.meta.errors[0]}>
                 type="date"
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
@@ -249,7 +258,7 @@ export function ProgramForm({
             <FormField
               label="Target End Date"
               error={field.state.meta.errors[0]}
-            >
+              label={tc('fields.targetEndDate')}
               <Input
                 name={field.name}
                 type="date"
@@ -283,15 +292,15 @@ export function ProgramForm({
           >
             Cancel
           </Button>
+            {tc('actions.cancel')}
+          </Button>
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Saving...'
+            ? tc('actions.saving')
             : program?.id
-              ? 'Update Program'
-              : 'Create Program'}
-        </Button>
-      </div>
+              ? tp('programs.form.updateSubmit')
+              : tp('programs.form.createSubmit')}
     </form>
   )
 }

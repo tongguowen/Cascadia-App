@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
 import {
   AlertCircle,
@@ -47,64 +48,23 @@ interface ImpactAnalysisDialogProps {
 
 type WizardStep = 'configure' | 'analyzing' | 'results'
 
-const changeTypeOptions: Array<{
-  value: ChangeType
-  label: string
-  description: string
-}> = [
-  {
-    value: 'revision',
-    label: 'Revision',
-    description: 'Creating a new revision of this item',
-  },
-  {
-    value: 'obsolescence',
-    label: 'Obsolescence',
-    description: 'Making this item obsolete',
-  },
-  {
-    value: 'bom_removal',
-    label: 'BOM Removal',
-    description: 'Removing this item from assemblies',
-  },
-  {
-    value: 'specification_change',
-    label: 'Specification Change',
-    description: 'Changing specifications or requirements',
-  },
+const CHANGE_TYPES: Array<ChangeType> = [
+  'revision',
+  'obsolescence',
+  'bom_removal',
+  'specification_change',
 ]
 
-const directionOptions: Array<{
-  value: ImpactDirection
-  label: string
-  description: string
-}> = [
-  {
-    value: 'downstream',
-    label: 'Downstream',
-    description: 'Find items that depend on this item',
-  },
-  {
-    value: 'upstream',
-    label: 'Upstream',
-    description: 'Find items that this item depends on',
-  },
-  {
-    value: 'both',
-    label: 'Both Directions',
-    description: 'Analyze full impact in both directions',
-  },
-]
+const DIRECTIONS: Array<ImpactDirection> = ['downstream', 'upstream', 'both']
 
-const domainOptions: Array<{
+const DOMAIN_OPTIONS: Array<{
   value: ThreadDomain
-  label: string
   Icon: typeof Cog
 }> = [
-  { value: 'requirements', label: 'Requirements', Icon: FileText },
-  { value: 'engineering', label: 'Engineering', Icon: Cog },
-  { value: 'manufacturing', label: 'Manufacturing', Icon: Factory },
-  { value: 'validation', label: 'Validation', Icon: FlaskConical },
+  { value: 'requirements', Icon: FileText },
+  { value: 'engineering', Icon: Cog },
+  { value: 'manufacturing', Icon: Factory },
+  { value: 'validation', Icon: FlaskConical },
 ]
 
 /**
@@ -117,7 +77,38 @@ export function ImpactAnalysisDialog({
   itemNumber,
   itemName,
 }: ImpactAnalysisDialogProps) {
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
+
+  const changeTypeOptions = useMemo(
+    () =>
+      CHANGE_TYPES.map((value) => ({
+        value,
+        label: tc(`dialogs.impact.changeTypes.${value}.label`),
+        description: tc(`dialogs.impact.changeTypes.${value}.description`),
+      })),
+    [tc],
+  )
+
+  const directionOptions = useMemo(
+    () =>
+      DIRECTIONS.map((value) => ({
+        value,
+        label: tc(`dialogs.impact.directions.${value}.label`),
+        description: tc(`dialogs.impact.directions.${value}.description`),
+      })),
+    [tc],
+  )
+
+  const domainOptions = useMemo(
+    () =>
+      DOMAIN_OPTIONS.map(({ value, Icon }) => ({
+        value,
+        label: tc(`labels.domains.${value}`),
+        Icon,
+      })),
+    [tc],
+  )
 
   // Wizard state
   const [step, setStep] = useState<WizardStep>('configure')
@@ -170,10 +161,12 @@ export function ImpactAnalysisDialog({
       setResult(response.data)
       setStep('results')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed')
+      setError(
+        err instanceof Error ? err.message : tc('dialogs.impact.analysisFailed'),
+      )
       setStep('configure')
     }
-  }, [itemId, changeType, direction, maxDepth, includeDomains])
+  }, [itemId, changeType, direction, maxDepth, includeDomains, tc])
 
   // Create ECO from selection
   const createChangeOrderFromSelection = useCallback(async () => {
@@ -214,13 +207,10 @@ export function ImpactAnalysisDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Impact Analysis
+            {tc('dialogs.impact.title')}
           </DialogTitle>
           <DialogDescription>
-            Analyze the potential impact of changes to{' '}
-            <span className="font-medium text-slate-900 dark:text-slate-100">
-              {itemNumber}
-            </span>
+            {tc('dialogs.impact.description', { itemNumber })}
             {itemName && <> ({itemName})</>}
           </DialogDescription>
         </DialogHeader>
@@ -231,7 +221,7 @@ export function ImpactAnalysisDialog({
             {/* Change Type */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                What type of change are you considering?
+                {tc('dialogs.impact.changeTypeQuestion')}
               </Label>
               <div className="grid grid-cols-2 gap-3">
                 {changeTypeOptions.map((option) => (
@@ -267,7 +257,7 @@ export function ImpactAnalysisDialog({
             {/* Direction */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">
-                Which direction should we analyze?
+                {tc('dialogs.impact.directionQuestion')}
               </Label>
               <div className="grid grid-cols-3 gap-3">
                 {directionOptions.map((option) => (
@@ -303,9 +293,11 @@ export function ImpactAnalysisDialog({
             {/* Max Depth */}
             <div className="space-y-3">
               <div className="flex justify-between">
-                <Label className="text-sm font-medium">Maximum Depth</Label>
+                <Label className="text-sm font-medium">
+                  {tc('labels.maximumDepth')}
+                </Label>
                 <span className="text-sm text-slate-500">
-                  {maxDepth} levels
+                  {tc('dialogs.impact.levels', { count: maxDepth })}
                 </span>
               </div>
               <input
@@ -318,14 +310,16 @@ export function ImpactAnalysisDialog({
                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-600 dark:accent-cyan-400"
               />
               <div className="flex justify-between text-xs text-slate-400">
-                <span>1 (direct only)</span>
-                <span>10 (full depth)</span>
+                <span>{tc('dialogs.impact.depthDirectOnly')}</span>
+                <span>{tc('dialogs.impact.depthFull')}</span>
               </div>
             </div>
 
             {/* Domains */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Include Domains</Label>
+              <Label className="text-sm font-medium">
+                {tc('labels.includeDomains')}
+              </Label>
               <div className="flex flex-wrap gap-3">
                 {domainOptions.map(({ value, label, Icon }) => (
                   <label
@@ -351,7 +345,7 @@ export function ImpactAnalysisDialog({
               {includeDomains.length === 0 && (
                 <p className="text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
                   <AlertCircle className="h-4 w-4" />
-                  Select at least one domain
+                  {tc('dialogs.impact.selectOneDomain')}
                 </p>
               )}
             </div>
@@ -371,10 +365,10 @@ export function ImpactAnalysisDialog({
           <div className="py-12 flex flex-col items-center justify-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
             <p className="text-slate-600 dark:text-slate-400">
-              Analyzing impact...
+              {tc('dialogs.impact.analyzing')}
             </p>
             <p className="text-sm text-slate-500">
-              Traversing relationships up to {maxDepth} levels deep
+              {tc('dialogs.impact.traversing', { maxDepth })}
             </p>
           </div>
         )}
@@ -389,7 +383,7 @@ export function ImpactAnalysisDialog({
             {result.impactedItems.length > 0 && (
               <div className="space-y-3 w-full max-w-full min-w-0">
                 <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                  Impacted Items
+                  {tc('dialogs.impact.impactedItems')}
                 </h3>
                 <ImpactResultsTable
                   items={result.impactedItems}
@@ -404,21 +398,21 @@ export function ImpactAnalysisDialog({
           {step === 'configure' && (
             <>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button
                 onClick={runAnalysis}
                 disabled={includeDomains.length === 0}
               >
                 <Search className="h-4 w-4 mr-2" />
-                Analyze Impact
+                {tc('actions.analyzeImpact')}
               </Button>
             </>
           )}
 
           {step === 'analyzing' && (
             <Button variant="outline" onClick={() => setStep('configure')}>
-              Cancel
+              {tc('actions.cancel')}
             </Button>
           )}
 
@@ -430,17 +424,17 @@ export function ImpactAnalysisDialog({
                 className="mr-auto"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Reconfigure
+                {tc('actions.reconfigure')}
               </Button>
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                Close
+                {tc('actions.close')}
               </Button>
               {result && result.impactedItems.length > 0 && (
                 <Button
                   onClick={createChangeOrderFromSelection}
                   disabled={selectedItemIds.length === 0}
                 >
-                  Create ECO
+                  {tc('actions.createEco')}
                   {selectedItemIds.length > 0 && (
                     <span className="ml-1">({selectedItemIds.length})</span>
                   )}

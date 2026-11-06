@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 import { Link } from '@tanstack/react-router'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Edit, Eye, MoreVertical, Trash2 } from 'lucide-react'
 import {
   SYSTEM_ELEMENT_KINDS,
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/ContextMenu'
 import { StateBadge } from '@/components/items/StateBadge'
 import { useLifecyclePhases } from '@/hooks/useLifecyclePhases'
+import { translateStateName } from '@/i18n'
 
 interface SystemElementTableProps {
   elements: Array<SystemElement>
@@ -57,20 +59,21 @@ export function SystemElementTable({
 }: SystemElementTableProps) {
   // State filter options and badges come from the type's lifecycle
   // configuration, not from a list in code
+  const { t } = useTranslation('common')
   const { data: lifecycle } = useLifecyclePhases('SystemElement')
   const stateFilterOptions = (lifecycle?.states ?? []).map((state) => ({
-    label: state.name,
+    label: translateStateName(state.name),
     value: state.id,
   }))
 
   const columns: Array<DataGridColumn<SystemElement>> = [
     {
       id: 'itemNumber',
-      header: 'Item Number',
+      header: t('columns.itemNumber'),
       accessorKey: 'itemNumber',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ row }) =>
         row.original.id ? (
           <Link
@@ -86,22 +89,22 @@ export function SystemElementTable({
     },
     {
       id: 'revision',
-      header: 'Rev',
+      header: t('columns.rev'),
       accessorKey: 'revision',
       enableSorting: true,
     },
     {
       id: 'name',
-      header: 'Name',
+      header: t('columns.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Search...',
+      filterPlaceholder: t('filters.searchPlaceholder'),
       cell: ({ getValue }) => (getValue() as string) || '-',
     },
     {
       id: 'elementKind',
-      header: 'Kind',
+      header: t('columns.kind'),
       accessorKey: 'elementKind',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -117,7 +120,7 @@ export function SystemElementTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: t('columns.state'),
       accessorKey: 'state',
       enableFiltering: true,
       filterType: 'multiSelect',
@@ -138,7 +141,7 @@ export function SystemElementTable({
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost" className="h-8 w-8">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -146,14 +149,14 @@ export function SystemElementTable({
             <DropdownMenuItem asChild>
               <Link to="/system-elements/$id" params={{ id: element.id }}>
                 <Eye className="mr-2 h-4 w-4" />
-                View details
+                {t('actions.viewDetails')}
               </Link>
             </DropdownMenuItem>
           )}
           {onEdit && (
             <DropdownMenuItem onClick={() => onEdit(element)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </DropdownMenuItem>
           )}
           {onDelete && (
@@ -164,7 +167,7 @@ export function SystemElementTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </DropdownMenuItem>
             </>
           )}
@@ -184,7 +187,7 @@ export function SystemElementTable({
           {onEdit && (
             <ContextMenuItem onClick={() => onEdit(element)}>
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              {t('actions.edit')}
             </ContextMenuItem>
           )}
           {onDelete && (
@@ -195,7 +198,7 @@ export function SystemElementTable({
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t('actions.delete')}
               </ContextMenuItem>
             </>
           )}

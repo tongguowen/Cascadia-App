@@ -3,6 +3,7 @@
 
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -157,6 +158,8 @@ export function DocumentDetail({
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
 
   const isCreateMode = !initialDocument?.id
 
@@ -276,7 +279,17 @@ export function DocumentDetail({
     context,
     branch: contextBranch,
   })
-  const { needsCheckout } = branchActions
+  const { needsCheckout, editButtonLabel } = branchActions
+  const editActionLabel =
+    editButtonLabel === 'Revise'
+      ? tc('actions.revise')
+      : editButtonLabel === 'Edit on Branch'
+        ? tc('actions.editOnBranch')
+        : tc('actions.edit')
+  const deleteActionLabel =
+    branchActions.deleteButtonLabel === 'Remove from ECO'
+      ? tc('actions.removeFromEco')
+      : tc('actions.delete')
 
   // The server-side edit lock behind the Edit button. The hook reads where the
   // lock lives off `editContext`, so released-on-main resolves to no lock
@@ -310,7 +323,7 @@ export function DocumentDetail({
       try {
         await editLock.acquire()
       } catch (error) {
-        handleError(error, { title: 'Cannot edit item' })
+        handleError(error, { title: tc('errors.cannotEditItem') })
         return
       }
     }
@@ -378,8 +391,8 @@ export function DocumentDetail({
     confirm({
       title: branchActions.deleteTitle,
       description: branchActions.deleteDescription,
-      actionLabel: branchActions.deleteButtonLabel,
-      cancelLabel: 'Cancel',
+      actionLabel: deleteActionLabel,
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         await onDelete(branchActions.deleteIntent)
@@ -444,8 +457,8 @@ export function DocumentDetail({
             <div className="flex items-center gap-3">
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                 {isCreateMode
-                  ? 'Create New Document'
-                  : currentDocument.itemNumber || 'New Document'}
+                  ? tp('documents.form.createTitle')
+                  : currentDocument.itemNumber || tp('documents.form.newItemFallback')}
               </h1>
               {!isCreateMode && isLoadingVersion && (
                 <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
@@ -482,8 +495,8 @@ export function DocumentDetail({
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new document'
-                : `Revision ${currentDocument.revision} • ${currentDocument.name || 'Unnamed'}`}
+                ? tp('documents.form.createSubtitle')
+                : tp('documents.detail.revisionSubtitle', { revision: currentDocument.revision, name: currentDocument.name || tc('labels.unnamed') })}
             </p>
           </div>
         </div>
@@ -498,7 +511,7 @@ export function DocumentDetail({
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -510,10 +523,10 @@ export function DocumentDetail({
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create Document'
-                      : 'Save Changes'}
+                      ? tp('documents.create')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
@@ -536,7 +549,7 @@ export function DocumentDetail({
                           ) : (
                             <Edit className="h-4 w-4 mr-2" />
                           )}
-                          {branchActions.editButtonLabel}
+                          {editActionLabel}
                         </Button>
                       </span>
                     </TooltipTrigger>
@@ -557,7 +570,7 @@ export function DocumentDetail({
                     ) : (
                       <Edit className="h-4 w-4 mr-2" />
                     )}
-                    {branchActions.editButtonLabel}
+                    {editActionLabel}
                   </Button>
                 )}
                 {onDelete && (
@@ -570,7 +583,7 @@ export function DocumentDetail({
                     }
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    {branchActions.deleteButtonLabel}
+                    {deleteActionLabel}
                   </Button>
                 )}
               </>
@@ -596,11 +609,19 @@ export function DocumentDetail({
         <TabsList
           className={`grid w-full ${tabGridCols(isCreateMode, hasPreview, hasGallery)}`}
         >
-          <TabsTrigger value="details">Details</TabsTrigger>
-          {hasPreview && <TabsTrigger value="preview">Preview</TabsTrigger>}
-          {hasGallery && <TabsTrigger value="gallery">Gallery</TabsTrigger>}
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
-          {!isCreateMode && <TabsTrigger value="history">History</TabsTrigger>}
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          {hasPreview && (
+            <TabsTrigger value="preview">{tc('tabs.preview')}</TabsTrigger>
+          )}
+          {hasGallery && (
+            <TabsTrigger value="gallery">{tc('tabs.gallery')}</TabsTrigger>
+          )}
+          <TabsTrigger value="relationships">
+            {tc('tabs.relationships')}
+          </TabsTrigger>
+          {!isCreateMode && (
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+          )}
         </TabsList>
 
         {/* Details Tab */}
@@ -615,15 +636,15 @@ export function DocumentDetail({
               {/* Overview Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
                   <CardDescription>
-                    General information about this document
+                    {tp('documents.detail.overviewDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditText
-                      label="Item Number"
+                      label={tc('fields.itemNumber')}
                       value={
                         isEditing
                           ? document.itemNumber
@@ -631,12 +652,12 @@ export function DocumentDetail({
                       }
                       onChange={(v) => updateField('itemNumber', v)}
                       isEditing={isEditing && isCreateMode}
-                      placeholder="DOC-001"
+                      placeholder={tp('documents.detail.itemNumberPlaceholder')}
                       required
                       data-testid="document-item-number"
                     />
                     <ViewEditText
-                      label="Revision"
+                      label={tc('fields.revision')}
                       value={
                         isEditing ? document.revision : currentDocument.revision
                       }
@@ -644,16 +665,16 @@ export function DocumentDetail({
                       isEditing={false}
                     />
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={isEditing ? document.name : currentDocument.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="Document name"
+                      placeholder={tp('documents.detail.namePlaceholder')}
                       required
                       data-testid="document-name"
                     />
                     <ViewEditTextarea
-                      label="Description"
+                      label={tc('fields.description')}
                       value={
                         isEditing
                           ? document.description
@@ -661,7 +682,7 @@ export function DocumentDetail({
                       }
                       onChange={(v) => updateField('description', v)}
                       isEditing={isEditing}
-                      placeholder="Enter a description..."
+                      placeholder={tp('documents.detail.descriptionPlaceholder')}
                       className="md:col-span-2"
                     />
                     {(isCreateMode || !currentDocument.designId) &&
@@ -678,68 +699,18 @@ export function DocumentDetail({
                           isCreateMode={isCreateMode}
                           selectedBranchId={selectedBranchId}
                           onBranchChange={setSelectedBranchId}
-                          itemLabel="document"
+                          itemLabel={tp('documents.detail.createItemLabel')}
                         />
                       )}
                   </dl>
                 </CardContent>
               </Card>
 
-              {/* File Information Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>File Information</CardTitle>
-                  <CardDescription>
-                    Details about the attached file
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ViewEditText
-                      label="File Name"
-                      value={
-                        isEditing ? document.fileName : currentDocument.fileName
-                      }
-                      onChange={(v) => updateField('fileName', v)}
-                      isEditing={isEditing}
-                      placeholder="document.pdf"
-                    />
-                    <ViewEditStatic
-                      label="File Size"
-                      value={formatFileSize(currentDocument.fileSize)}
-                    />
-                    <ViewEditText
-                      label="MIME Type"
-                      value={
-                        isEditing ? document.mimeType : currentDocument.mimeType
-                      }
-                      onChange={(v) => updateField('mimeType', v)}
-                      isEditing={isEditing}
-                      placeholder="application/pdf"
-                    />
-                    <ViewEditStatic
-                      label="File ID"
-                      value={currentDocument.fileId}
-                      mono
-                    />
-                    <ViewEditStatic
-                      label="Storage Path"
-                      value={currentDocument.storagePath}
-                      mono
-                      className="md:col-span-2"
-                    />
-                  </dl>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar - Right column */}
-            <div className="space-y-6">
-              {/* Vault Files (only for existing documents) */}
+              {/* Vault files — main column width, between Overview and File Information */}
               {!isCreateMode && currentDocument.id && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Files</CardTitle>
+                    <CardTitle>{tc('sections.files')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <FileUploadZone
@@ -756,7 +727,7 @@ export function DocumentDetail({
                         void invalidate('files')
                       }}
                       onUploadError={(error) =>
-                        handleError(error, { title: 'Upload failed' })
+                        handleError(error, { title: tc('errors.uploadFailed') })
                       }
                     />
                     <FileList
@@ -771,18 +742,68 @@ export function DocumentDetail({
                 </Card>
               )}
 
+              {/* File Information Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{tc('sections.fileInformation')}</CardTitle>
+                  <CardDescription>
+                    {tp('documents.detail.fileInformationDescription')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <ViewEditText
+                      label={tc('fields.fileName')}
+                      value={
+                        isEditing ? document.fileName : currentDocument.fileName
+                      }
+                      onChange={(v) => updateField('fileName', v)}
+                      isEditing={isEditing}
+                      placeholder={tp('documents.detail.fileNamePlaceholder')}
+                    />
+                    <ViewEditStatic
+                      label={tc('fields.fileSize')}
+                      value={formatFileSize(currentDocument.fileSize)}
+                    />
+                    <ViewEditText
+                      label={tc('fields.mimeType')}
+                      value={
+                        isEditing ? document.mimeType : currentDocument.mimeType
+                      }
+                      onChange={(v) => updateField('mimeType', v)}
+                      isEditing={isEditing}
+                      placeholder={tp('documents.detail.mimePlaceholder')}
+                    />
+                    <ViewEditStatic
+                      label={tc('fields.fileId')}
+                      value={currentDocument.fileId}
+                      mono
+                    />
+                    <ViewEditStatic
+                      label={tc('fields.storagePath')}
+                      value={currentDocument.storagePath}
+                      mono
+                      className="md:col-span-2"
+                    />
+                  </dl>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar - Right column */}
+            <div className="space-y-6">
               {/* Metadata */}
               <Collapsible defaultOpen={false}>
                 <Card>
                   <CardHeader>
                     <CollapsibleTrigger className="hover:opacity-70">
-                      <CardTitle>Metadata</CardTitle>
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
                     </CollapsibleTrigger>
                   </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
                       <ViewEditStatic
-                        label="Created"
+                        label={tc('columns.created')}
                         value={
                           currentDocument.createdAt
                             ? new Date(
@@ -792,7 +813,7 @@ export function DocumentDetail({
                         }
                       />
                       <ViewEditStatic
-                        label="Last Modified"
+                        label={tc('fields.lastModified')}
                         value={
                           currentDocument.modifiedAt
                             ? new Date(
@@ -804,12 +825,12 @@ export function DocumentDetail({
                       {!isCreateMode && (
                         <>
                           <ViewEditStatic
-                            label="Master ID"
+                            label={tc('fields.masterId')}
                             value={currentDocument.masterId}
                             mono
                           />
                           <ViewEditStatic
-                            label="Document ID"
+                            label={tp('documents.detail.documentId')}
                             value={currentDocument.id}
                             mono
                           />
@@ -842,10 +863,9 @@ export function DocumentDetail({
           <TabsContent value="gallery" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Gallery</CardTitle>
+                <CardTitle>{tc('sections.gallery')}</CardTitle>
                 <CardDescription>
-                  Images attached to this document — click one to view it full
-                  size
+                  {tp('vault.imageGallery.cardDescriptionDocument')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -881,7 +901,7 @@ export function DocumentDetail({
             <Card>
               <CardContent className="py-12 text-center">
                 <p className="text-slate-500 dark:text-slate-400">
-                  Save the document first to manage relationships
+                  {tc('messages.saveDocumentFirstRelationships')}
                 </p>
               </CardContent>
             </Card>

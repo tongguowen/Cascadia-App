@@ -4,6 +4,7 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   Edit,
@@ -36,6 +37,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
   Collapsible,
@@ -140,16 +142,16 @@ function ExternalRepositoryField({
 }
 
 function ExternalSourcePanel({ software }: { software: Software }) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   return (
     <Card>
       <CardHeader>
-        <CardTitle>External source</CardTitle>
+        <CardTitle>{tp('software.detail.externalSourceTitle')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Development takes place outside Cascadia. This repository pin is
-          maintained manually; Cascadia does not fetch, mirror, or synchronize
-          the repository.
+          {tp('software.detail.externalSourceDescription')}
         </p>
         <dl className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <ExternalRepositoryField
@@ -157,11 +159,11 @@ function ExternalSourcePanel({ software }: { software: Software }) {
             className="md:col-span-2"
           />
           <ViewEditStatic
-            label="Pinned reference"
+            label={tc('fields.pinnedReference')}
             value={software.externalRef}
           />
           <ViewEditStatic
-            label="Commit SHA"
+            label={tc('fields.commitSha')}
             value={software.externalCommitSha}
           />
         </dl>
@@ -196,6 +198,9 @@ export function SoftwareDetail({
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const tsw = (key: string) => tp(`software.detail.${key}`)
 
   const isCreateMode = !initialSoftware?.id
 
@@ -314,7 +319,7 @@ export function SoftwareDetail({
       try {
         await editLock.acquire()
       } catch (error) {
-        handleError(error, { title: 'Cannot edit item' })
+        handleError(error, { title: tc('errors.cannotEditItem') })
         return
       }
     }
@@ -496,7 +501,9 @@ export function SoftwareDetail({
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-                {isCreateMode ? 'Create Software Item' : current.itemNumber}
+                {isCreateMode
+                  ? tp('software.form.createTitle')
+                  : current.itemNumber}
               </h1>
               {!isCreateMode && isLoadingVersion && (
                 <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
@@ -504,8 +511,8 @@ export function SoftwareDetail({
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'The configuration item behind a firmware or software BOM line'
-                : current.name || 'Unnamed'}
+                ? tp('software.form.createSubtitle')
+                : current.name || tc('labels.unnamed')}
             </p>
           </div>
         </div>
@@ -519,7 +526,7 @@ export function SoftwareDetail({
                 disabled={isSubmitting}
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {tc('actions.cancel')}
               </Button>
               <Button
                 onClick={handleSave}
@@ -530,10 +537,10 @@ export function SoftwareDetail({
               >
                 <Save className="h-4 w-4 mr-2" />
                 {isSubmitting
-                  ? 'Saving...'
+                  ? tc('actions.saving')
                   : isCreateMode
-                    ? 'Create Software'
-                    : 'Save Changes'}
+                    ? tp('software.form.createSubmit')
+                    : tc('actions.saveChanges')}
               </Button>
             </>
           ) : (
@@ -649,9 +656,13 @@ export function SoftwareDetail({
             isCreateMode ? 'grid w-full grid-cols-1' : 'grid w-full grid-cols-3'
           }
         >
-          <TabsTrigger value="details">Details</TabsTrigger>
-          {!isCreateMode && <TabsTrigger value="source">Source</TabsTrigger>}
-          {!isCreateMode && <TabsTrigger value="history">History</TabsTrigger>}
+          <TabsTrigger value="details">{tc('tabs.details')}</TabsTrigger>
+          {!isCreateMode && (
+            <TabsTrigger value="source">{tc('tabs.source')}</TabsTrigger>
+          )}
+          {!isCreateMode && (
+            <TabsTrigger value="history">{tc('tabs.history')}</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="details" className="mt-6">
@@ -659,25 +670,26 @@ export function SoftwareDetail({
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
+                  <CardDescription>{tsw('overviewDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditText
-                      label="Item Number"
+                      label={tc('fields.itemNumber')}
                       value={
                         isEditing ? software.itemNumber : current.itemNumber
                       }
                       onChange={(v) => updateField('itemNumber', v)}
                       isEditing={isEditing && isCreateMode}
-                      placeholder="Auto-assigned (SW-...)"
+                      placeholder={tsw('itemNumberPlaceholder')}
                     />
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={isEditing ? software.name : current.name}
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="e.g., TDJ-25 Motor Firmware"
+                      placeholder={tsw('namePlaceholder')}
                       required
                     />
                     {isCreateMode ? (
@@ -693,11 +705,11 @@ export function SoftwareDetail({
                         isCreateMode={isCreateMode}
                         selectedBranchId={selectedBranchId}
                         onBranchChange={setSelectedBranchId}
-                        itemLabel="software item"
+                        itemLabel={tsw('createItemLabel')}
                       />
                     ) : (
                       <ViewEditStatic
-                        label="Design"
+                        label={tc('fields.design')}
                         value={
                           designs.find((d) => d.id === current.designId)
                             ?.name ?? current.designId
@@ -710,12 +722,12 @@ export function SoftwareDetail({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Software Information</CardTitle>
+                  <CardTitle>{tc('sections.softwareInformation')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ViewEditSelect
-                      label="Software Type"
+                      label={tc('fields.softwareType')}
                       value={
                         isEditing ? software.softwareType : current.softwareType
                       }
@@ -724,7 +736,7 @@ export function SoftwareDetail({
                       options={SOFTWARE_TYPE_OPTIONS}
                     />
                     <ViewEditSelect
-                      label="Source Mode"
+                      label={tc('fields.sourceMode')}
                       value={
                         isEditing ? software.sourceMode : current.sourceMode
                       }
@@ -735,46 +747,44 @@ export function SoftwareDetail({
                     {isEditing && software.sourceMode === 'external' && (
                       <>
                         <ViewEditText
-                          label="Repository URL"
+                          label={tc('fields.repositoryUrl')}
                           value={software.externalRepositoryUrl}
                           onChange={(v) =>
                             updateField('externalRepositoryUrl', v)
                           }
                           isEditing
                           inputType="url"
-                          placeholder="https://github.com/organization/repository"
+                          placeholder={tsw('repositoryUrlPlaceholder')}
                           className="md:col-span-2"
                         />
                         <ViewEditText
-                          label="Pinned Reference"
+                          label={tc('fields.pinnedReference')}
                           value={software.externalRef}
                           onChange={(v) => updateField('externalRef', v)}
                           isEditing
-                          placeholder="e.g., v2.3.0, release/2.3, or a commit"
+                          placeholder={tsw('pinnedReferencePlaceholder')}
                         />
                         <ViewEditText
-                          label="Commit SHA"
+                          label={tc('fields.commitSha')}
                           value={software.externalCommitSha}
                           onChange={(v) => updateField('externalCommitSha', v)}
                           isEditing
-                          placeholder="Optional full 40- or 64-character SHA"
+                          placeholder={tsw('commitShaPlaceholder')}
                         />
                         <div className="md:col-span-2 text-sm text-slate-500 dark:text-slate-400">
-                          The reference is stored manually. Cascadia does not
-                          currently verify it against the repository or keep it
-                          synchronized.
+                          {tsw('externalRefNotice')}
                         </div>
                       </>
                     )}
                     <ViewEditText
-                      label="Version"
+                      label={tc('fields.version')}
                       value={isEditing ? software.version : current.version}
                       onChange={(v) => updateField('version', v)}
                       isEditing={isEditing}
-                      placeholder="e.g., 2.3.0"
+                      placeholder={tsw('versionPlaceholder')}
                     />
                     <ViewEditText
-                      label="Target Hardware"
+                      label={tc('fields.targetHardware')}
                       value={
                         isEditing
                           ? software.targetHardware
@@ -782,14 +792,14 @@ export function SoftwareDetail({
                       }
                       onChange={(v) => updateField('targetHardware', v)}
                       isEditing={isEditing}
-                      placeholder="e.g., STM32F407, board rev C"
+                      placeholder={tsw('targetHardwarePlaceholder')}
                     />
                     <ViewEditText
-                      label="Toolchain"
+                      label={tc('fields.toolchain')}
                       value={isEditing ? software.toolchain : current.toolchain}
                       onChange={(v) => updateField('toolchain', v)}
                       isEditing={isEditing}
-                      placeholder="e.g., arm-none-eabi-gcc 13.2, CMake"
+                      placeholder={tsw('toolchainPlaceholder')}
                     />
                   </dl>
                 </CardContent>
@@ -797,7 +807,7 @@ export function SoftwareDetail({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Description</CardTitle>
+                  <CardTitle>{tc('fields.description')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ViewEditTextarea
@@ -807,7 +817,7 @@ export function SoftwareDetail({
                     }
                     onChange={(v) => updateField('description', v)}
                     isEditing={isEditing}
-                    placeholder="What this software does, its scope, and constraints..."
+                    placeholder={tsw('descriptionPlaceholder')}
                   />
                 </CardContent>
               </Card>
@@ -817,11 +827,11 @@ export function SoftwareDetail({
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Source</CardTitle>
+                  <CardTitle>{tc('sections.source')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <ViewEditStatic
-                    label="Mode"
+                    label={tc('fields.mode')}
                     value={current.sourceMode ?? 'internal'}
                   />
                   {(current.sourceMode ?? 'internal') === 'external' ? (
@@ -830,12 +840,12 @@ export function SoftwareDetail({
                         url={current.externalRepositoryUrl}
                       />
                       <ViewEditStatic
-                        label="Pinned reference"
+                        label={tc('fields.pinnedReference')}
                         value={current.externalRef}
                       />
                       {current.externalCommitSha && (
                         <ViewEditStatic
-                          label="Commit SHA"
+                          label={tc('fields.commitSha')}
                           value={current.externalCommitSha}
                         />
                       )}
@@ -843,17 +853,17 @@ export function SoftwareDetail({
                   ) : (
                     <>
                       <ViewEditStatic
-                        label="Source snapshot"
+                        label={tc('labels.sourceSnapshot')}
                         value={
                           current.manifestId
-                            ? 'Imported (see Source tab)'
-                            : 'No source imported yet'
+                            ? tsw('sourceImported')
+                            : tsw('sourceNotImported')
                         }
                       />
                       {current.draftManifestId && (
                         <ViewEditStatic
-                          label="Draft"
-                          value="Uncommitted changes (see Source tab)"
+                          label={tc('labels.draft')}
+                          value={tsw('draftUncommitted')}
                         />
                       )}
                     </>
@@ -883,7 +893,7 @@ export function SoftwareDetail({
                   >
                     <CardHeader className="pb-3">
                       <CollapsibleTrigger className="hover:opacity-70">
-                        <CardTitle>Custom Attributes</CardTitle>
+                        <CardTitle>{tc('sections.customAttributes')}</CardTitle>
                       </CollapsibleTrigger>
                     </CardHeader>
                     <CollapsibleContent>
@@ -905,7 +915,7 @@ export function SoftwareDetail({
                           </dl>
                         ) : (
                           <p className="text-sm text-slate-500 dark:text-slate-400">
-                            No custom attributes defined.
+                            {tc('messages.noCustomAttributes')}
                           </p>
                         )}
                       </CardContent>
@@ -919,21 +929,21 @@ export function SoftwareDetail({
                   <Card>
                     <CardHeader>
                       <CollapsibleTrigger className="hover:opacity-70">
-                        <CardTitle>Metadata</CardTitle>
+                        <CardTitle>{tc('sections.metadata')}</CardTitle>
                       </CollapsibleTrigger>
                     </CardHeader>
                     <CollapsibleContent>
                       <CardContent className="space-y-3">
                         <ViewEditStatic
-                          label="Revision"
+                          label={tc('fields.revision')}
                           value={current.revision}
                         />
                         <ViewEditStatic
-                          label="Created"
+                          label={tc('columns.created')}
                           value={formatDate(current.createdAt)}
                         />
                         <ViewEditStatic
-                          label="Modified"
+                          label={tc('fields.lastModified')}
                           value={formatDate(current.modifiedAt)}
                         />
                       </CardContent>

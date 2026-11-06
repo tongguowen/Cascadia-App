@@ -1,0 +1,27 @@
+{
+  "title": "Watchlink PLM",
+  "subtitle": "Sign in to your account",
+  "username": "Username",
+  "password": "Password",
+  "usernamePlaceholder": "Enter your username",
+  "passwordPlaceholder": "Enter your password",
+  "signIn": "Sign in",
+  "signingIn": "Signing in...",
+  "orContinueWith": "Or continue with",
+  "signInGoogle": "Sign in with Google",
+  "signInGitHub": "Sign in with GitHub",
+  "genericError": "An error occurred. Please try again.",
+  "loginFailed": "Login failed",
+  "oauth": {
+    "missing_params": "OAuth callback missing required parameters.",
+    "invalid_state": "OAuth state validation failed. Please try again.",
+    "github_api_error": "Failed to communicate with GitHub.",
+    "google_api_error": "Failed to communicate with Google.",
+    "no_email": "Your GitHub account must have a verified email address.",
+    "email_unverified": "Your email address is not verified with the provider.",
+    "wrong_domain": "That account is not part of an organisation permitted to sign in here. Use your work Google account.",
+    "account_inactive": "Your account has been deactivated. Contact an administrator.",
+    "oauth_failed": "OAuth authentication failed. Please try again.",
+    "auth_failed": "Authentication failed. Please try again."
+  }
+}

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   KeyRound,
   ListOrdered,
@@ -60,18 +62,24 @@ export function WebhookSubscriptionsTable({
   onViewDeliveries,
   busyId = null,
 }: WebhookSubscriptionsTableProps) {
-  const columns: Array<DataGridColumn<WebhookSubscription>> = [
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const tt = (key: string, options?: Record<string, unknown>) =>
+    t(`admin.webhooks.table.${key}`, options)
+
+  const columns: Array<DataGridColumn<WebhookSubscription>> = useMemo(
+    () => [
     {
       id: 'name',
-      header: 'Name',
+      header: tc('fields.name'),
       accessorKey: 'name',
       enableFiltering: true,
       filterType: 'text',
-      filterPlaceholder: 'Filter by name...',
+      filterPlaceholder: tt('filterNamePlaceholder'),
     },
     {
       id: 'targetUrl',
-      header: 'Target',
+      header: tt('colTarget'),
       accessorKey: 'targetUrl',
       cell: ({ getValue }) => (
         <span
@@ -84,15 +92,15 @@ export function WebhookSubscriptionsTable({
     },
     {
       id: 'state',
-      header: 'State',
+      header: tc('columns.state'),
       accessorFn: (row) =>
         row.disabledAt ? 'auto-disabled' : row.enabled ? 'active' : 'off',
       enableFiltering: true,
       filterType: 'multiSelect',
       filterOptions: [
-        { label: 'Active', value: 'active' },
-        { label: 'Off', value: 'off' },
-        { label: 'Auto-disabled', value: 'auto-disabled' },
+        { label: tt('stateActive'), value: 'active' },
+        { label: tt('stateOff'), value: 'off' },
+        { label: tt('stateAutoDisabled'), value: 'auto-disabled' },
       ],
       cell: ({ row, getValue }) => {
         const state = getValue() as string
@@ -101,30 +109,30 @@ export function WebhookSubscriptionsTable({
             <Badge
               variant="destructive"
               title={
-                row.original.disabledReason ??
-                'Switched off automatically after repeated failures'
+                row.original.disabledReason ?? tt('autoDisabledTitle')
               }
             >
-              auto-disabled
+              {tt('stateAutoDisabled')}
             </Badge>
           )
         }
-        if (state === 'off') return <Badge variant="secondary">off</Badge>
-        return <Badge variant="success">active</Badge>
+        if (state === 'off')
+          return <Badge variant="secondary">{tt('stateOff')}</Badge>
+        return <Badge variant="success">{tt('stateActive')}</Badge>
       },
     },
     {
       id: 'eventTypes',
-      header: 'Events',
+      header: tt('colEvents'),
       cell: ({ row }) => {
         const types = row.original.eventTypes
         if (types.length === 0) {
           return (
             <span
               className="text-slate-500 dark:text-slate-400"
-              title="Every type, including ones a future release adds"
+              title={tt('allTypesTitle')}
             >
-              all types
+              {tt('allTypes')}
             </span>
           )
         }
@@ -133,31 +141,30 @@ export function WebhookSubscriptionsTable({
             className="text-xs text-slate-600 dark:text-slate-300"
             title={types.join('\n')}
           >
-            {types.length === 1 ? types[0] : `${types.length} types`}
+            {types.length === 1
+              ? types[0]
+              : tt('typesCount', { count: types.length })}
           </span>
         )
       },
     },
     {
       id: 'signing',
-      header: 'Signing',
+      header: tt('colSigning'),
       cell: ({ row }) =>
         row.original.secretPrefix ? (
           <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
             {row.original.secretPrefix}…
           </span>
         ) : (
-          <Badge
-            variant="warning"
-            title="Deliveries are sent unsigned — the receiver cannot verify them"
-          >
-            unsigned
+          <Badge variant="warning" title={tt('unsignedTitle')}>
+            {tt('unsigned')}
           </Badge>
         ),
     },
     {
       id: 'failures',
-      header: 'Failures',
+      header: tt('colFailures'),
       accessorKey: 'consecutiveFailures',
       cell: ({ getValue }) => {
         const count = getValue() as number
@@ -172,7 +179,7 @@ export function WebhookSubscriptionsTable({
     },
     {
       id: 'lastSuccessAt',
-      header: 'Last delivered',
+      header: tt('colLastDelivered'),
       accessorKey: 'lastSuccessAt',
       cell: ({ getValue }) => (
         <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -180,7 +187,9 @@ export function WebhookSubscriptionsTable({
         </span>
       ),
     },
-  ]
+  ],
+    [t, tc],
+  )
 
   const renderRowActions = (row: Row<WebhookSubscription>) => {
     const subscription = row.original
@@ -196,40 +205,40 @@ export function WebhookSubscriptionsTable({
             disabled={busyId === subscription.id}
           >
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{tc('actions.openMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onViewDeliveries(subscription)}>
             <ListOrdered className="mr-2 h-4 w-4" />
-            Delivery log
+            {tt('deliveryLog')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(subscription)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Edit
+            {tc('actions.edit')}
           </DropdownMenuItem>
           {isOn ? (
             <DropdownMenuItem onClick={() => onDisable(subscription)}>
               <Pause className="mr-2 h-4 w-4" />
-              Disable
+              {tt('disableAction')}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={() => onEnable(subscription)}>
               <Play className="mr-2 h-4 w-4" />
-              Enable
+              {tt('enableAction')}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onRotate(subscription)}>
             <KeyRound className="mr-2 h-4 w-4" />
-            Rotate signing secret
+            {tt('rotateSecret')}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => onDelete(subscription)}
             className={DESTRUCTIVE_ITEM}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            {tc('actions.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -243,8 +252,8 @@ export function WebhookSubscriptionsTable({
       getRowId={(subscription) => subscription.id}
       enableRowActions={true}
       renderRowActions={renderRowActions}
-      emptyMessage="No webhook subscriptions"
-      emptyDescription="Create one to deliver domain events to an external system."
+      emptyMessage={tt('emptyMessage')}
+      emptyDescription={tt('emptyDescription')}
     />
   )
 }

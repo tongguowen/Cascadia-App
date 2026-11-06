@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertCircle,
@@ -133,12 +135,18 @@ const changeActionColors: Record<
   remove: 'destructive',
 }
 
-const relationshipTypeLabels: Record<string, string> = {
-  bom_where_used: 'BOM Where-Used',
-  definition_instance: 'Definition Instance',
-  definition_source: 'Definition Source',
-  usage_cousin: 'Usage Cousin',
-  cross_design_ref: 'Cross-Design Reference',
+function relationshipTypeLabel(type: string, tp: TFunction<'pages'>): string {
+  const mapped: Record<string, string> = {
+    bom_where_used: 'bomWhereUsed',
+    definition_instance: 'definitionInstance',
+    definition_source: 'definitionSource',
+    usage_cousin: 'usageCousin',
+    cross_design_ref: 'crossDesignRef',
+  }
+  const suffix = mapped[type]
+  return suffix
+    ? tp(`changeOrders.impactAssessment.relationship.${suffix}`)
+    : type
 }
 
 const relationshipTypeIcons: Record<string, LucideIcon> = {
@@ -149,7 +157,11 @@ const relationshipTypeIcons: Record<string, LucideIcon> = {
   cross_design_ref: ExternalLink,
 }
 
-function formatCrossDesignSummary(impact: CrossDesignImpact): string {
+function formatCrossDesignSummary(
+  impact: CrossDesignImpact,
+  tp: TFunction<'pages'>,
+): string {
+  const ia = 'changeOrders.impactAssessment'
   // Enhanced format when relationship summary is available
   if (
     impact.relationshipSummary &&
@@ -157,26 +169,43 @@ function formatCrossDesignSummary(impact: CrossDesignImpact): string {
   ) {
     const parts = Object.entries(impact.relationshipSummary).map(
       ([type, count]) =>
-        `${count} via ${relationshipTypeLabels[type]?.toLowerCase() ?? type}`,
+        tp(`${ia}.viaCount`, {
+          count,
+          relationship: relationshipTypeLabel(type, tp).toLowerCase(),
+        }),
     )
-    if (parts.length <= 1) return `Impacted by ${parts[0] ?? ''}`
-    return `Impacted by ${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`
+    if (parts.length <= 1) {
+      return tp(`${ia}.summaryVia`, { detail: parts[0] ?? '' })
+    }
+    return tp(`${ia}.summaryVia`, {
+      detail:
+        parts.slice(0, -1).join(tp(`${ia}.summaryViaSeparator`)) +
+        tp(`${ia}.summaryViaJoin`) +
+        parts.at(-1),
+    })
   }
 
   // Fallback: original format by change action
   const actionLabels: Record<string, string> = {
-    revise: 'revised',
-    release: 'released',
-    obsolete: 'obsoleted',
-    add: 'added',
-    remove: 'removed',
+    revise: tp(`${ia}.actionRevise`),
+    release: tp(`${ia}.actionRelease`),
+    obsolete: tp(`${ia}.actionObsolete`),
+    add: tp(`${ia}.actionAdd`),
+    remove: tp(`${ia}.actionRemove`),
   }
-  const parts = Object.entries(impact.summary).map(
-    ([action, count]) =>
-      `${count} part${count !== 1 ? 's' : ''} being ${actionLabels[action] ?? action}`,
+  const segments = Object.entries(impact.summary).map(([action, count]) =>
+    tp(`${ia}.partsBeing`, {
+      count,
+      unit: tp(`${ia}.partUnit`, { count }),
+      action: actionLabels[action] ?? action,
+    }),
   )
-  if (parts.length <= 1) return parts[0] ?? ''
-  return parts.slice(0, -1).join(', ') + ' and ' + parts.at(-1)
+  if (segments.length <= 1) return segments[0] ?? ''
+  return (
+    segments.slice(0, -1).join(tp(`${ia}.summaryViaSeparator`)) +
+    tp(`${ia}.summaryViaJoin`) +
+    segments.at(-1)
+  )
 }
 
 function RelationshipGroup({
@@ -188,9 +217,11 @@ function RelationshipGroup({
   parts: Array<CrossDesignImpactedPart>
   designId: string
 }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [expanded, setExpanded] = useState(false)
   const Icon = relationshipTypeIcons[type] ?? GitBranch
-  const label = relationshipTypeLabels[type] ?? type
+  const label = relationshipTypeLabel(type, tp)
   const visibleParts = expanded ? parts : parts.slice(0, 3)
   const hasMore = parts.length > 3
 
@@ -208,7 +239,9 @@ function RelationshipGroup({
           >
             {part.targetItemNumber && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">Impacted:</span>
+                <span className="text-xs text-slate-500">
+                  {tp('changeOrders.impactAssessment.impacted')}
+                </span>
                 <span className="font-mono text-slate-300">
                   {part.targetItemNumber}
                 </span>
@@ -219,7 +252,9 @@ function RelationshipGroup({
             )}
             <div className="flex items-center gap-2">
               {part.targetItemNumber && (
-                <span className="text-xs text-slate-500">Source:</span>
+                <span className="text-xs text-slate-500">
+                  {tp('changeOrders.impactAssessment.source')}
+                </span>
               )}
               <span className="font-mono">{part.itemNumber}</span>
               <span className="text-slate-400">
@@ -245,11 +280,14 @@ function RelationshipGroup({
             {expanded ? (
               <>
                 <ChevronDown className="h-4 w-4" />
-                Show less
+                {tc('actions.showLess')}
               </>
             ) : (
               <>
-                <ChevronRight className="h-4 w-4" />+{parts.length - 3} more
+                <ChevronRight className="h-4 w-4" />
+                {tp('changeOrders.impactAssessment.moreCount', {
+                  count: parts.length - 3,
+                })}
               </>
             )}
           </button>
@@ -264,13 +302,14 @@ function CrossDesignImpactCard({
 }: {
   impacts: Array<CrossDesignImpact>
 }) {
+  const { t: tp } = useTranslation('pages')
   return (
     <Card>
       <CardHeader>
         <CardTitle>
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
-            Cross-Design Impact
+            {tp('changeOrders.impactAssessment.crossDesignImpact')}
           </div>
         </CardTitle>
       </CardHeader>
@@ -310,8 +349,9 @@ function CrossDesignImpactCard({
                           impact.designName}
                       </span>
                       <Badge variant="secondary">
-                        {impact.impactedParts.length} part
-                        {impact.impactedParts.length !== 1 ? 's' : ''}
+                        {tp('changeOrders.impactAssessment.partCount', {
+                          count: impact.impactedParts.length,
+                        })}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1">
@@ -339,7 +379,7 @@ function CrossDesignImpactCard({
                               className="text-xs flex items-center gap-1"
                             >
                               <Icon className="h-3 w-3" />
-                              {count} {relationshipTypeLabels[type] ?? type}
+                              {count} {relationshipTypeLabel(type, tp)}
                             </Badge>
                           )
                         },
@@ -347,7 +387,7 @@ function CrossDesignImpactCard({
                     </div>
                   )}
                   <p className="text-sm text-slate-500">
-                    {formatCrossDesignSummary(impact)}
+                    {formatCrossDesignSummary(impact, tp)}
                   </p>
                 </div>
 
@@ -386,6 +426,8 @@ function FlatPartsList({
   parts: Array<CrossDesignImpactedPart>
   designId: string
 }) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const [expanded, setExpanded] = useState(false)
   const visibleParts = expanded ? parts : parts.slice(0, 5)
   const hasMore = parts.length > 5
@@ -399,7 +441,9 @@ function FlatPartsList({
         >
           {part.targetItemNumber && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Impacted:</span>
+              <span className="text-xs text-slate-500">
+                {tp('changeOrders.impactAssessment.impacted')}
+              </span>
               <span className="font-mono text-slate-300">
                 {part.targetItemNumber}
               </span>
@@ -410,7 +454,9 @@ function FlatPartsList({
           )}
           <div className="flex items-center gap-2">
             {part.targetItemNumber && (
-              <span className="text-xs text-slate-500">Source:</span>
+              <span className="text-xs text-slate-500">
+                {tp('changeOrders.impactAssessment.source')}
+              </span>
             )}
             <span className="font-mono">{part.itemNumber}</span>
             <span className="text-slate-400">
@@ -436,11 +482,14 @@ function FlatPartsList({
           {expanded ? (
             <>
               <ChevronDown className="h-4 w-4" />
-              Show less
+              {tc('actions.showLess')}
             </>
           ) : (
             <>
-              <ChevronRight className="h-4 w-4" />+{parts.length - 5} more
+              <ChevronRight className="h-4 w-4" />
+              {tp('changeOrders.impactAssessment.moreCount', {
+                count: parts.length - 5,
+              })}
             </>
           )}
         </button>
@@ -455,6 +504,9 @@ export function ImpactAssessmentPanel({
   isLoading: externalIsLoading,
   onRunAssessment: externalOnRunAssessment,
 }: ImpactAssessmentPanelProps) {
+  const { t: tp } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
+  const ia = useMemo(() => 'changeOrders.impactAssessment' as const, [])
   const [expandedLevels, setExpandedLevels] = useState<Set<number>>(new Set())
   const [addedToChangeOrder, setAddedToChangeOrder] = useState<Set<string>>(
     new Set(),
@@ -524,26 +576,28 @@ export function ImpactAssessmentPanel({
         const message =
           err?.data?.error ??
           err?.message ??
-          'Failed to add to the change order'
+          tc('messages.failedAddToChangeOrder')
         setAddToChangeOrderErrors((prev) => ({ ...prev, [nodeKey]: message }))
       }
     },
-    [changeOrderId],
+    [changeOrderId, tc],
   )
 
   if (!impactData && !isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Impact Assessment</CardTitle>
+          <CardTitle>{tp(`${ia}.title`)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <AlertTriangle className="h-12 w-12 mx-auto text-slate-400 mb-4" />
             <p className="text-slate-500 dark:text-slate-400 mb-4">
-              Impact assessment has not been run yet
+              {tp(`${ia}.notRunYet`)}
             </p>
-            <Button onClick={handleRunAssessment}>Run Impact Assessment</Button>
+            <Button onClick={handleRunAssessment}>
+              {tc('actions.runImpactAssessment')}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -554,13 +608,13 @@ export function ImpactAssessmentPanel({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Impact Assessment</CardTitle>
+          <CardTitle>{tp(`${ia}.title`)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <Loader2 className="h-12 w-12 mx-auto text-slate-400 mb-4 animate-spin" />
             <p className="text-slate-500 dark:text-slate-400">
-              Analyzing impact...
+              {tp(`${ia}.analyzing`)}
             </p>
           </div>
         </CardContent>
@@ -590,9 +644,9 @@ export function ImpactAssessmentPanel({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Impact Assessment Summary</CardTitle>
+            <CardTitle>{tp(`${ia}.summaryTitle`)}</CardTitle>
             <Button variant="outline" size="sm" onClick={handleRunAssessment}>
-              Refresh Assessment
+              {tc('actions.refreshAssessment')}
             </Button>
           </div>
         </CardHeader>
@@ -602,31 +656,39 @@ export function ImpactAssessmentPanel({
               <div className="text-2xl font-bold">
                 {impactData.totalImpactedItems}
               </div>
-              <div className="text-sm text-slate-500">Total Impacted Items</div>
+              <div className="text-sm text-slate-500">
+                {tp(`${ia}.totalImpactedItems`)}
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="text-2xl font-bold">
                 {impactData.whereUsed.length}
               </div>
               <div className="text-sm text-slate-500">
-                Where-Used Assemblies
+                {tp(`${ia}.whereUsedAssemblies`)}
               </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="text-2xl font-bold">{impactData.maxDepth}</div>
-              <div className="text-sm text-slate-500">Max BOM Depth</div>
+              <div className="text-sm text-slate-500">
+                {tp(`${ia}.maxBomDepth`)}
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="text-2xl font-bold">
                 {impactData.risks.length}
               </div>
-              <div className="text-sm text-slate-500">Identified Risks</div>
+              <div className="text-sm text-slate-500">
+                {tp(`${ia}.identifiedRisks`)}
+              </div>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="text-2xl font-bold">
                 {impactData.crossDesignImpacts?.length ?? 0}
               </div>
-              <div className="text-sm text-slate-500">External Designs</div>
+              <div className="text-sm text-slate-500">
+                {tp(`${ia}.externalDesigns`)}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -636,7 +698,7 @@ export function ImpactAssessmentPanel({
       {impactData.risks.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Identified Risks</CardTitle>
+            <CardTitle>{tp(`${ia}.identifiedRisks`)}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -658,20 +720,21 @@ export function ImpactAssessmentPanel({
                         </span>
                         {risk.requiresAcknowledgement && (
                           <Badge variant="destructive" className="text-xs">
-                            Requires Acknowledgement
+                            {tp(`${ia}.requiresAcknowledgement`)}
                           </Badge>
                         )}
                       </div>
                       <p className="text-sm">{risk.description}</p>
                       {risk.mitigation && (
                         <p className="text-sm text-slate-500 mt-2">
-                          <strong>Mitigation:</strong> {risk.mitigation}
+                          <strong>{tp(`${ia}.mitigation`)}</strong>{' '}
+                          {risk.mitigation}
                         </p>
                       )}
                       {risk.affectedItems && risk.affectedItems.length > 0 && (
                         <div className="mt-2 flex flex-wrap items-center gap-1">
                           <span className="text-xs text-slate-500 mr-1">
-                            Affected Parts:
+                            {tp(`${ia}.affectedParts`)}
                           </span>
                           {risk.affectedItems
                             .slice(0, 5)
@@ -686,7 +749,9 @@ export function ImpactAssessmentPanel({
                             ))}
                           {risk.affectedItems.length > 5 && (
                             <Badge variant="secondary" className="text-xs">
-                              +{risk.affectedItems.length - 5} more
+                              {tp(`${ia}.moreCount`, {
+                                count: risk.affectedItems.length - 5,
+                              })}
                             </Badge>
                           )}
                         </div>
@@ -710,7 +775,7 @@ export function ImpactAssessmentPanel({
       {impactData.whereUsed.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Where-Used Impact</CardTitle>
+            <CardTitle>{tp(`${ia}.whereUsedImpact`)}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -719,7 +784,10 @@ export function ImpactAssessmentPanel({
                 .map(([depth, nodes]) => (
                   <div key={depth} className="space-y-1">
                     <div className="text-sm font-medium text-slate-500 mb-2">
-                      Level {depth} ({nodes.length} items)
+                      {tp(`${ia}.levelItems`, {
+                        depth,
+                        count: nodes.length,
+                      })}
                     </div>
                     <div className="space-y-1 ml-4">
                       {(expandedLevels.has(parseInt(depth))
@@ -767,7 +835,7 @@ export function ImpactAssessmentPanel({
                             {node.sourceAffectedItems &&
                               node.sourceAffectedItems.length > 0 && (
                                 <div className="flex items-center gap-1 text-xs text-slate-500 ml-1">
-                                  <span>Contains:</span>
+                                  <span>{tp(`${ia}.contains`)}</span>
                                   {node.sourceAffectedItems.map((src) => (
                                     <Badge
                                       key={src.affectedItemId}
@@ -786,13 +854,12 @@ export function ImpactAssessmentPanel({
                             {node.recommendation === 'revise' && (
                               <div className="flex items-center gap-2 ml-1">
                                 <span className="text-xs text-amber-600 dark:text-amber-400">
-                                  Released assembly — consider revising to
-                                  incorporate changes
+                                  {tp(`${ia}.releasedAssemblyHint`)}
                                 </span>
                                 {isAdded ? (
                                   <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
                                     <Check className="h-3 w-3" />
-                                    Added to ECO
+                                    {tc('messages.addedToEco')}
                                   </span>
                                 ) : (
                                   <Button
@@ -802,7 +869,7 @@ export function ImpactAssessmentPanel({
                                     onClick={() => handleAddToChangeOrder(node)}
                                   >
                                     <Plus className="h-3 w-3 mr-1" />
-                                    Add to ECO
+                                    {tc('actions.addToEco')}
                                   </Button>
                                 )}
                                 {error && (
@@ -832,8 +899,10 @@ export function ImpactAssessmentPanel({
                           className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-center py-2 w-full"
                         >
                           {expandedLevels.has(parseInt(depth))
-                            ? 'Show less'
-                            : `+ ${nodes.length - 10} more at this level`}
+                            ? tc('actions.showLess')
+                            : tp(`${ia}.moreAtLevel`, {
+                                count: nodes.length - 10,
+                              })}
                         </button>
                       )}
                     </div>
@@ -851,7 +920,7 @@ export function ImpactAssessmentPanel({
             <CardTitle>
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-orange-500" />
-                Conflicting Change Orders
+                {tp(`${ia}.conflictingChangeOrders`)}
               </div>
             </CardTitle>
           </CardHeader>
@@ -865,11 +934,11 @@ export function ImpactAssessmentPanel({
                   <div>
                     <span className="font-medium">{change.itemNumber}</span>
                     <span className="text-sm text-slate-500 ml-2">
-                      State: {change.state}
+                      {tp(`${ia}.stateLabel`)} {change.state}
                     </span>
                   </div>
                   <Button variant="outline" size="sm">
-                    View
+                    {tc('actions.view')}
                   </Button>
                 </div>
               ))}
@@ -883,12 +952,16 @@ export function ImpactAssessmentPanel({
         <Card>
           <CardHeader>
             <CardTitle>
-              Impacted Documents ({impactData.documents.length})
+              {tp(`${ia}.impactedDocuments`, {
+                count: impactData.documents.length,
+              })}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-slate-500">
-              {impactData.documents.length} documents may require updates
+              {tp(`${ia}.documentsMayRequireUpdates`, {
+                count: impactData.documents.length,
+              })}
             </div>
           </CardContent>
         </Card>

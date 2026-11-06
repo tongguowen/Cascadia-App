@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Document, Page, pdfjs } from 'react-pdf'
 import {
   ChevronLeft,
@@ -120,6 +121,8 @@ export function PdfViewer({
   className,
   onError,
 }: PdfViewerProps) {
+  const { t: tp } = useTranslation('pages')
+  const dv = (key: string) => tp(`vault.documentViewer.${key}`)
   const [pageCount, setPageCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [rotation, setRotation] = useState(0)
@@ -261,8 +264,8 @@ export function PdfViewer({
           size="icon"
           onClick={() => goToPage(currentPage - 1)}
           disabled={currentPage <= 1}
-          title="Previous page"
-          aria-label="Previous page"
+          title={dv('previousPage')}
+          aria-label={dv('previousPage')}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -274,8 +277,8 @@ export function PdfViewer({
           size="icon"
           onClick={() => goToPage(currentPage + 1)}
           disabled={pageCount === 0 || currentPage >= pageCount}
-          title="Next page"
-          aria-label="Next page"
+          title={dv('nextPage')}
+          aria-label={dv('nextPage')}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -287,8 +290,8 @@ export function PdfViewer({
           size="icon"
           onClick={() => stepZoom(-1)}
           disabled={!canZoomOut}
-          title="Zoom out"
-          aria-label="Zoom out"
+          title={dv('zoomOut')}
+          aria-label={dv('zoomOut')}
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -296,7 +299,7 @@ export function PdfViewer({
           type="button"
           onClick={resetZoom}
           className="min-w-14 rounded px-1 text-sm text-slate-600 tabular-nums hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-          title="Reset zoom to fit width"
+          title={dv('resetZoomFitWidth')}
         >
           {Math.round(zoom * 100)}%
         </button>
@@ -305,8 +308,8 @@ export function PdfViewer({
           size="icon"
           onClick={() => stepZoom(1)}
           disabled={!canZoomIn}
-          title="Zoom in"
-          aria-label="Zoom in"
+          title={dv('zoomIn')}
+          aria-label={dv('zoomIn')}
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -314,8 +317,8 @@ export function PdfViewer({
           variant="ghost"
           size="icon"
           onClick={() => setRotation((r) => (r + 90) % 360)}
-          title="Rotate 90°"
-          aria-label="Rotate 90 degrees"
+          title={dv('rotate90')}
+          aria-label={dv('rotate90')}
         >
           <RotateCw className="h-4 w-4" />
         </Button>
@@ -401,12 +404,17 @@ export function PdfViewer({
           loading={
             <div className="flex items-center justify-center gap-2 py-12 text-slate-600 dark:text-slate-400">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Loading {fileName ?? 'document'}...</span>
+              <span>
+                {tp('vault.preview.loading', {
+                  fileName:
+                    fileName ?? tp('vault.preview.defaultDocumentName'),
+                })}
+              </span>
             </div>
           }
           error={
             <div className="py-12 text-center text-red-600 dark:text-red-400">
-              This PDF could not be displayed
+              {tp('vault.preview.pdfDisplayError')}
             </div>
           }
           className="flex flex-col items-center gap-4"

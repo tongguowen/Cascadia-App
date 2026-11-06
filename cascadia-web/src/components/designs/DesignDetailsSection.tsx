@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Tags } from 'lucide-react'
 import type { Design } from '@cascadia/commons/types/design'
@@ -54,6 +55,8 @@ export const DesignDetailsSection = forwardRef<
   { design, programs, isEditing, onEditEnd, onUpdate },
   ref,
 ) {
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
 
   // Local edit state
@@ -117,11 +120,14 @@ export const DesignDetailsSection = forwardRef<
               attributes,
             }),
           })
-          showSuccess('Design updated', 'Details have been saved')
+          showSuccess(
+            tp('designs.editPage.updatedTitle'),
+            tp('designs.detailsSection.detailsSaved'),
+          )
           onEditEnd()
           onUpdate()
         } catch (error) {
-          handleError(error, { title: 'Failed to update design' })
+          handleError(error, { title: tp('designs.editPage.updateFailedTitle') })
           throw error
         }
       },
@@ -134,6 +140,7 @@ export const DesignDetailsSection = forwardRef<
       onUpdate,
       handleError,
       showSuccess,
+      tp,
     ],
   )
 
@@ -145,7 +152,7 @@ export const DesignDetailsSection = forwardRef<
 
   // Build program select options
   const programOptions = [
-    { value: 'none', label: 'No Program' },
+    { value: 'none', label: tc('labels.noProgram') },
     ...programs.map((p) => ({ value: p.id, label: `${p.code} - ${p.name}` })),
   ]
 
@@ -161,7 +168,7 @@ export const DesignDetailsSection = forwardRef<
         ]
       : []
   const familyOptions = [
-    { value: 'none', label: 'No Family' },
+    { value: 'none', label: tc('labels.noFamily') },
     ...familyEntries,
   ]
 
@@ -174,19 +181,19 @@ export const DesignDetailsSection = forwardRef<
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Description */}
               <ViewEditTextarea
-                label="Description"
+                label={tc('fields.description')}
                 value={isEditing ? editValues.description : design.description}
                 onChange={(v) => updateField('description', v)}
                 isEditing={isEditing}
-                placeholder="Design description..."
-                emptyText="No description"
+                placeholder={tp('designs.detailsSection.descriptionPlaceholder')}
+                emptyText={tp('designs.detailsSection.noDescription')}
                 rows={2}
                 className="md:col-span-2"
               />
 
               {/* Program */}
               <ViewEditSelect
-                label="Program"
+                label={tc('fields.program')}
                 value={
                   isEditing
                     ? editValues.programId || 'none'
@@ -195,12 +202,12 @@ export const DesignDetailsSection = forwardRef<
                 onChange={(v) => updateField('programId', v)}
                 isEditing={isEditing}
                 options={programOptions}
-                emptyText="No program"
+                emptyText={tp('designs.detailsSection.noProgram')}
               />
 
               {/* Planned Quantity */}
               <ViewEditNumber
-                label="Planned Quantity"
+                label={tc('fields.plannedQuantity')}
                 value={
                   isEditing
                     ? editValues.plannedQuantity
@@ -210,7 +217,7 @@ export const DesignDetailsSection = forwardRef<
                 isEditing={isEditing}
                 unit="units"
                 placeholder="100"
-                emptyText="Not set"
+                emptyText={tp('workOrders.detail.notSet')}
                 min={1}
               />
 
@@ -218,7 +225,7 @@ export const DesignDetailsSection = forwardRef<
               {showParentSelector && (
                 <div className="relative">
                   <ViewEditSelect
-                    label="Parent Family"
+                    label={tc('fields.parentFamily')}
                     value={
                       isEditing
                         ? editValues.parentDesignId || 'none'
@@ -227,7 +234,7 @@ export const DesignDetailsSection = forwardRef<
                     onChange={(v) => updateField('parentDesignId', v)}
                     isEditing={isEditing}
                     options={familyOptions}
-                    emptyText="No family"
+                    emptyText={tp('designs.detailsSection.noFamily')}
                   />
                   {isEditing && loadingFamilies && (
                     <div className="absolute right-2 top-8">
@@ -262,7 +269,7 @@ export const DesignDetailsSection = forwardRef<
                   <div className="flex items-center gap-2">
                     <Tags className="h-4 w-4 text-slate-400" />
                     <CardTitle className="text-base">
-                      Custom Attributes
+                      {tc('sections.customAttributes')}
                     </CardTitle>
                     {attributeCount > 0 && (
                       <Badge variant="secondary">{attributeCount}</Badge>
@@ -289,7 +296,7 @@ export const DesignDetailsSection = forwardRef<
                     </dl>
                   ) : (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      No custom attributes defined.
+                      {tc('messages.noCustomAttributes')}
                     </p>
                   )}
                 </CardContent>

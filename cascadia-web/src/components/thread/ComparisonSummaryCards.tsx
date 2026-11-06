@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import {
   ArrowRight,
   GitCompare,
@@ -76,6 +77,10 @@ function CoverageIndicator({
  * Summary cards showing comparison statistics between two thread contexts.
  */
 export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
+  const { t: tc } = useTranslation('common')
+  const ts = (key: string, options?: Record<string, unknown>) =>
+    tc(`thread.comparisonSummary.${key}`, options)
+
   const hasChanges =
     stats.nodesAdded > 0 ||
     stats.nodesRemoved > 0 ||
@@ -91,48 +96,50 @@ export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
         <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <Plus className="h-4 w-4" />
-            <span className="text-sm font-medium">Added</span>
+            <span className="text-sm font-medium">{ts('added')}</span>
           </div>
           <p className="text-2xl font-bold text-green-700 dark:text-green-300 mt-1">
             {stats.nodesAdded}
           </p>
-          <p className="text-xs text-green-600 dark:text-green-500">nodes</p>
+          <p className="text-xs text-green-600 dark:text-green-500">
+            {ts('nodes')}
+          </p>
         </div>
 
         <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
           <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
             <Minus className="h-4 w-4" />
-            <span className="text-sm font-medium">Removed</span>
+            <span className="text-sm font-medium">{ts('removed')}</span>
           </div>
           <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
             {stats.nodesRemoved}
           </p>
-          <p className="text-xs text-red-600 dark:text-red-500">nodes</p>
+          <p className="text-xs text-red-600 dark:text-red-500">{ts('nodes')}</p>
         </div>
 
         <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <RefreshCw className="h-4 w-4" />
-            <span className="text-sm font-medium">Modified</span>
+            <span className="text-sm font-medium">{ts('modified')}</span>
           </div>
           <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">
             {stats.nodesModified}
           </p>
           <p className="text-xs text-amber-600 dark:text-amber-500">
-            nodes ({stats.totalFieldChanges} fields)
+            {ts('nodesWithFields', { count: stats.totalFieldChanges })}
           </p>
         </div>
 
         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
           <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
             <GitCompare className="h-4 w-4" />
-            <span className="text-sm font-medium">Total</span>
+            <span className="text-sm font-medium">{ts('total')}</span>
           </div>
           <p className="text-2xl font-bold text-slate-700 dark:text-slate-300 mt-1">
             {stats.totalNodes}
           </p>
           <p className="text-xs text-slate-500">
-            {stats.nodesUnchanged} unchanged
+            {ts('unchanged', { count: stats.nodesUnchanged })}
           </p>
         </div>
       </div>
@@ -162,7 +169,7 @@ export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
                 className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700"
               >
                 <p className="text-xs font-medium text-slate-500 uppercase mb-1">
-                  {domain}
+                  {tc(`thread.domainShort.${domain}`)}
                 </p>
                 <div className="flex gap-2 text-xs">
                   {domainStats.added > 0 && (
@@ -193,25 +200,29 @@ export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
         stats.relationshipsModified > 0) && (
         <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Relationship Changes
+            {ts('relationshipChanges')}
           </p>
           <div className="flex gap-4 text-sm">
             {stats.relationshipsAdded > 0 && (
               <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
                 <Plus className="h-3 w-3" />
-                {stats.relationshipsAdded} added
+                {ts('relationshipAdded', { count: stats.relationshipsAdded })}
               </span>
             )}
             {stats.relationshipsRemoved > 0 && (
               <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
                 <Minus className="h-3 w-3" />
-                {stats.relationshipsRemoved} removed
+                {ts('relationshipRemoved', {
+                  count: stats.relationshipsRemoved,
+                })}
               </span>
             )}
             {stats.relationshipsModified > 0 && (
               <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
                 <RefreshCw className="h-3 w-3" />
-                {stats.relationshipsModified} modified
+                {ts('relationshipModified', {
+                  count: stats.relationshipsModified,
+                })}
               </span>
             )}
           </div>
@@ -221,19 +232,19 @@ export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
       {/* Coverage changes */}
       <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-          Coverage Changes
+          {ts('coverageChanges')}
         </p>
         <div className="space-y-1">
           <CoverageIndicator
-            label="MBOM Coverage"
+            label={ts('mbomCoverage')}
             change={stats.coverageChanges.mbomCoverage}
           />
           <CoverageIndicator
-            label="Requirements Coverage"
+            label={ts('requirementsCoverage')}
             change={stats.coverageChanges.requirementsCoverage}
           />
           <CoverageIndicator
-            label="Test Coverage"
+            label={ts('testCoverage')}
             change={stats.coverageChanges.testCoverage}
           />
         </div>
@@ -243,10 +254,8 @@ export function ComparisonSummaryCards({ stats }: ComparisonSummaryCardsProps) {
       {!hasChanges && (
         <div className="p-4 text-center text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-300 dark:border-slate-700">
           <GitCompare className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-          <p className="text-sm">No changes detected between these versions.</p>
-          <p className="text-xs text-slate-400 mt-1">
-            The digital thread structure is identical.
-          </p>
+          <p className="text-sm">{ts('noChanges')}</p>
+          <p className="text-xs text-slate-400 mt-1">{ts('identicalStructure')}</p>
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Check,
   ChevronLeft,
@@ -45,6 +46,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/Dialog'
+import { translateItemTypeLabel } from '@/i18n'
 
 type ImportStep =
   'context' | 'upload' | 'mapping' | 'validation' | 'importing' | 'complete'
@@ -76,8 +78,10 @@ export function ImportDialog({
   initialBranchId,
   onComplete,
 }: ImportDialogProps) {
+  const { t: tc } = useTranslation('common')
   // Get config for this item type
   const config = getImportConfig(itemType)
+  const itemTypeLabel = translateItemTypeLabel(config.pluralLabel)
 
   // Determine steps based on item type
   const STEPS: Array<{ id: ImportStep; label: string }> = useMemo(() => {
@@ -85,21 +89,27 @@ export function ImportDialog({
 
     // Context step only for items that require design
     if (config.requiresDesign) {
-      steps.push({ id: 'context', label: 'Select Design' })
+      steps.push({
+        id: 'context',
+        label: tc('dialogs.import.steps.selectDesign'),
+      })
     } else {
       // Issues get optional program selection
-      steps.push({ id: 'context', label: 'Select Program' })
+      steps.push({
+        id: 'context',
+        label: tc('dialogs.import.steps.selectProgram'),
+      })
     }
 
     steps.push(
-      { id: 'upload', label: 'Upload File' },
-      { id: 'mapping', label: 'Map Columns' },
-      { id: 'validation', label: 'Review' },
-      { id: 'importing', label: 'Import' },
+      { id: 'upload', label: tc('dialogs.import.steps.uploadFile') },
+      { id: 'mapping', label: tc('dialogs.import.steps.mapColumns') },
+      { id: 'validation', label: tc('dialogs.import.steps.review') },
+      { id: 'importing', label: tc('dialogs.import.steps.import') },
     )
 
     return steps
-  }, [config.requiresDesign])
+  }, [config.requiresDesign, tc])
 
   // Current step
   const [currentStep, setCurrentStep] = useState<ImportStep>('context')
@@ -229,11 +239,13 @@ export function ImportDialog({
   const continueLabel = useMemo(() => {
     if (currentStep === 'validation') {
       const count = getValidRows(validatedRows).length
-      const label = count === 1 ? config.singularLabel : config.pluralLabel
-      return `Import ${count} ${label}`
+      const label = translateItemTypeLabel(
+        count === 1 ? config.singularLabel : config.pluralLabel,
+      )
+      return tc('dialogs.import.importCount', { count, label })
     }
-    return 'Continue'
-  }, [currentStep, validatedRows, config.singularLabel, config.pluralLabel])
+    return tc('actions.continue')
+  }, [currentStep, validatedRows, config.singularLabel, config.pluralLabel, tc])
 
   // Handle continue button click
   const handleContinue = useCallback(() => {
@@ -372,11 +384,10 @@ export function ImportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            Import {config.pluralLabel}
+            {tc('dialogs.import.title', { itemType: itemTypeLabel })}
           </DialogTitle>
           <DialogDescription>
-            Import {config.pluralLabel.toLowerCase()} from an Excel (.xlsx) or
-            CSV file
+            {tc('dialogs.import.description', { itemType: itemTypeLabel })}
           </DialogDescription>
         </DialogHeader>
 
@@ -442,24 +453,24 @@ export function ImportDialog({
             className={cn(!canGoBack() && 'invisible')}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
+            {tc('actions.back')}
           </Button>
 
           <div className="flex items-center gap-3">
             {currentStep === 'complete' ? (
               <Button onClick={handleClose}>
-                Done
+                {tc('actions.done')}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : currentStep === 'importing' ? (
               <Button disabled>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Importing...
+                {tc('actions.importing')}
               </Button>
             ) : (
               <>
                 <Button variant="ghost" onClick={handleClose}>
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleContinue}
@@ -468,7 +479,7 @@ export function ImportDialog({
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
+                      {tc('actions.processing')}
                     </>
                   ) : (
                     <>

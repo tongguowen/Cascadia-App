@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import type { Design } from '@cascadia/commons/types/design'
 import {
   Select,
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui'
+import i18n from '@/i18n'
 
 interface DesignSelectorProps {
   /** List of designs to display in the dropdown */
@@ -48,11 +50,14 @@ export function DesignSelector({
   designs,
   value,
   onChange,
-  placeholder = 'Select a design',
+  placeholder,
   required = false,
   disabled = false,
   className,
 }: DesignSelectorProps) {
+  const { t: tc } = useTranslation('common')
+  const resolvedPlaceholder = placeholder ?? tc('labels.selectDesign')
+
   // Sort designs by code for consistent ordering
   const sortedDesigns = [...designs].sort((a, b) =>
     (a.code || '').localeCompare(b.code || ''),
@@ -79,12 +84,12 @@ export function DesignSelector({
       disabled={disabled}
     >
       <SelectTrigger className={className} data-testid="design-selector">
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={resolvedPlaceholder} />
       </SelectTrigger>
       <SelectContent>
         {!required && (
           <SelectItem value="none" className="text-muted-foreground">
-            No Design
+            {tc('labels.noDesign')}
           </SelectItem>
         )}
 
@@ -99,7 +104,7 @@ export function DesignSelector({
         {/* Library designs (if any) - shown separately */}
         {libraryDesigns.length > 0 && regularDesigns.length > 0 && (
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-            Libraries
+            {tc('labels.libraries')}
           </div>
         )}
         {libraryDesigns.map((design) => (
@@ -117,6 +122,8 @@ export function DesignSelector({
  * Get design display text (code - name)
  */
 export function getDesignDisplayText(design: Design | undefined): string {
-  if (!design) return 'Unknown Design'
+  if (!design) {
+    return i18n.t('labels.unknownDesign', { ns: 'common' })
+  }
   return `${design.code} - ${design.name}`
 }

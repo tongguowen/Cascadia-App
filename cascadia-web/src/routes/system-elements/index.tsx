@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { z } from 'zod'
@@ -91,6 +92,8 @@ export const Route = createFileRoute('/system-elements/')({
 })
 
 function SystemElementsListPage() {
+  const { t } = useTranslation('pages')
+  const { t: tc } = useTranslation('common')
   const navigate = useNavigate()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
@@ -121,10 +124,12 @@ function SystemElementsListPage() {
   const handleDelete = (element: SystemElement) => {
     if (!element.id) return
     confirm({
-      title: 'Delete System Element',
-      description: `Are you sure you want to delete ${element.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      title: t('systemElements.deleteTitle'),
+      description: tc('dialog.confirmDeleteDescription', {
+        identifier: element.itemNumber,
+      }),
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: async () => {
         try {
@@ -132,12 +137,12 @@ function SystemElementsListPage() {
             method: 'DELETE',
           })
           showSuccess(
-            'System element deleted',
-            `${element.itemNumber} has been deleted`,
+            t('systemElements.deletedTitle'),
+            tc('dialog.deletedMessage', { identifier: element.itemNumber }),
           )
           await invalidate('system-elements')
         } catch (error) {
-          handleError(error, { title: 'Failed to delete system element' })
+          handleError(error, { title: t('systemElements.deleteFailed') })
         }
       },
     })
@@ -161,7 +166,7 @@ function SystemElementsListPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
-              System Elements
+              {t('systemElements.title')}
             </h1>
             {selectedDesignId && (
               <Badge variant={getContextBadgeVariant()} className="text-sm">
@@ -170,10 +175,11 @@ function SystemElementsListPage() {
             )}
           </div>
           <p className="text-slate-600 dark:text-slate-400 mt-2">
-            The logical architecture: what requirements are allocated to before
-            any part exists
+            {t('systemElements.subtitle')}
             {selectedDesign && (
-              <span className="text-slate-500"> in {selectedDesign.name}</span>
+              <span className="text-slate-500">
+                {tc('context.inDesign', { designName: selectedDesign.name })}
+              </span>
             )}
           </p>
         </div>
@@ -183,7 +189,7 @@ function SystemElementsListPage() {
         >
           <Button disabled={!isEditable && context.type !== 'main'}>
             <Plus className="h-4 w-4 mr-2" />
-            Create System Element
+            {t('systemElements.create')}
           </Button>
         </Link>
       </div>
@@ -193,18 +199,17 @@ function SystemElementsListPage() {
         itemType="SystemElement"
         filters={filters}
         total={total}
-        totalLabel="Total System Elements"
+        totalLabel={t('systemElements.total')}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>All System Elements</CardTitle>
+          <CardTitle>{t('systemElements.tableTitle')}</CardTitle>
           <CardDescription>
-            {total} {total === 1 ? 'system element' : 'system elements'} in the
-            system
+            {t('systemElements.tableDescription', { count: total })}
             {selectedDesign && context.type !== 'main' && (
               <span className="ml-2 text-amber-600 dark:text-amber-400">
-                (viewing {contextLabel})
+                {tc('context.viewing', { contextLabel })}
               </span>
             )}
           </CardDescription>

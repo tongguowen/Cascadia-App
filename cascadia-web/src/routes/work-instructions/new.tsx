@@ -3,6 +3,7 @@
 
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ClipboardCheck } from 'lucide-react'
 import type { WorkInstruction } from '@cascadia/commons/items/types/work-instruction'
 import { PageContainer } from '@/components/layout'
@@ -24,6 +25,7 @@ export const Route = createFileRoute('/work-instructions/new')({
 
 function NewWorkInstructionPage() {
   const navigate = useNavigate()
+  const { t: tp } = useTranslation('pages')
   const { handleError, showSuccess } = useErrorHandler()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -48,7 +50,7 @@ function NewWorkInstructionPage() {
         params: { id: result.data.item.id! },
       })
     } catch (error) {
-      handleError(error, { title: 'Failed to create work instruction' })
+      handleError(error, { title: tp('workInstructions.form.createFailedTitle') })
       throw error
     } finally {
       setIsSubmitting(false)
@@ -77,10 +79,10 @@ function NewWorkInstructionPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              New Work Instruction
+              {tp('workInstructions.form.createTitle')}
             </h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Create a new step-by-step manufacturing procedure
+              {tp('workInstructions.form.createSubtitle')}
             </p>
           </div>
         </div>
@@ -89,10 +91,9 @@ function NewWorkInstructionPage() {
       {/* Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Work Instruction Details</CardTitle>
+          <CardTitle>{tp('workInstructions.form.detailsTitle')}</CardTitle>
           <CardDescription>
-            Enter the basic information for this work instruction. You can add
-            steps after creating it.
+            {tp('workInstructions.form.detailsDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>

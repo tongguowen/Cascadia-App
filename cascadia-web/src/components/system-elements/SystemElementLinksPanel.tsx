@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Plus, Search, Trash2 } from 'lucide-react'
 import { catalogEntry } from '@cascadia/commons/items/relationships/catalog'
@@ -67,7 +68,9 @@ interface LinkedItem {
  * requirement's page.
  */
 export type ElementLinkKind =
-  'children' | 'realizedBy' | 'allocatedRequirements'
+  | 'children'
+  | 'realizedBy'
+  | 'allocatedRequirements'
 
 interface KindConfig {
   title: string
@@ -77,6 +80,7 @@ interface KindConfig {
   subPath: 'children' | 'realized-by' | 'allocated-requirements'
   addLabel: string
   emptyText: string
+  linkFailedTitle: string
   /** The reason labels, read from this element's side of the link; absent when the edge cannot go stale. */
   reasonLabels?: SuspectReasonLabels
   affirmTitle?: string
@@ -85,50 +89,6 @@ interface KindConfig {
 
 const DECOMPOSES = catalogEntry('DECOMPOSES')
 const REALIZED_BY = catalogEntry('REALIZED_BY')
-
-const KINDS: Record<ElementLinkKind, KindConfig> = {
-  children: {
-    title: 'Decomposes into',
-    description: 'The elements beneath this one in the architecture',
-    candidateTypes: DECOMPOSES?.targetTypes ?? ['SystemElement'],
-    subPath: 'children',
-    addLabel: 'Add child',
-    emptyText: 'This element has no children yet',
-  },
-  realizedBy: {
-    title: 'Realized by',
-    description: 'The parts and software that implement this element',
-    candidateTypes: REALIZED_BY?.targetTypes ?? ['Part'],
-    subPath: 'realized-by',
-    addLabel: 'Realize',
-    emptyText: 'Nothing realizes this element yet',
-    reasonLabels: {
-      source_revised: 'this element revised since this link was affirmed',
-      target_revised: 'the item revised since this link was affirmed',
-    },
-    affirmTitle:
-      'Record that this item still realizes the element as it now stands',
-    affirmAllTitle:
-      'Record that every suspect item still realizes the element as it now stands',
-  },
-  allocatedRequirements: {
-    title: 'Allocated requirements',
-    description:
-      'Requirements allocated to this element — written from the requirement',
-    candidateTypes: [],
-    subPath: 'allocated-requirements',
-    addLabel: '',
-    emptyText: 'No requirement is allocated to this element yet',
-    reasonLabels: {
-      source_revised: 'the requirement revised since this link was affirmed',
-      target_revised: 'this element revised since this link was affirmed',
-    },
-    affirmTitle:
-      'Record that this allocation still holds for the element as it now stands',
-    affirmAllTitle:
-      'Record that every suspect allocation still holds for the element as it now stands',
-  },
-}
 
 interface SystemElementLinksPanelProps {
   kind: ElementLinkKind
@@ -143,7 +103,47 @@ export function SystemElementLinksPanel({
   designId,
   isEditable = false,
 }: SystemElementLinksPanelProps) {
-  const config = KINDS[kind]
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+  const tl = (key: string) =>
+    tp(`systemElements.detail.linksPanel.${kind}.${key}`)
+  const tlp = (key: string, options?: Record<string, string>) =>
+    tp(`systemElements.detail.linksPanel.${key}`, options)
+
+  const config: KindConfig = useMemo(() => {
+    const base = {
+      candidateTypes:
+        kind === 'children'
+          ? (DECOMPOSES?.targetTypes ?? ['SystemElement'])
+          : kind === 'realizedBy'
+            ? (REALIZED_BY?.targetTypes ?? ['Part'])
+            : [],
+      subPath:
+        kind === 'children'
+          ? ('children' as const)
+          : kind === 'realizedBy'
+            ? ('realized-by' as const)
+            : ('allocated-requirements' as const),
+      title: tl('title'),
+      description: tl('description'),
+      addLabel: kind === 'allocatedRequirements' ? '' : tl('addLabel'),
+      emptyText: tl('emptyText'),
+      linkFailedTitle: tl('linkFailed'),
+    }
+    if (kind === 'realizedBy' || kind === 'allocatedRequirements') {
+      return {
+        ...base,
+        reasonLabels: {
+          source_revised: tl('suspectSourceRevised'),
+          target_revised: tl('suspectTargetRevised'),
+        },
+        affirmTitle: tl('affirmTitle'),
+        affirmAllTitle: tl('affirmAllTitle'),
+      }
+    }
+    return base
+  }, [kind, tp])
+
   const canLink = isEditable && config.candidateTypes.length > 0
   const { handleError } = useErrorHandler()
   const invalidate = useInvalidateResources()
@@ -216,7 +216,7 @@ export function SystemElementLinksPanel({
         )
         setSearchQuery('')
       },
-      `Could not ${config.addLabel.toLowerCase()}`,
+      config.linkFailedTitle,
     )
 
   const handleUnlink = (itemId: string) =>
@@ -227,8 +227,10 @@ export function SystemElementLinksPanel({
           method: 'DELETE',
           body: JSON.stringify({ itemId }),
         }),
-      'Could not remove link',
+      tlp('removeLinkFailed'),
     )
+
+  const candidateTypeLabel = getItemTypeLabel(candidateType)
 
   return (
     <Card>
@@ -283,7 +285,9 @@ export function SystemElementLinksPanel({
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={`Search ${getItemTypeLabel(candidateType).toLowerCase()}s to link...`}
+                  placeholder={tlp('searchPlaceholder', {
+                    itemType: candidateTypeLabel,
+                  })}
                   className="pl-10"
                 />
                 {searching && (
@@ -331,7 +335,7 @@ export function SystemElementLinksPanel({
                   setSearchQuery('')
                 }}
               >
-                Cancel
+                {tc('actions.cancel')}
               </Button>
             </div>
           </div>
@@ -369,7 +373,7 @@ export function SystemElementLinksPanel({
                       {getItemTypeLabel(itemType)}
                     </Badge>
                     <span className="text-xs text-slate-500">
-                      Rev {item.revision}
+                      {tc('labels.rev')} {item.revision}
                     </span>
                     <StateBadge itemType={itemType} state={item.state} />
                     {item.suspect && config.reasonLabels && (
@@ -394,7 +398,7 @@ export function SystemElementLinksPanel({
                         variant="ghost"
                         onClick={() => handleUnlink(item.id)}
                         disabled={busy === `unlink:${item.id}`}
-                        title="Remove link"
+                        title={tlp('removeLink')}
                       >
                         {busy === `unlink:${item.id}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { KeyRound, LogOut, User } from 'lucide-react'
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ interface ProfileDropdownProps {
 }
 
 export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
+  const { t } = useTranslation('common')
   const handleLogoutClick = () => {
     onLogout()
   }
@@ -44,7 +46,7 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
       <DropdownMenuTrigger asChild>
         <button
           className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 dark:focus:ring-cyan-400"
-          aria-label="User menu"
+          aria-label={t('layout.profileMenuAria')}
           data-testid="profile-dropdown"
         >
           {getInitials()}
@@ -54,7 +56,7 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user.name || 'User'}
+              {user.name || t('layout.userFallback')}
             </p>
             <p className="text-xs leading-none text-slate-500 dark:text-slate-400">
               {user.email}
@@ -65,7 +67,7 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
         <DropdownMenuItem asChild>
           <Link to="/profile" className="flex items-center cursor-pointer">
             <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>{t('layout.profile')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
@@ -74,7 +76,7 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
             className="flex items-center cursor-pointer"
           >
             <KeyRound className="mr-2 h-4 w-4" />
-            <span>API Keys</span>
+            <span>{t('layout.apiKeys')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -83,7 +85,7 @@ export function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
           className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
+          <span>{t('layout.logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

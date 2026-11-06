@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Menu, Pin, PinOff } from 'lucide-react'
 import { SidebarNav } from './SidebarNav'
 import { BuildStamp } from './BuildStamp'
@@ -14,6 +15,7 @@ import {
 import { ResizeHandle } from '@/components/ui/ResizeHandle'
 
 export function Sidebar({ currentPath }: SidebarProps) {
+  const { t: tc } = useTranslation('common')
   const {
     isOpen,
     setIsOpen,
@@ -77,7 +79,9 @@ export function Sidebar({ currentPath }: SidebarProps) {
           isOpen ? 'justify-between px-4' : 'justify-center px-2'
         }`}
       >
-        {isOpen && <h2 className="text-xl font-bold">Navigation</h2>}
+        {isOpen && (
+          <h2 className="text-xl font-bold">{tc('layout.navigation')}</h2>
+        )}
         <div className="flex items-center gap-1">
           {isOpen && (
             <button
@@ -87,8 +91,10 @@ export function Sidebar({ currentPath }: SidebarProps) {
                   ? 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400'
                   : 'hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
-              aria-label={isPinned ? 'Unpin menu' : 'Pin menu'}
-              title={isPinned ? 'Unpin menu' : 'Pin menu open'}
+              aria-label={
+                isPinned ? tc('layout.unpinMenu') : tc('layout.pinMenu')
+              }
+              title={isPinned ? tc('layout.unpinMenu') : tc('layout.pinMenu')}
             >
               {isPinned ? <Pin size={20} /> : <PinOff size={20} />}
             </button>
@@ -96,8 +102,12 @@ export function Sidebar({ currentPath }: SidebarProps) {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label={isOpen ? 'Collapse menu' : 'Expand menu'}
-            title={isOpen ? 'Collapse menu' : 'Expand menu'}
+            aria-label={
+              isOpen ? tc('layout.collapseMenu') : tc('layout.expandMenu')
+            }
+            title={
+              isOpen ? tc('layout.collapseMenu') : tc('layout.expandMenu')
+            }
             data-testid="menu-button"
           >
             <Menu size={20} />

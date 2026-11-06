@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { Boxes, Check, Loader2, Lock } from 'lucide-react'
 import {
   Badge,
@@ -20,6 +21,7 @@ import { usePackages } from '@/hooks/usePackages'
  * grant themselves more.
  */
 export function PackagesCard() {
+  const { t } = useTranslation('pages')
   const { packages, loading } = usePackages()
 
   return (
@@ -27,23 +29,21 @@ export function PackagesCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Boxes className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-          <CardTitle>Licensed Packages</CardTitle>
+          <CardTitle>{t('admin.packages.title')}</CardTitle>
         </div>
         <CardDescription>
-          Optional packages enabled for this instance. Set at deployment time
-          via the <code className="text-xs">CASCADIA_PACKAGES</code> environment
-          variable.
+          {t('admin.packages.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Loading packages...
+            {t('admin.packages.loading')}
           </div>
         ) : packages.length === 0 ? (
           <p className="text-sm text-slate-500 dark:text-slate-400 italic">
-            No optional packages are available in this build.
+            {t('admin.packages.empty')}
           </p>
         ) : (
           <ul className="space-y-4">
@@ -59,12 +59,12 @@ export function PackagesCard() {
                   {pkg.enabled ? (
                     <Badge variant="default" className="gap-1.5">
                       <Check className="w-3.5 h-3.5" />
-                      Enabled
+                      {t('admin.packages.enabled')}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="gap-1.5">
                       <Lock className="w-3.5 h-3.5" />
-                      Not licensed
+                      {t('admin.packages.notLicensed')}
                     </Badge>
                   )}
                 </div>

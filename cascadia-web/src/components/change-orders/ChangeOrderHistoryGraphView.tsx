@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import '@xyflow/react/dist/style.css'
 import { AlertCircle, GitBranch, Loader2 } from 'lucide-react'
@@ -97,6 +98,7 @@ function layoutChangeOrderGraph(
 function ChangeOrderHistoryGraphViewInner({
   changeOrderId,
 }: ChangeOrderHistoryGraphViewProps) {
+  const { t: tp } = useTranslation('pages')
   const { theme } = useTheme()
   // Null until the user picks: the server draws the first affected design, and
   // the switcher below reflects that back rather than a second render setting
@@ -251,10 +253,9 @@ function ChangeOrderHistoryGraphViewInner({
       {graphData.affectedDesigns.length > 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Design Selection</CardTitle>
+            <CardTitle>{tp('changeOrders.historyGraph.designSelection')}</CardTitle>
             <CardDescription>
-              This ECO affects multiple designs. Select a design to view its
-              branch history.
+              {tp('changeOrders.historyGraph.designSelectionDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>

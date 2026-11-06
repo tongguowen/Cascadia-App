@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2026 Cascadia PLM LLC
 
+import { useTranslation } from 'react-i18next'
 import { Circle, Minus, Plus, RefreshCw } from 'lucide-react'
 import { cn } from '@/utils'
 
@@ -16,6 +17,9 @@ export function DiffLegend({
   showUnchanged = true,
   className,
 }: DiffLegendProps) {
+  const { t: tc } = useTranslation('common')
+  const td = (key: string) => tc(`thread.diffLegend.${key}`)
+
   return (
     <div className={cn('flex items-center gap-4 flex-wrap', className)}>
       <div className="flex items-center gap-1.5">
@@ -23,7 +27,7 @@ export function DiffLegend({
           <Plus className="h-2.5 w-2.5 text-white" />
         </div>
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          Added
+          {td('added')}
         </span>
       </div>
 
@@ -32,7 +36,7 @@ export function DiffLegend({
           <Minus className="h-2.5 w-2.5 text-white" />
         </div>
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          Removed
+          {td('removed')}
         </span>
       </div>
 
@@ -41,7 +45,7 @@ export function DiffLegend({
           <RefreshCw className="h-2.5 w-2.5 text-white" />
         </div>
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          Modified
+          {td('modified')}
         </span>
       </div>
 
@@ -51,7 +55,7 @@ export function DiffLegend({
             <Circle className="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" />
           </div>
           <span className="text-xs text-slate-600 dark:text-slate-400">
-            Unchanged
+            {td('unchanged')}
           </span>
         </div>
       )}
@@ -61,7 +65,7 @@ export function DiffLegend({
       <div className="flex items-center gap-1.5">
         <div className="w-6 h-0.5 bg-green-500" />
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          New link
+          {td('newLink')}
         </span>
       </div>
 
@@ -71,14 +75,14 @@ export function DiffLegend({
           style={{ borderStyle: 'dashed' }}
         />
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          Removed link
+          {td('removedLink')}
         </span>
       </div>
 
       <div className="flex items-center gap-1.5">
         <div className="w-6 h-0.5 bg-amber-500" />
         <span className="text-xs text-slate-600 dark:text-slate-400">
-          Changed link
+          {td('changedLink')}
         </span>
       </div>
     </div>
