@@ -2,7 +2,8 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 import { Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Box, Check, Edit, Save, Trash2, X } from 'lucide-react'
 import { changeOrderTypeSchema } from '@cascadia/commons/items/types/change-order'
@@ -68,20 +69,6 @@ interface Design {
   designType: 'Engineering' | 'Library'
   phase: string
 }
-
-// Constants
-// Derive change type options from the schema
-const CHANGE_TYPE_OPTIONS = changeOrderTypeSchema.options.map((value) => ({
-  value,
-  label: value,
-}))
-
-const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'critical', label: 'Critical' },
-]
 
 const priorityVariant = (priority: string) => {
   const variants: Record<
@@ -169,6 +156,26 @@ export function ChangeOrderDetail({
   const invalidate = useInvalidateResources()
   const { confirm } = useAlertDialog()
   const { handleError, showSuccess } = useErrorHandler()
+  const { t: tc } = useTranslation('common')
+  const { t: tp } = useTranslation('pages')
+
+  const changeTypeOptions = useMemo(
+    () =>
+      changeOrderTypeSchema.options.map((value) => ({
+        value,
+        label: tc(`enum.changeType.${value}`),
+      })),
+    [tc],
+  )
+
+  const priorityOptions = useMemo(
+    () =>
+      (['low', 'medium', 'high', 'critical'] as const).map((value) => ({
+        value,
+        label: tc(`enum.priority.${value}`),
+      })),
+    [tc],
+  )
 
   const isCreateMode = !initialChangeOrder?.id
 
@@ -331,10 +338,10 @@ export function ChangeOrderDetail({
     if (!onDelete || !currentChangeOrder.id) return
 
     confirm({
-      title: 'Delete Change Order',
+      title: tc('confirm.deleteChangeOrder'),
       description: `Are you sure you want to delete ${currentChangeOrder.itemNumber}? This action cannot be undone.`,
-      actionLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      actionLabel: tc('actions.delete'),
+      cancelLabel: tc('actions.cancel'),
       variant: 'destructive',
       onConfirm: onDelete,
     })
@@ -342,17 +349,17 @@ export function ChangeOrderDetail({
 
   // In create mode, only show Overview tab
   const tabs = isCreateMode
-    ? [{ value: 'overview', label: 'Overview' }]
+    ? [{ value: 'overview', label: tc('tabs.overview') }]
     : [
-        { value: 'overview', label: 'Overview' },
-        { value: 'affected-items', label: 'Affected Items' },
-        { value: 'conflicts', label: 'Conflicts' },
-        { value: 'impact', label: 'Impact' },
-        { value: 'approvals', label: 'Approvals' },
+        { value: 'overview', label: tc('tabs.overview') },
+        { value: 'affected-items', label: tc('tabs.affectedItems') },
+        { value: 'conflicts', label: tc('tabs.conflicts') },
+        { value: 'impact', label: tc('tabs.impact') },
+        { value: 'approvals', label: tc('tabs.approvals') },
         // The value is the tab's search-param key and stays; the label
         // matches the sidebar (remediation plan, Decision 8).
-        { value: 'workflow', label: 'Lifecycle' },
-        { value: 'history', label: 'History' },
+        { value: 'workflow', label: tc('tabs.lifecycle') },
+        { value: 'history', label: tc('tabs.history') },
       ]
 
   return (
@@ -369,8 +376,8 @@ export function ChangeOrderDetail({
             <div className="flex items-center gap-3">
               <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
                 {isCreateMode
-                  ? 'Create New Change Order'
-                  : currentChangeOrder.itemNumber || 'New Change Order'}
+                  ? tp('changeOrders.form.createTitle')
+                  : currentChangeOrder.itemNumber || tp('changeOrders.form.newItemFallback')}
               </h1>
               {!isCreateMode && currentChangeOrder.state && (
                 <StateBadge
@@ -388,14 +395,14 @@ export function ChangeOrderDetail({
                   className="text-base"
                   variant={priorityVariant(currentChangeOrder.priority)}
                 >
-                  {currentChangeOrder.priority.toUpperCase()}
+                  {tc(`enum.priority.${currentChangeOrder.priority}`)}
                 </Badge>
               )}
             </div>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               {isCreateMode
-                ? 'Enter the details for the new change order'
-                : `Revision ${currentChangeOrder.revision} • ${currentChangeOrder.name || 'Unnamed'}`}
+                ? tp('changeOrders.form.createSubtitle')
+                : tp('changeOrders.detail.revisionSubtitle', { revision: currentChangeOrder.revision, name: currentChangeOrder.name || tc('labels.unnamed') })}
             </p>
           </div>
         </div>
@@ -416,7 +423,7 @@ export function ChangeOrderDetail({
                   disabled={isSubmitting}
                 >
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {tc('actions.cancel')}
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -424,16 +431,16 @@ export function ChangeOrderDetail({
                   title={
                     hasRequiredDesigns
                       ? undefined
-                      : 'Select at least one affected design'
+                      : tp('changeOrders.detail.selectAtLeastOneDesign')
                   }
                   data-testid="change-order-submit"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting
-                    ? 'Saving...'
+                    ? tc('actions.saving')
                     : isCreateMode
-                      ? 'Create Change Order'
-                      : 'Save Changes'}
+                      ? tp('changeOrders.create')
+                      : tc('actions.saveChanges')}
                 </Button>
               </>
             ) : (
@@ -442,12 +449,12 @@ export function ChangeOrderDetail({
                   <>
                     <Button variant="outline" onClick={handleEdit}>
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                      {tc('actions.edit')}
                     </Button>
                     {onDelete && isDeletable && (
                       <Button variant="destructive" onClick={handleDelete}>
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        {tc('actions.delete')}
                       </Button>
                     )}
                   </>
@@ -483,33 +490,35 @@ export function ChangeOrderDetail({
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>{tc('sections.overview')}</CardTitle>
                   <CardDescription>
-                    General information about this change order
+                    {tp('changeOrders.detail.overviewDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {isCreateMode ? (
                       <ViewEditStatic
-                        label="Change Order Number"
+                        label={tc('fields.changeOrderNumber')}
                         value={
                           <span className="text-muted-foreground">
-                            Auto-generated on creation
+                            {tc('labels.autoGeneratedOnCreation')}
                           </span>
                         }
                       />
                     ) : (
                       <ViewEditText
-                        label="Item Number"
+                        label={tc('fields.itemNumber')}
                         value={currentChangeOrder.itemNumber}
                         onChange={(v) => updateField('itemNumber', v)}
                         isEditing={false}
-                        placeholder="ECO-001"
+                        placeholder={tp(
+                          'changeOrders.detail.itemNumberPlaceholder',
+                        )}
                       />
                     )}
                     <ViewEditSelect
-                      label="Change Type"
+                      label={tc('fields.changeType')}
                       value={
                         isEditing
                           ? changeOrder.changeType
@@ -517,11 +526,11 @@ export function ChangeOrderDetail({
                       }
                       onChange={(v) => updateField('changeType', v)}
                       isEditing={isEditing}
-                      options={CHANGE_TYPE_OPTIONS}
+                      options={changeTypeOptions}
                       required
                     />
                     <ViewEditBadge
-                      label="Priority"
+                      label={tc('fields.priority')}
                       value={
                         isEditing
                           ? changeOrder.priority
@@ -529,37 +538,40 @@ export function ChangeOrderDetail({
                       }
                       onChange={(v) => updateField('priority', v)}
                       isEditing={isEditing}
-                      options={PRIORITY_OPTIONS}
+                      options={priorityOptions}
                       variant={priorityVariant}
+                      placeholder={tc('placeholders.selectGeneric')}
                     />
                     <ViewEditStatic
-                      label="Risk Level"
+                      label={tc('columns.riskLevel')}
                       value={
                         currentChangeOrder.riskLevel ? (
                           <Badge
                             variant={riskVariant(currentChangeOrder.riskLevel)}
                           >
-                            {currentChangeOrder.riskLevel.toUpperCase()}
+                            {tc(
+                              `enum.severity.${currentChangeOrder.riskLevel}`,
+                            )}
                           </Badge>
                         ) : (
-                          'Not Assessed'
+                          tc('labels.notAssessed')
                         )
                       }
                     />
                     <ViewEditText
-                      label="Name"
+                      label={tc('fields.name')}
                       value={
                         isEditing ? changeOrder.name : currentChangeOrder.name
                       }
                       onChange={(v) => updateField('name', v)}
                       isEditing={isEditing}
-                      placeholder="Change order name"
+                      placeholder={tp('changeOrders.detail.namePlaceholder')}
                       required
                       className="md:col-span-2"
                       data-testid="change-order-name"
                     />
                     <ViewEditTextarea
-                      label="Description"
+                      label={tc('fields.description')}
                       value={
                         isEditing
                           ? changeOrder.description
@@ -567,11 +579,11 @@ export function ChangeOrderDetail({
                       }
                       onChange={(v) => updateField('description', v)}
                       isEditing={isEditing}
-                      placeholder="Describe the change..."
+                      placeholder={tp('changeOrders.detail.descriptionPlaceholder')}
                       className="md:col-span-2"
                     />
                     <ViewEditTextarea
-                      label="Reason for Change"
+                      label={tc('fields.reasonForChange')}
                       value={
                         isEditing
                           ? changeOrder.reasonForChange
@@ -579,11 +591,11 @@ export function ChangeOrderDetail({
                       }
                       onChange={(v) => updateField('reasonForChange', v)}
                       isEditing={isEditing}
-                      placeholder="Why is this change needed?"
+                      placeholder={tp('changeOrders.detail.reasonPlaceholder')}
                       className="md:col-span-2"
                     />
                     <ViewEditTextarea
-                      label="Impact Description"
+                      label={tc('fields.impactDescription')}
                       value={
                         isEditing
                           ? changeOrder.impactDescription
@@ -591,7 +603,7 @@ export function ChangeOrderDetail({
                       }
                       onChange={(v) => updateField('impactDescription', v)}
                       isEditing={isEditing}
-                      placeholder="What will be affected?"
+                      placeholder={tp('changeOrders.detail.impactPlaceholder')}
                       className="md:col-span-2"
                     />
                   </dl>
@@ -602,20 +614,22 @@ export function ChangeOrderDetail({
               {isCreateMode && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Affected Designs</CardTitle>
+                    <CardTitle>{tc('sections.affectedDesigns')}</CardTitle>
                     <CardDescription>
-                      Select one or more designs that this change order will
-                      affect. ECO branches will be created for each selected
-                      design.
+                      {tp('changeOrders.form.selectAffectedDesignsDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Search Input */}
                     <div>
-                      <Label>Search Designs</Label>
+                      <Label>
+                        {tc('dialogs.addDesignToChangeOrder.searchDesignsLabel')}
+                      </Label>
                       <Input
                         type="text"
-                        placeholder="Search by code or name..."
+                        placeholder={tp(
+                          'changeOrders.detail.searchDesignsPlaceholder',
+                        )}
                         value={designSearchQuery}
                         onChange={(e) => setDesignSearchQuery(e.target.value)}
                       />
@@ -625,7 +639,9 @@ export function ChangeOrderDetail({
                     {selectedDesigns.length > 0 && (
                       <div className="p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
                         <Label className="text-xs text-cyan-700 dark:text-cyan-300">
-                          Selected ({selectedDesigns.length})
+                          {tp('changeOrders.detail.selectedDesignsCount', {
+                            count: selectedDesigns.length,
+                          })}
                         </Label>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {selectedDesigns.map((design) => (
@@ -646,13 +662,13 @@ export function ChangeOrderDetail({
                     <div className="border border-slate-300 dark:border-slate-700 rounded-lg max-h-60 overflow-y-auto auto-hide-scroll">
                       {loadingDesigns ? (
                         <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                          Loading designs...
+                          {tp('changeOrders.detail.loadingDesigns')}
                         </div>
                       ) : filteredDesigns.length === 0 ? (
                         <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
                           {availableDesigns.length === 0
-                            ? 'No designs available.'
-                            : 'No designs match your search.'}
+                            ? tp('changeOrders.detail.noDesignsAvailable')
+                            : tp('changeOrders.detail.noDesignsMatchSearch')}
                         </div>
                       ) : (
                         <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -738,7 +754,7 @@ export function ChangeOrderDetail({
               {!isCreateMode && currentChangeOrder.id && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Files</CardTitle>
+                    <CardTitle>{tc('sections.files')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <FileUploadZone
@@ -756,7 +772,7 @@ export function ChangeOrderDetail({
                         void invalidate('files')
                       }}
                       onUploadError={(error) =>
-                        handleError(error, { title: 'Upload failed' })
+                        handleError(error, { title: tc('errors.uploadFailed') })
                       }
                     />
                     <FileList
@@ -790,7 +806,7 @@ export function ChangeOrderDetail({
                   >
                     <CardHeader className="pb-3">
                       <CollapsibleTrigger className="hover:opacity-70">
-                        <CardTitle>Custom Attributes</CardTitle>
+                        <CardTitle>{tc('sections.customAttributes')}</CardTitle>
                       </CollapsibleTrigger>
                     </CardHeader>
                     <CollapsibleContent>
@@ -813,7 +829,7 @@ export function ChangeOrderDetail({
                           </dl>
                         ) : (
                           <p className="text-sm text-slate-500 dark:text-slate-400">
-                            No custom attributes defined.
+                            {tc('messages.noCustomAttributes')}
                           </p>
                         )}
                       </CardContent>
@@ -827,13 +843,13 @@ export function ChangeOrderDetail({
                 <Card>
                   <CardHeader>
                     <CollapsibleTrigger className="hover:opacity-70">
-                      <CardTitle>Metadata</CardTitle>
+                      <CardTitle>{tc('sections.metadata')}</CardTitle>
                     </CollapsibleTrigger>
                   </CardHeader>
                   <CollapsibleContent>
                     <CardContent className="space-y-3">
                       <ViewEditStatic
-                        label="Created"
+                        label={tc('columns.created')}
                         value={
                           currentChangeOrder.createdAt
                             ? new Date(
@@ -843,7 +859,7 @@ export function ChangeOrderDetail({
                         }
                       />
                       <ViewEditStatic
-                        label="Last Modified"
+                        label={tc('fields.lastModified')}
                         value={
                           currentChangeOrder.modifiedAt
                             ? new Date(
@@ -853,7 +869,7 @@ export function ChangeOrderDetail({
                         }
                       />
                       <ViewEditStatic
-                        label="Submitted"
+                        label={tc('fields.submitted')}
                         value={
                           currentChangeOrder.submittedAt
                             ? new Date(
@@ -863,7 +879,7 @@ export function ChangeOrderDetail({
                         }
                       />
                       <ViewEditStatic
-                        label="Approved"
+                        label={tc('fields.approved')}
                         value={
                           currentChangeOrder.approvedAt
                             ? new Date(
@@ -875,12 +891,12 @@ export function ChangeOrderDetail({
                       {!isCreateMode && (
                         <>
                           <ViewEditStatic
-                            label="Master ID"
+                            label={tc('fields.masterId')}
                             value={currentChangeOrder.masterId}
                             mono
                           />
                           <ViewEditStatic
-                            label="Change Order ID"
+                            label={tp('changeOrders.detail.changeOrderId')}
                             value={currentChangeOrder.id}
                             mono
                           />
@@ -954,7 +970,7 @@ export function ChangeOrderDetail({
             {currentChangeOrder.id && workflowStructure ? (
               <Card>
                 <CardHeader>
-                  <CardTitle>Lifecycle</CardTitle>
+                  <CardTitle>{tc('sections.lifecycle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[600px] border rounded-lg overflow-hidden">
@@ -974,7 +990,7 @@ export function ChangeOrderDetail({
               <Card>
                 <CardContent className="py-8">
                   <p className="text-center text-slate-500 dark:text-slate-400">
-                    No workflow associated with this change order
+                    {tp('changeOrders.detail.noWorkflowAssociated')}
                   </p>
                 </CardContent>
               </Card>

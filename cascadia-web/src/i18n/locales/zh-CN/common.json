@@ -1189,10 +1189,11 @@
       "descriptionLabel": "描述",
       "descriptionPlaceholder": "描述此工程变更单包含的变更…",
       "changeTypeLabel": "变更类型",
-      "changeTypeEco": "ECO - 工程变更单",
-      "changeTypeEcn": "ECN - 工程变更通知",
-      "changeTypeMco": "MCO - 制造变更单",
-      "changeTypeDeviation": "偏差",
+      "changeTypeEco": "工程变更单 (ECO)",
+      "changeTypeEcn": "工程变更通知 (ECN)",
+      "changeTypeMco": "制造变更单 (MCO)",
+      "changeTypeDeviation": "偏差 (Deviation)",
+      "changeTypeXco": "灵活变更单 (XCO)",
       "deleteWorkspaceLabel": "转换后删除工作区",
       "convertButton": "转换为工程变更单",
       "validationTitle": "校验错误",
@@ -1504,6 +1505,13 @@
       "high": "高",
       "medium": "中",
       "low": "低"
+    },
+    "changeType": {
+      "ECO": "工程变更单 (ECO)",
+      "ECN": "工程变更通知 (ECN)",
+      "Deviation": "偏差 (Deviation)",
+      "MCO": "制造变更单 (MCO)",
+      "XCO": "灵活变更单 (XCO)"
     },
     "physicalStatus": {
       "Available": "可用",
