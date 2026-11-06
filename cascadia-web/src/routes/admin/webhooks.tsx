@@ -248,12 +248,14 @@ function WebhooksPage() {
 
       {workerMissing && (
         <div className="mb-6 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-          <strong>Nothing is being delivered.</strong>{' '}
+          <strong>{t('admin.webhooks.nothingDelivered')}</strong>{' '}
           {dispatcher === undefined
-            ? 'No jobs worker has run the webhook dispatcher on this instance yet.'
-            : `The webhook dispatcher has not moved since ${new Date(dispatcher.updatedAt).toLocaleString()} and is ${dispatcher.lag} events behind.`}{' '}
-          Webhooks are sent by the jobs worker, not the web server, so start
-          one.
+            ? t('admin.webhooks.dispatcherNeverRan')
+            : t('admin.webhooks.dispatcherLag', {
+                when: new Date(dispatcher.updatedAt).toLocaleString(),
+                lag: dispatcher.lag,
+              })}{' '}
+          {t('admin.webhooks.startJobsWorker')}
         </div>
       )}
 
@@ -267,13 +269,14 @@ function WebhooksPage() {
         <div className="mb-6 rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           <strong>
             {autoDisabled.length === 1
-              ? 'One subscription was disabled automatically.'
-              : `${autoDisabled.length} subscriptions were disabled automatically.`}
+              ? t('admin.webhooks.oneDisabled')
+              : t('admin.webhooks.manyDisabled', {
+                  count: autoDisabled.length,
+                })}
           </strong>{' '}
-          Nothing is being delivered to{' '}
-          {autoDisabled.map((s) => s.name).join(', ')} — the receiver failed
-          repeatedly, or answered 410 Gone. Fix the endpoint, then enable it
-          again.
+          {t('admin.webhooks.disabledDetail', {
+            names: autoDisabled.map((s) => s.name).join(', '),
+          })}
         </div>
       )}
 

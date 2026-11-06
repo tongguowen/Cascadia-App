@@ -16,6 +16,7 @@ import {
 } from 'drizzle-orm'
 import { db } from '../../db'
 import { likeContains } from '../../db/like-pattern'
+import { buildItemTextSearchCondition } from '../../db/item-text-search'
 import {
   changeOrders,
   designs,
@@ -190,35 +191,16 @@ export class ItemSearchService {
     const searchAccessScope = accessScopeCondition(criteria.accessScope)
     if (searchAccessScope) conditions.push(searchAccessScope)
 
-    // Global search: full-text search for 3+ chars, ILIKE fallback for short queries
+    // Global search: contains (incl. CJK) + pg_trgm fuzzy (S1). No pinyin.
     if (criteria.globalSearch && criteria.globalSearch.trim()) {
-      const term = criteria.globalSearch.trim()
-
-      if (term.length >= 3) {
-        // Build tsquery with prefix matching: "PRT 001" -> "PRT:* & 001:*"
-        const words = term
-          .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Strip tsquery-unsafe characters
-          .split(/\s+/)
-          .filter(Boolean)
-        if (words.length === 0) {
-          // A term that is nothing but punctuation matches nothing, rather
-          // than falling through and matching everything.
-          conditions.push(sql`false`)
-        } else {
-          const tsquery = words.map((w) => `${w}:*`).join(' & ')
-          conditions.push(
-            sql`to_tsvector('simple', coalesce(${items.itemNumber}, '') || ' ' || coalesce(${items.name}, ''))
-              @@ to_tsquery('simple', ${tsquery})`,
-          )
-        }
-      } else {
-        const searchTerm = likeContains(term)
-        conditions.push(
-          or(
-            ilike(items.itemNumber, searchTerm),
-            ilike(items.name, searchTerm),
-          ) as SQL<unknown>,
-        )
+      const textCondition = buildItemTextSearchCondition(
+        criteria.globalSearch,
+        { itemNumber: items.itemNumber, name: items.name },
+      )
+      if (textCondition === 'no-match') {
+        conditions.push(sql`false`)
+      } else if (textCondition) {
+        conditions.push(textCondition)
       }
     }
 
@@ -397,25 +379,12 @@ export class ItemSearchService {
       return []
     }
 
-    // Full-text search for 3+ chars, ILIKE fallback for short queries
-    let searchCondition
-    if (query.length >= 3) {
-      const words = query
-        .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Strip tsquery-unsafe characters
-        .split(/\s+/)
-        .filter(Boolean)
-      if (words.length === 0) {
-        return []
-      }
-      const tsquery = words.map((w) => `${w}:*`).join(' & ')
-      searchCondition = sql`to_tsvector('simple', coalesce(${items.itemNumber}, '') || ' ' || coalesce(${items.name}, ''))
-        @@ to_tsquery('simple', ${tsquery})`
-    } else {
-      const searchTerm = likeContains(query)
-      searchCondition = or(
-        ilike(items.itemNumber, searchTerm),
-        ilike(items.name, searchTerm),
-      )
+    const searchCondition = buildItemTextSearchCondition(query, {
+      itemNumber: items.itemNumber,
+      name: items.name,
+    })
+    if (searchCondition === 'no-match' || !searchCondition) {
+      return []
     }
 
     const conditions = [searchCondition, notDeleted()]
@@ -572,35 +541,16 @@ export class ItemSearchService {
   // ============================================================================
 
   /**
-   * Free-text condition over itemNumber and name: prefix-matched full-text
-   * for 3+ chars (with tsquery-unsafe characters stripped), ILIKE for
-   * shorter terms. Returns `'no-match'` when sanitising removed the whole
-   * term — such a query can match nothing, not everything.
+   * Free-text condition over itemNumber and name: ILIKE contains (CJK-safe)
+   * plus pg_trgm fuzzy for mild typos. Multi-word = AND.
    */
   private static buildTextSearchCondition(
     query: string | undefined,
   ): SQL<unknown> | 'no-match' | null {
-    const term = query?.trim()
-    if (!term) return null
-
-    if (term.length >= 3) {
-      const words = term
-        .replace(/[^a-zA-Z0-9\s\-_]/g, '') // Strip tsquery-unsafe characters
-        .split(/\s+/)
-        .filter(Boolean)
-      if (words.length === 0) {
-        return 'no-match'
-      }
-      const tsquery = words.map((w) => `${w}:*`).join(' & ')
-      return sql`to_tsvector('simple', coalesce(${items.itemNumber}, '') || ' ' || coalesce(${items.name}, ''))
-        @@ to_tsquery('simple', ${tsquery})`
-    }
-
-    const searchTerm = likeContains(term)
-    return or(
-      ilike(items.itemNumber, searchTerm),
-      ilike(items.name, searchTerm),
-    ) as SQL<unknown>
+    return buildItemTextSearchCondition(query, {
+      itemNumber: items.itemNumber,
+      name: items.name,
+    })
   }
 
   /** Column filters available on the cross-type search grid. */

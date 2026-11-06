@@ -106,7 +106,7 @@ function RolesPage() {
                     )
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      No permissions defined
+                      {t('admin.roles.noPermissions')}
                     </p>
                   )}
                 </div>
@@ -118,36 +118,38 @@ function RolesPage() {
 
       <div className="mt-8 p-4 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded">
         <h3 className="font-semibold text-slate-900 dark:text-white mb-2">
-          Role Definitions
+          {t('admin.roles.definitionsTitle')}
         </h3>
         <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-1">
           <li>
             <strong className="text-slate-900 dark:text-white">
-              Administrator:
+              {t('admin.roles.adminName')}
             </strong>{' '}
-            Full system access including user and system management
+            {t('admin.roles.adminDesc')}
           </li>
           <li>
             <strong className="text-slate-900 dark:text-white">
-              Power User:
+              {t('admin.roles.powerUserName')}
             </strong>{' '}
-            Can create and edit all item types, manage workflows
+            {t('admin.roles.powerUserDesc')}
           </li>
           <li>
             <strong className="text-slate-900 dark:text-white">
-              Approver:
+              {t('admin.roles.approverName')}
             </strong>{' '}
-            Can approve items and change states, limited editing
-          </li>
-          <li>
-            <strong className="text-slate-900 dark:text-white">User:</strong>{' '}
-            Can create and edit draft items, view released items
+            {t('admin.roles.approverDesc')}
           </li>
           <li>
             <strong className="text-slate-900 dark:text-white">
-              View Only:
+              {t('admin.roles.userName')}
             </strong>{' '}
-            Read-only access to all items
+            {t('admin.roles.userDesc')}
+          </li>
+          <li>
+            <strong className="text-slate-900 dark:text-white">
+              {t('admin.roles.viewOnlyName')}
+            </strong>{' '}
+            {t('admin.roles.viewOnlyDesc')}
           </li>
         </ul>
       </div>

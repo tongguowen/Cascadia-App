@@ -2525,7 +2525,8 @@
       "systemTitle": "系统",
       "systemDescription": "关于本 Cascadia 实例",
       "version": "版本",
-      "versionHelp": "亦可通过 GET /api/v1/health 获取"
+      "versionHelp": "亦可通过 GET /api/v1/health 获取",
+      "vaultRootDescription": "文件库根路径"
     },
     "roles": {
       "title": "角色与权限",
@@ -2533,7 +2534,19 @@
       "role_one": "{{count}} 个角色",
       "role_other": "{{count}} 个角色",
       "noDescription": "无描述",
-      "permissions": "权限："
+      "permissions": "权限：",
+      "noPermissions": "未定义权限",
+      "definitionsTitle": "角色说明",
+      "adminName": "管理员：",
+      "adminDesc": "完整系统权限，含用户与系统管理",
+      "powerUserName": "高级用户：",
+      "powerUserDesc": "可创建与编辑全部对象类型，并管理工作流",
+      "approverName": "审批人：",
+      "approverDesc": "可审批对象并变更状态，编辑权限有限",
+      "userName": "用户：",
+      "userDesc": "可创建与编辑草稿对象，查看已发布对象",
+      "viewOnlyName": "只读：",
+      "viewOnlyDesc": "对全部对象只读访问"
     },
     "users": {
       "title": "用户管理",
@@ -2726,7 +2739,14 @@
         "footerAll": "这是仍保留的全部投递。已结算的投递超过保留期后会被修剪。",
         "loadOlder": "加载更早投递",
         "loadingOlder": "加载中…"
-      }
+      },
+      "nothingDelivered": "当前没有在投递。",
+      "dispatcherNeverRan": "本实例尚无任务进程运行过 Webhook 调度器。",
+      "oneDisabled": "有一个订阅已被自动禁用。",
+      "dispatcherLag": "Webhook 调度器自 {{when}} 起未推进，已落后 {{lag}} 条事件。",
+      "startJobsWorker": "Webhook 由任务进程投递，而非 Web 服务；请启动任务进程。",
+      "manyDisabled": "有 {{count}} 个订阅已被自动禁用。",
+      "disabledDetail": "未再向 {{names}} 投递——接收端连续失败或返回 410 Gone。请修复端点后重新启用。"
     },
     "apiKeys": {
       "title": "API 密钥",
@@ -2785,7 +2805,8 @@
         "saved": "策略已保存。",
         "savePolicy": "保存策略",
         "restoreDefaults": "恢复默认"
-      }
+      },
+      "loadingKeys": "正在加载密钥…"
     },
     "ai": {
       "title": "AI 助手",
@@ -2882,7 +2903,14 @@
         "allChangeTypesNeedWorkflow": "所有变更类型都必须分配工作流。未分配工作流时无法创建工程变更单。",
         "codeDefaultsTitle": "代码默认值（只读参考）",
         "codeDefaultsDescription": "代码中定义的原始配置。运行时不可修改。"
-      }
+      },
+      "noneDefined": "未定义",
+      "genericError": "发生错误",
+      "codeFirstTitle": "代码优先配置：",
+      "codeFirstBody": "对象类型在代码中定义并具备 TypeScript 类型安全——名称、字段、关系与编号随版本发布。某一类型由哪个生命周期管辖属于运行时设置，修改后立即生效。",
+      "accessByRole": "权限按角色授予，而非按对象类型；参见",
+      "rolesLink": "角色",
+      "relationshipsHeading": "关系（{{count}}）："
     },
     "componentCatalog": {
       "title": "元器件目录",
@@ -2906,7 +2934,50 @@
       "mountingFeaturesJson": "安装特征（JSON）",
       "electricalJson": "电气（JSON）",
       "specsJsonKeyValue": "规格（JSON 键值）",
-      "stockSizesJson": "库存规格（JSON）"
+      "stockSizesJson": "库存规格（JSON）",
+      "filterAllTypes": "全部类型",
+      "filterComponents": "元器件",
+      "filterRawStock": "原材料",
+      "filterComponent": "元器件",
+      "addEntry": "添加条目",
+      "import": "导入",
+      "noEntries": "未找到条目。",
+      "tryDifferentSearch": "请尝试其他搜索词。",
+      "colName": "名称",
+      "colType": "类型",
+      "typeRawStock": "原材料",
+      "typeComponent": "元器件",
+      "editEntry": "编辑条目",
+      "newEntry": "新建目录条目",
+      "selectCategory": "选择分类…",
+      "saveChanges": "保存更改",
+      "createEntry": "创建条目",
+      "failedToSave": "保存失败",
+      "importFailed": "导入失败",
+      "jsonMustBeArray": "JSON 必须是条目数组",
+      "reRunFailed": "重试失败项",
+      "failedToCreate": "创建失败",
+      "noneTopLevel": "无（顶级）",
+      "categoryNamePlaceholder": "例如：直线运动",
+      "allCategoriesLabel": "全部分类",
+      "colCategory": "分类",
+      "colSuppliers": "供应商",
+      "colVerified": "已验证",
+      "colActions": "操作",
+      "newCategory": "新建分类",
+      "bulkImportTitle": "批量导入",
+      "bulkImportHelp": "拖入一个或多个 .json 文件。每个文件应为目录条目数组（例如 test-data/ 中的样例）。每条至少需要 name、entryType，以及 categorySlug 或 categoryId。",
+      "dropFilesHint": "将 .json 文件拖到此处，或点击选择",
+      "rowPrefix": "第 {{row}} 行：",
+      "andMore": "…还有 {{count}} 条",
+      "importedSummary": "已导入 {{rows}} 条，来自 {{files}} 个文件。",
+      "rowsFailed": "{{count}} 行失败。",
+      "filesFailed": "{{count}} 个文件处理失败。",
+      "statusPending": "等待中",
+      "statusUploading": "上传中",
+      "statusImported": "已导入 {{ok}}",
+      "statusFailedCount": "，失败 {{fail}}",
+      "statusFailed": "失败"
     }
   },
   "variants": {

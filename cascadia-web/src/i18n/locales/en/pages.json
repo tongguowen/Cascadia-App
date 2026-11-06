@@ -2525,7 +2525,8 @@
       "systemTitle": "System",
       "systemDescription": "About this Cascadia instance",
       "version": "Version",
-      "versionHelp": "Also reported by GET /api/v1/health"
+      "versionHelp": "Also reported by GET /api/v1/health",
+      "vaultRootDescription": "Root path for vault file storage"
     },
     "roles": {
       "title": "Role Management",
@@ -2533,7 +2534,19 @@
       "role_one": "{{count}} Role",
       "role_other": "{{count}} Roles",
       "noDescription": "No description",
-      "permissions": "Permissions:"
+      "permissions": "Permissions:",
+      "noPermissions": "No permissions defined",
+      "definitionsTitle": "Role Definitions",
+      "adminName": "Administrator:",
+      "adminDesc": "Full system access including user and system management",
+      "powerUserName": "Power User:",
+      "powerUserDesc": "Can create and edit all item types, manage workflows",
+      "approverName": "Approver:",
+      "approverDesc": "Can approve items and change states, limited editing",
+      "userName": "User:",
+      "userDesc": "Can create and edit draft items, view released items",
+      "viewOnlyName": "View Only:",
+      "viewOnlyDesc": "Read-only access to all items"
     },
     "users": {
       "title": "User Management",
@@ -2726,7 +2739,14 @@
         "footerAll": "That is every delivery still on record. Settled deliveries are pruned once they pass the retention period.",
         "loadOlder": "Load older deliveries",
         "loadingOlder": "Loading…"
-      }
+      },
+      "nothingDelivered": "Nothing is being delivered.",
+      "dispatcherNeverRan": "No jobs worker has run the webhook dispatcher on this instance yet.",
+      "oneDisabled": "One subscription was disabled automatically.",
+      "dispatcherLag": "The webhook dispatcher has not moved since {{when}} and is {{lag}} events behind.",
+      "startJobsWorker": "Webhooks are sent by the jobs worker, not the web server, so start one.",
+      "manyDisabled": "{{count}} subscriptions were disabled automatically.",
+      "disabledDetail": "Nothing is being delivered to {{names}} — the receiver failed repeatedly, or answered 410 Gone. Fix the endpoint, then enable it again."
     },
     "apiKeys": {
       "title": "API Keys",
@@ -2785,7 +2805,8 @@
         "saved": "Policy saved.",
         "savePolicy": "Save policy",
         "restoreDefaults": "Restore defaults"
-      }
+      },
+      "loadingKeys": "Loading keys…"
     },
     "ai": {
       "title": "AI Assistant",
@@ -2882,7 +2903,14 @@
         "allChangeTypesNeedWorkflow": "All change types must have a workflow assigned. Change orders cannot be created without a workflow.",
         "codeDefaultsTitle": "Code Defaults (Read-Only Reference)",
         "codeDefaultsDescription": "Original configuration defined in code. Cannot be modified at runtime."
-      }
+      },
+      "noneDefined": "None defined",
+      "genericError": "An error occurred",
+      "codeFirstTitle": "Code-First Configuration:",
+      "codeFirstBody": "Item types are defined in code with TypeScript type safety — their names, fields, relationships and numbering ship with the release. Which lifecycle governs a type is the runtime setting, and it takes effect immediately.",
+      "accessByRole": "Access is granted by role rather than per item type; see",
+      "rolesLink": "Roles",
+      "relationshipsHeading": "Relationships ({{count}}):"
     },
     "componentCatalog": {
       "title": "Component Catalog",
@@ -2906,7 +2934,50 @@
       "mountingFeaturesJson": "Mounting Features (JSON)",
       "electricalJson": "Electrical (JSON)",
       "specsJsonKeyValue": "Specs (JSON key-value)",
-      "stockSizesJson": "Stock Sizes (JSON)"
+      "stockSizesJson": "Stock Sizes (JSON)",
+      "filterAllTypes": "All Types",
+      "filterComponents": "Components",
+      "filterRawStock": "Raw Stock",
+      "filterComponent": "Component",
+      "addEntry": "Add Entry",
+      "import": "Import",
+      "noEntries": "No entries found.",
+      "tryDifferentSearch": "Try a different search query.",
+      "colName": "Name",
+      "colType": "Type",
+      "typeRawStock": "Raw Stock",
+      "typeComponent": "Component",
+      "editEntry": "Edit Entry",
+      "newEntry": "New Catalog Entry",
+      "selectCategory": "Select category...",
+      "saveChanges": "Save Changes",
+      "createEntry": "Create Entry",
+      "failedToSave": "Failed to save",
+      "importFailed": "Import failed",
+      "jsonMustBeArray": "JSON must be an array of entries",
+      "reRunFailed": "Re-run failed",
+      "failedToCreate": "Failed to create",
+      "noneTopLevel": "None (top-level)",
+      "categoryNamePlaceholder": "Linear Motion",
+      "allCategoriesLabel": "All Categories",
+      "colCategory": "Category",
+      "colSuppliers": "Suppliers",
+      "colVerified": "Verified",
+      "colActions": "Actions",
+      "newCategory": "New Category",
+      "bulkImportTitle": "Bulk Import",
+      "bulkImportHelp": "Drop one or more .json files. Each file should contain an array of catalog entries (e.g. the files in test-data/). Each entry needs at minimum name, entryType, and categorySlug or categoryId.",
+      "dropFilesHint": "Drop .json files here, or click to browse",
+      "rowPrefix": "Row {{row}}:",
+      "andMore": "…and {{count}} more",
+      "importedSummary": "Imported {{rows}} entries across {{files}} files.",
+      "rowsFailed": "{{count}} rows failed.",
+      "filesFailed": "{{count}} files failed to process.",
+      "statusPending": "Pending",
+      "statusUploading": "Uploading",
+      "statusImported": "{{ok}} imported",
+      "statusFailedCount": ", {{fail}} failed",
+      "statusFailed": "Failed"
     }
   },
   "variants": {

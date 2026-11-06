@@ -58,7 +58,11 @@ function ItemTypesConfigPage() {
       setSuccessMessage(t('admin.itemTypes.reloadSuccess'))
       setTimeout(() => setSuccessMessage(null), 5000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('admin.itemTypes.genericError'),
+      )
     } finally {
       setReloading(false)
     }
@@ -135,16 +139,13 @@ function ItemTypesConfigPage() {
             <Cog className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div className="space-y-2 text-sm">
               <p className="text-blue-900 dark:text-blue-100">
-                <strong>Code-First Configuration:</strong> Item types are
-                defined in code with TypeScript type safety — their names,
-                fields, relationships and numbering ship with the release. Which
-                lifecycle governs a type is the runtime setting, and it takes
-                effect immediately.
+                <strong>{t('admin.itemTypes.codeFirstTitle')}</strong>{' '}
+                {t('admin.itemTypes.codeFirstBody')}
               </p>
               <p className="text-blue-800 dark:text-blue-200">
-                Access is granted by role rather than per item type; see{' '}
+                {t('admin.itemTypes.accessByRole')}{' '}
                 <Link to="/admin/roles" className="underline">
-                  Roles
+                  {t('admin.itemTypes.rolesLink')}
                 </Link>
                 .
               </p>
@@ -198,12 +199,14 @@ function ItemTypesConfigPage() {
               {/* Relationships */}
               <div>
                 <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                  Relationships ({config.mergedConfig.relationships.length}):
+                  {t('admin.itemTypes.relationshipsHeading', {
+                    count: config.mergedConfig.relationships.length,
+                  })}
                 </h4>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   {config.mergedConfig.relationships
                     .map((rel) => rel.label)
-                    .join(', ') || 'None defined'}
+                    .join(', ') || t('admin.itemTypes.noneDefined')}
                 </p>
               </div>
             </CardContent>

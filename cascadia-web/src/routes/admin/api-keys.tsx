@@ -151,7 +151,9 @@ function AdminApiKeysPage() {
           </div>
 
           {isPending && (
-            <p className="text-sm text-muted-foreground">Loading keys…</p>
+            <p className="text-sm text-muted-foreground">
+              {t('admin.apiKeys.loadingKeys')}
+            </p>
           )}
           {error && (
             <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">

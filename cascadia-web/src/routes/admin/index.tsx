@@ -91,7 +91,7 @@ function AdminPage() {
         body: JSON.stringify({
           key: SettingKeys.VAULT_ROOT,
           value: vaultLocation.trim(),
-          description: 'Root path for vault file storage',
+          description: a('vaultRootDescription'),
         }),
       })
 

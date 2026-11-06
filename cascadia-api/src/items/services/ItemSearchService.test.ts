@@ -366,10 +366,8 @@ describe('ItemSearchService.searchGlobal', () => {
 })
 
 /**
- * `search` is the per-type grid query. Its global-search term takes one of two
- * paths — a Postgres `to_tsquery` for three characters or more, an ILIKE
- * fallback below that — and both consume user text in a language with its own
- * syntax. A term that is punctuation is ordinary input, not an error.
+ * `search` free-text is ILIKE contains + pg_trgm fuzzy (Watchlink S1).
+ * Punctuation and wildcards are ordinary input, not a query language.
  */
 describe('ItemSearchService.search — user text in a query language', () => {
   const testDb = new TestDatabase()
@@ -430,9 +428,8 @@ describe('ItemSearchService.search — user text in a query language', () => {
     await testDb.rollback()
   })
 
-  // `foo)` is unbalanced tsquery syntax. Unsanitised it reached Postgres and
-  // raised a syntax error, so an ordinary typed character answered 500.
-  it('answers a tsquery-invalid term with no rows rather than an error', async () => {
+  // Former tsquery-breaker; must never 500.
+  it('answers a punctuation-heavy term with no rows rather than an error', async () => {
     await insertPart('TSQ-001')
 
     const result = await ItemSearchService.search('Part', {
@@ -444,7 +441,7 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(result.total).toBe(0)
   })
 
-  it('matches nothing when sanitising strips the whole term', async () => {
+  it('matches nothing for a term that does not appear in number or name', async () => {
     await insertPart('TSQ-001')
 
     const result = await ItemSearchService.search('Part', {
@@ -456,7 +453,7 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(result.total).toBe(0)
   })
 
-  it('treats a wildcard character in the ILIKE fallback as a literal', async () => {
+  it('treats a wildcard character in ILIKE as a literal', async () => {
     await insertPart('A_1')
     await insertPart('AB1')
 
@@ -468,6 +465,45 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(
       result.items.map((i: { itemNumber: string }) => i.itemNumber),
     ).toEqual(['A_1'])
+  })
+
+  it('matches Chinese name substrings (CJK must not be stripped)', async () => {
+    const part = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `ZH-${Date.now()}`,
+          name: '驱动电机总成',
+          designId,
+        })
+        .returning(),
+    )
+
+    const result = await ItemSearchService.search('Part', {
+      designId,
+      globalSearch: '电机',
+    })
+
+    expect(result.items.map((i: { id: string }) => i.id)).toContain(part.id)
+  })
+
+  it('matches a mild typo via trigram fuzzy', async () => {
+    await insertPart('MOTOR-HOUSING-01')
+
+    const result = await ItemSearchService.search('Part', {
+      designId,
+      globalSearch: 'MOTAR-HOUSING-01',
+    })
+
+    expect(
+      result.items.map((i: { itemNumber: string }) => i.itemNumber),
+    ).toContain('MOTOR-HOUSING-01')
   })
 })
 

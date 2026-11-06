@@ -132,7 +132,7 @@ function ComponentCatalogPage() {
               setPage(0)
             }}
           >
-            All Categories
+            {t('admin.componentCatalog.allCategoriesLabel')}
           </button>
 
           {rootCategories.map((cat) => (
@@ -174,9 +174,15 @@ function ComponentCatalogPage() {
               }}
               className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 text-sm"
             >
-              <option value="all">All Types</option>
-              <option value="component">Components</option>
-              <option value="raw_stock">Raw Stock</option>
+              <option value="all">
+                {t('admin.componentCatalog.filterAllTypes')}
+              </option>
+              <option value="component">
+                {t('admin.componentCatalog.filterComponents')}
+              </option>
+              <option value="raw_stock">
+                {t('admin.componentCatalog.filterRawStock')}
+              </option>
             </select>
 
             <Button
@@ -186,12 +192,12 @@ function ComponentCatalogPage() {
               }}
             >
               <Plus className="w-4 h-4 mr-1" />
-              Add Entry
+              {t('admin.componentCatalog.addEntry')}
             </Button>
 
             <Button variant="outline" onClick={() => setShowImportDialog(true)}>
               <Upload className="w-4 h-4 mr-1" />
-              Import
+              {t('admin.componentCatalog.import')}
             </Button>
           </div>
 
@@ -203,30 +209,30 @@ function ComponentCatalogPage() {
               </div>
             ) : entries.length === 0 ? (
               <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                No entries found.{' '}
-                {searchQuery && 'Try a different search query.'}
+                {t('admin.componentCatalog.noEntries')}{' '}
+                {searchQuery && t('admin.componentCatalog.tryDifferentSearch')}
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Name
+                      {t('admin.componentCatalog.colName')}
                     </th>
                     <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Type
+                      {t('admin.componentCatalog.colType')}
                     </th>
                     <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Category
+                      {t('admin.componentCatalog.colCategory')}
                     </th>
                     <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Suppliers
+                      {t('admin.componentCatalog.colSuppliers')}
                     </th>
                     <th className="text-left py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Verified
+                      {t('admin.componentCatalog.colVerified')}
                     </th>
                     <th className="text-right py-2 px-3 font-medium text-slate-600 dark:text-slate-400">
-                      Actions
+                      {t('admin.componentCatalog.colActions')}
                     </th>
                   </tr>
                 </thead>
@@ -259,8 +265,8 @@ function ComponentCatalogPage() {
                           }
                         >
                           {entry.entryType === 'raw_stock'
-                            ? 'Raw Stock'
-                            : 'Component'}
+                            ? t('admin.componentCatalog.typeRawStock')
+                            : t('admin.componentCatalog.typeComponent')}
                         </Badge>
                       </td>
                       <td className="py-2 px-3 text-slate-600 dark:text-slate-400">
@@ -515,7 +521,11 @@ function EntryDialog({
       await invalidate('admin')
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('admin.componentCatalog.failedToSave'),
+      )
     } finally {
       setSaving(false)
     }
@@ -526,7 +536,9 @@ function EntryDialog({
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            {isEditing ? 'Edit Entry' : 'New Catalog Entry'}
+            {isEditing
+              ? t('admin.componentCatalog.editEntry')
+              : t('admin.componentCatalog.newEntry')}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -556,7 +568,9 @@ function EntryDialog({
                 onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 text-sm"
               >
-                <option value="">Select category...</option>
+                <option value="">
+                  {t('admin.componentCatalog.selectCategory')}
+                </option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -586,8 +600,12 @@ function EntryDialog({
                 }
                 className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 text-sm"
               >
-                <option value="component">Component</option>
-                <option value="raw_stock">Raw Stock</option>
+                <option value="component">
+                  {t('admin.componentCatalog.filterComponent')}
+                </option>
+                <option value="raw_stock">
+                  {t('admin.componentCatalog.filterRawStock')}
+                </option>
               </select>
             </div>
             <div className="flex items-end gap-2">
@@ -696,7 +714,9 @@ function EntryDialog({
             disabled={saving || !name || !categoryId}
           >
             {saving && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
-            {isEditing ? 'Save Changes' : 'Create Entry'}
+            {isEditing
+              ? t('admin.componentCatalog.saveChanges')
+              : t('admin.componentCatalog.createEntry')}
           </Button>
         </div>
       </div>
@@ -732,6 +752,7 @@ interface BulkImportResult {
 }
 
 function ImportDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation('pages')
   const { t: tc } = useTranslation('common')
   const invalidate = useInvalidateResources()
   const [files, setFiles] = useState<Array<FileRow>>([])
@@ -794,7 +815,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
         const text = await row.file.text()
         const parsed = JSON.parse(text)
         if (!Array.isArray(parsed)) {
-          throw new Error('JSON must be an array of entries')
+          throw new Error(t('admin.componentCatalog.jsonMustBeArray'))
         }
         const response = await apiFetch<{ data: Partial<BulkImportResult> }>(
           '/api/v1/admin/component-catalog/import',
@@ -811,7 +832,10 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
       } catch (err) {
         updateStatus(row.id, {
           state: 'failed',
-          message: err instanceof Error ? err.message : 'Import failed',
+          message:
+            err instanceof Error
+              ? err.message
+              : t('admin.componentCatalog.importFailed'),
         })
       }
     }
@@ -845,7 +869,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Bulk Import
+            {t('admin.componentCatalog.bulkImportTitle')}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -853,10 +877,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-          Drop one or more <code>.json</code> files. Each file should contain an
-          array of catalog entries (e.g. the files in <code>test-data/</code>).
-          Each entry needs at minimum <code>name</code>, <code>entryType</code>,
-          and <code>categorySlug</code> or <code>categoryId</code>.
+          {t('admin.componentCatalog.bulkImportHelp')}
         </p>
 
         <div
@@ -873,7 +894,7 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
         >
           <Upload className="w-8 h-8 mx-auto mb-2 text-slate-400" />
           <div className="text-sm text-slate-600 dark:text-slate-400">
-            Drop <code>.json</code> files here, or click to browse
+            {t('admin.componentCatalog.dropFilesHint')}
           </div>
           <input
             ref={fileInputRef}
@@ -914,12 +935,17 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
                     <div className="mt-2 pl-6 space-y-0.5 text-xs">
                       {row.status.errors.slice(0, 5).map((e, i) => (
                         <div key={i} className="text-red-600 dark:text-red-400">
-                          Row {e.row}: {e.message}
+                          {t('admin.componentCatalog.rowPrefix', {
+                            row: e.row,
+                          })}{' '}
+                          {e.message}
                         </div>
                       ))}
                       {row.status.errors.length > 5 && (
                         <div className="text-slate-500 dark:text-slate-400">
-                          …and {row.status.errors.length - 5} more
+                          {t('admin.componentCatalog.andMore', {
+                            count: row.status.errors.length - 5,
+                          })}
                         </div>
                       )}
                     </div>
@@ -936,11 +962,14 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
 
         {anyDone && (
           <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded text-sm">
-            Imported {totals.successRows} entries across {totals.successFiles}{' '}
-            {totals.successFiles === 1 ? 'file' : 'files'}.
-            {totals.errorRows > 0 && ` ${totals.errorRows} rows failed.`}
+            {t('admin.componentCatalog.importedSummary', {
+              rows: totals.successRows,
+              files: totals.successFiles,
+            })}
+            {totals.errorRows > 0 &&
+              ` ${t('admin.componentCatalog.rowsFailed', { count: totals.errorRows })}`}
             {totals.failedFiles > 0 &&
-              ` ${totals.failedFiles} ${totals.failedFiles === 1 ? 'file' : 'files'} failed to process.`}
+              ` ${t('admin.componentCatalog.filesFailed', { count: totals.failedFiles })}`}
           </div>
         )}
 
@@ -957,7 +986,9 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
             }
           >
             {importing && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
-            {allProcessed && !importing ? 'Re-run failed' : 'Import'}
+            {allProcessed && !importing
+              ? t('admin.componentCatalog.reRunFailed')
+              : t('admin.componentCatalog.import')}
           </Button>
         </div>
       </div>
@@ -966,18 +997,19 @@ function ImportDialog({ onClose }: { onClose: () => void }) {
 }
 
 function StatusBadge({ status }: { status: FileRowStatus }) {
+  const { t } = useTranslation('pages')
   switch (status.state) {
     case 'pending':
       return (
         <span className="text-xs text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700">
-          Pending
+          {t('admin.componentCatalog.statusPending')}
         </span>
       )
     case 'uploading':
       return (
         <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
           <Loader2 className="w-3 h-3 animate-spin" />
-          Uploading
+          {t('admin.componentCatalog.statusUploading')}
         </span>
       )
     case 'success':
@@ -990,15 +1022,20 @@ function StatusBadge({ status }: { status: FileRowStatus }) {
           }`}
         >
           <CheckCircle2 className="w-3 h-3" />
-          {status.successCount} imported
-          {status.errorCount > 0 && `, ${status.errorCount} failed`}
+          {t('admin.componentCatalog.statusImported', {
+            ok: status.successCount,
+          })}
+          {status.errorCount > 0 &&
+            t('admin.componentCatalog.statusFailedCount', {
+              fail: status.errorCount,
+            })}
         </span>
       )
     case 'failed':
       return (
         <span className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
-          Failed
+          {t('admin.componentCatalog.statusFailed')}
         </span>
       )
   }
@@ -1043,7 +1080,11 @@ function CategoryDialog({
       await invalidate('admin')
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create')
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('admin.componentCatalog.failedToCreate'),
+      )
     } finally {
       setSaving(false)
     }
@@ -1054,7 +1095,7 @@ function CategoryDialog({
       <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            New Category
+            {t('admin.componentCatalog.newCategory')}
           </h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
@@ -1083,7 +1124,7 @@ function CategoryDialog({
                   )
                 }
               }}
-              placeholder="Linear Motion"
+              placeholder={t('admin.componentCatalog.categoryNamePlaceholder')}
             />
           </div>
           <div>
@@ -1101,7 +1142,9 @@ function CategoryDialog({
               onChange={(e) => setParentId(e.target.value)}
               className="w-full h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 text-sm"
             >
-              <option value="">None (top-level)</option>
+              <option value="">
+                {t('admin.componentCatalog.noneTopLevel')}
+              </option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
