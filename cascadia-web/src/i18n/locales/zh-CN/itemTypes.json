@@ -1,6 +1,6 @@
 {
   "Part": "零件",
-  "Document": "图文档",
+  "Document": "文档",
   "Requirement": "需求",
   "System Element": "产品需求",
   "Task": "任务",
@@ -14,7 +14,7 @@
   "Physical Part": "实物零件",
   "Work Order": "工单",
   "Parts": "零件",
-  "Documents": "图文档",
+  "Documents": "文档",
   "Requirements": "需求",
   "System Elements": "产品需求",
   "Tasks": "任务",

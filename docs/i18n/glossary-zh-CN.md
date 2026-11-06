@@ -21,14 +21,14 @@
 | Design | 设计空间 | 设计图 | 项目下的版本化工程容器（非一张 CAD 图） | 产品语义 |
 | Workspace | 工作区 | — | 个人/临时编辑空间 | 协同软件惯用 |
 | Part | 零件 | — | 可修订的制造对象 | 机械惯用 |
-| Document | 图文档 | — | 受控工程文档/图纸类对象 | 公司「图文档」（可改定） |
+| Document | 文档 | 图文档 | 受控工程文档/图纸类对象 | 本轮裁定「文档」 |
 | BOM | 物料清单 (BOM) | 账单 | 多级结构关系 | 制造业惯用 |
 | ChangeOrder / ECO | 工程变更单 | 仅写「变更」 | 带审批与发布的正式更改 | PDM/PLM 惯用 |
 | check-out | 检出 | — | 取得编辑权/锁定 | 国产 PDM |
 | check-in | 检入 | — | 提交并释放锁 | 国产 PDM |
 | Revision | 修订 | 与 Version 混称「版本」 | 受控修订号 | 技术状态 |
 | Version | 版本 | 与 Revision 混用 | 文件/对象历史版本 | 需与修订区分 |
-| Vault / Files | 文件库 / 文件 | 金库、保险库 | 受控文件存储 | 近「图文档库」 |
+| Vault / Files | 文件库 / 文件 | 金库、保险库 | 受控文件存储 | 近「文件库」 |
 | Lifecycle | 生命周期 | — | 状态机配置 | PLM |
 | Release | 发布 | — | 正式生效 | 惯用 |
 | Approve | 批准 | — | 审批通过 | 流程 |
@@ -54,7 +54,7 @@
 | Change Orders | 工程变更单 |
 | Parts | 零件 |
 | Software | 软件 |
-| Documents | 图文档 |
+| Documents | 文档 |
 | Requirements | 需求 |
 | System Elements | 产品需求 |
 | Test Plans | 测试计划 |
@@ -83,5 +83,7 @@
 
 ## 待确认
 
-1. Document →「图文档」或「文档」  
-2. check-in/out →「检入/检出」或「签入/签出」  
+1. Document → **已裁定「文档」**（禁用「图文档」）  
+2. check-in/out → **已裁定「检入/检出」**  
+3. System Element → **已裁定维持「产品需求」**  
+4. Design → **已裁定「设计空间」**  

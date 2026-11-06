@@ -22,8 +22,8 @@
       "description": "在此管理零件目录：创建、查看并组织机械、电气与软件零件，并保留完整修订历史。"
     },
     "documents": {
-      "title": "图文档管控",
-      "description": "存储并管理带版本控制的工程图文档，并与零件、需求、工程变更单关联。"
+      "title": "文档管控",
+      "description": "存储并管理带版本控制的工程文档，并与零件、需求、工程变更单关联。"
     },
     "changeOrders": {
       "title": "工程变更",
@@ -35,7 +35,7 @@
     },
     "search": {
       "title": "企业搜索",
-      "description": "在全系统快速查找任意对象：零件、图文档、需求、工程变更单等。按 Ctrl+K（Mac 为 Cmd+K）可快速打开。"
+      "description": "在全系统快速查找任意对象：零件、文档、需求、工程变更单等。按 Ctrl+K（Mac 为 Cmd+K）可快速打开。"
     },
     "dashboard": {
       "title": "仪表盘概览",
