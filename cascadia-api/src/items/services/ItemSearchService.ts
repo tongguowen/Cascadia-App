@@ -191,7 +191,7 @@ export class ItemSearchService {
     const searchAccessScope = accessScopeCondition(criteria.accessScope)
     if (searchAccessScope) conditions.push(searchAccessScope)
 
-    // Global search: contains (incl. CJK) + pg_trgm fuzzy (S1). No pinyin.
+    // Global search: ILIKE contains (incl. CJK). No pg_trgm / pinyin (S1-lite).
     if (criteria.globalSearch && criteria.globalSearch.trim()) {
       const textCondition = buildItemTextSearchCondition(
         criteria.globalSearch,
@@ -541,8 +541,8 @@ export class ItemSearchService {
   // ============================================================================
 
   /**
-   * Free-text condition over itemNumber and name: ILIKE contains (CJK-safe)
-   * plus pg_trgm fuzzy for mild typos. Multi-word = AND.
+   * Free-text condition over itemNumber and name: ILIKE contains (CJK-safe).
+   * Multi-word = AND. No pg_trgm in this release.
    */
   private static buildTextSearchCondition(
     query: string | undefined,

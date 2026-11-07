@@ -366,7 +366,7 @@ describe('ItemSearchService.searchGlobal', () => {
 })
 
 /**
- * `search` free-text is ILIKE contains + pg_trgm fuzzy (Watchlink S1).
+ * `search` free-text is ILIKE contains (Watchlink S1-lite).
  * Punctuation and wildcards are ordinary input, not a query language.
  */
 describe('ItemSearchService.search — user text in a query language', () => {
@@ -493,7 +493,7 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(result.items.map((i: { id: string }) => i.id)).toContain(part.id)
   })
 
-  it('matches a mild typo via trigram fuzzy', async () => {
+  it('does not match a typo under ILIKE-only (trgm deferred)', async () => {
     await insertPart('MOTOR-HOUSING-01')
 
     const result = await ItemSearchService.search('Part', {
@@ -501,9 +501,9 @@ describe('ItemSearchService.search — user text in a query language', () => {
       globalSearch: 'MOTAR-HOUSING-01',
     })
 
-    expect(
-      result.items.map((i: { itemNumber: string }) => i.itemNumber),
-    ).toContain('MOTOR-HOUSING-01')
+    expect(result.items.map((i: { itemNumber: string }) => i.itemNumber)).not.toContain(
+      'MOTOR-HOUSING-01',
+    )
   })
 })
 

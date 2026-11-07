@@ -2,27 +2,16 @@
 // Copyright (c) 2026 Cascadia PLM LLC
 
 /**
- * Item number/name free-text match for Watchlink S1 search:
- * - Contains (ILIKE) for exact substrings, including Chinese
- * - Trigram similarity for mild typos / near matches (pg_trgm)
+ * Item number/name free-text match — Watchlink low-risk S1-lite (ILIKE only):
+ * - Contains match on itemNumber / name (CJK-safe; no ASCII strip)
  * - Multi-word queries are AND across tokens
- * - No pinyin (S2)
+ * - No pg_trgm / no pinyin (trgm is a later change)
  *
- * Replaces the old ASCII-only to_tsquery path that dropped CJK and felt
- * non-fuzzy to operators.
+ * Replaces the old ASCII-only to_tsquery path that dropped CJK.
  */
 
-import { and, ilike, or, sql, type SQL } from 'drizzle-orm'
+import { and, ilike, or, type SQL } from 'drizzle-orm'
 import { likeContains } from './like-pattern'
-
-/** Similarity floor for full-string trigram match (pg_trgm default is 0.3). */
-export const ITEM_SEARCH_SIMILARITY_THRESHOLD = 0.3
-
-/** Word-similarity floor when the query is a fragment of a longer name. */
-export const ITEM_SEARCH_WORD_SIMILARITY_THRESHOLD = 0.4
-
-/** Only apply trigram fuzzy when the token is long enough to be meaningful. */
-export const ITEM_SEARCH_FUZZY_MIN_LEN = 3
 
 /** Drizzle column refs for item number / name (kept loose for reuse). */
 export type ItemTextSearchColumns = {
@@ -44,40 +33,13 @@ export function buildItemTextSearchCondition(
   const tokens = term.split(/\s+/).filter(Boolean)
   if (tokens.length === 0) return 'no-match'
 
-  const perToken = tokens.map((token) =>
-    buildSingleTokenCondition(token, columns),
-  )
+  const perToken = tokens.map((token) => {
+    const pattern = likeContains(token)
+    return or(
+      ilike(columns.itemNumber, pattern),
+      ilike(columns.name, pattern),
+    ) as SQL<unknown>
+  })
   if (perToken.length === 1) return perToken[0]!
   return and(...perToken) as SQL<unknown>
-}
-
-function buildSingleTokenCondition(
-  token: string,
-  columns: ItemTextSearchColumns,
-): SQL<unknown> {
-  const pattern = likeContains(token)
-  const contains = or(
-    ilike(columns.itemNumber, pattern),
-    ilike(columns.name, pattern),
-  ) as SQL<unknown>
-
-  if (token.length < ITEM_SEARCH_FUZZY_MIN_LEN) {
-    return contains
-  }
-
-  // pg_trgm: mild typos + near matches. ILIKE still covers pure contains
-  // (including CJK). Escape single quotes for embedding in sql fragments —
-  // drizzle param binding via ${token} is preferred.
-  const fuzzy = sql`(
-    similarity(lower(coalesce(${columns.itemNumber}, '')), lower(${token}))
-      >= ${ITEM_SEARCH_SIMILARITY_THRESHOLD}
-    OR similarity(lower(coalesce(${columns.name}, '')), lower(${token}))
-      >= ${ITEM_SEARCH_SIMILARITY_THRESHOLD}
-    OR word_similarity(
-         lower(${token}),
-         lower(coalesce(${columns.itemNumber}, '') || ' ' || coalesce(${columns.name}, ''))
-       ) >= ${ITEM_SEARCH_WORD_SIMILARITY_THRESHOLD}
-  )`
-
-  return or(contains, fuzzy) as SQL<unknown>
 }
