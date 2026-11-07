@@ -493,6 +493,49 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(result.items.map((i: { id: string }) => i.id)).toContain(part.id)
   })
 
+  it('ANDs multiple tokens (all must match)', async () => {
+    const both = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `AND-BOTH-${Date.now()}`,
+          name: '驱动电机 壳体总成',
+          designId,
+        })
+        .returning(),
+    )
+    const onlyMotor = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `AND-ONE-${Date.now()}`,
+          name: '驱动电机',
+          designId,
+        })
+        .returning(),
+    )
+
+    const result = await ItemSearchService.search('Part', {
+      designId,
+      globalSearch: '电机 壳体',
+    })
+    const ids = result.items.map((i: { id: string }) => i.id)
+    expect(ids).toContain(both.id)
+    expect(ids).not.toContain(onlyMotor.id)
+  })
+
   it('does not match a typo under ILIKE-only (trgm deferred)', async () => {
     await insertPart('MOTOR-HOUSING-01')
 
@@ -501,9 +544,9 @@ describe('ItemSearchService.search — user text in a query language', () => {
       globalSearch: 'MOTAR-HOUSING-01',
     })
 
-    expect(result.items.map((i: { itemNumber: string }) => i.itemNumber)).not.toContain(
-      'MOTOR-HOUSING-01',
-    )
+    expect(
+      result.items.map((i: { itemNumber: string }) => i.itemNumber),
+    ).toEqual([])
   })
 })
 
