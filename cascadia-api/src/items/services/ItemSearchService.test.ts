@@ -306,7 +306,7 @@ describe('ItemSearchService.searchGlobal', () => {
     ])
   })
 
-  it('matches nothing when sanitising strips the whole term', async () => {
+  it('matches nothing for a punctuation-only term (no rows, no error)', async () => {
     await insertItem({ itemNumber: 'SAN-001', designId: designAId })
 
     const result = await ItemSearchService.searchGlobal({
@@ -319,6 +319,22 @@ describe('ItemSearchService.searchGlobal', () => {
     expect(result.total).toBe(0)
   })
 
+  it('matches Chinese name substrings in searchGlobal (CJK must not be stripped)', async () => {
+    const part = await insertItem({
+      itemNumber: `ZH-G-${Date.now()}`,
+      name: '驱动电机总成',
+      designId: designAId,
+    })
+
+    const result = await ItemSearchService.searchGlobal({
+      query: '电机',
+      itemTypes: ['Part'],
+      accessScope: { designIds: [designAId], programIds: [] },
+    })
+
+    expect(result.items.map((i) => i.id)).toContain(part.id)
+  })
+
   // A search box is a contains-box, not a pattern language. `%` and `_` are
   // ILIKE wildcards, so an unescaped term makes `A_1` match `AB1` in SQL and
   // not in the in-memory `String.includes` path — the same query answering
@@ -327,7 +343,6 @@ describe('ItemSearchService.searchGlobal', () => {
     await insertItem({ itemNumber: 'A_1', designId: designAId })
     await insertItem({ itemNumber: 'AB1', designId: designAId })
 
-    // Two characters, so this takes the ILIKE fallback rather than tsquery.
     const result = await ItemSearchService.searchGlobal({
       query: 'A_',
       itemTypes: ['Part'],
@@ -547,6 +562,119 @@ describe('ItemSearchService.search — user text in a query language', () => {
     expect(
       result.items.map((i: { itemNumber: string }) => i.itemNumber),
     ).toEqual([])
+  })
+})
+
+/**
+ * Top-bar typeahead (`enterprise-search`) uses `searchByItemNumber`.
+ * Same ILIKE / CJK / AND rules as `search` free-text.
+ */
+describe('ItemSearchService.searchByItemNumber — ILIKE S1-lite', () => {
+  const testDb = new TestDatabase()
+  let user: TestUser
+  let designId: string
+
+  beforeAll(async () => {
+    await testDb.setup()
+  })
+
+  afterAll(async () => {
+    await testDb.teardown()
+  })
+
+  beforeEach(async () => {
+    await testDb.beginTransaction()
+    user = await insertTestUser(testDb.db)
+
+    const uniq = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    const program = takeFirst(
+      await testDb.db
+        .insert(programs)
+        .values({ name: 'Program', code: `PN-${uniq}`, createdBy: user.id })
+        .returning(),
+    )
+    designId = takeFirst(
+      await testDb.db
+        .insert(designs)
+        .values({
+          programId: program.id,
+          name: 'Design',
+          code: `DN-${uniq}`,
+          createdBy: user.id,
+        })
+        .returning(),
+    ).id
+  })
+
+  afterEach(async () => {
+    await testDb.rollback()
+  })
+
+  it('matches Chinese name substrings (typeahead path)', async () => {
+    const part = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `ZH-TA-${Date.now()}`,
+          name: '驱动电机总成',
+          designId,
+        })
+        .returning(),
+    )
+
+    const results = await ItemSearchService.searchByItemNumber('电机', {
+      designIds: [designId],
+    })
+
+    expect(results.map((i) => i.id)).toContain(part.id)
+  })
+
+  it('ANDs multiple tokens on typeahead path', async () => {
+    const both = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `AND-TA-BOTH-${Date.now()}`,
+          name: '驱动电机 壳体总成',
+          designId,
+        })
+        .returning(),
+    )
+    const onlyMotor = takeFirst(
+      await testDb.db
+        .insert(items)
+        .values({
+          masterId: crypto.randomUUID(),
+          revision: 'A',
+          itemType: 'Part',
+          state: 'Draft',
+          createdBy: user.id,
+          modifiedBy: user.id,
+          itemNumber: `AND-TA-ONE-${Date.now()}`,
+          name: '驱动电机',
+          designId,
+        })
+        .returning(),
+    )
+
+    const results = await ItemSearchService.searchByItemNumber('电机 壳体', {
+      designIds: [designId],
+    })
+    const ids = results.map((i) => i.id)
+    expect(ids).toContain(both.id)
+    expect(ids).not.toContain(onlyMotor.id)
   })
 })
 
